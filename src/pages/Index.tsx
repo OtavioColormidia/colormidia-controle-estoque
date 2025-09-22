@@ -1,13 +1,118 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import Layout from '@/components/Layout';
+import Dashboard from '@/components/Dashboard';
+import InventoryControl from '@/components/InventoryControl';
+import MaterialEntry from '@/components/MaterialEntry';
+import MaterialExit from '@/components/MaterialExit';
+import ProductManagement from '@/components/ProductManagement';
+import SupplierManagement from '@/components/SupplierManagement';
+import Purchases from '@/components/Purchases';
+import { 
+  initialProducts, 
+  initialSuppliers, 
+  initialMovements, 
+  initialPurchases 
+} from '@/lib/data';
+import { Product, Supplier, StockMovement, Purchase } from '@/types/inventory';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
+  const [movements, setMovements] = useState<StockMovement[]>(initialMovements);
+  const [purchases] = useState<Purchase[]>(initialPurchases);
+
+  const handleAddProduct = (product: Omit<Product, 'id' | 'lastUpdated'>) => {
+    const newProduct: Product = {
+      ...product,
+      id: Date.now().toString(),
+      lastUpdated: new Date(),
+    };
+    setProducts([...products, newProduct]);
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    setProducts(products.filter(p => p.id !== id));
+  };
+
+  const handleAddSupplier = (supplier: Omit<Supplier, 'id'>) => {
+    const newSupplier: Supplier = {
+      ...supplier,
+      id: Date.now().toString(),
+    };
+    setSuppliers([...suppliers, newSupplier]);
+  };
+
+  const handleAddMovement = (movement: Omit<StockMovement, 'id'>) => {
+    const newMovement: StockMovement = {
+      ...movement,
+      id: Date.now().toString(),
+    };
+    setMovements([newMovement, ...movements]);
+
+    // Update product stock
+    const productIndex = products.findIndex(p => p.id === movement.productId);
+    if (productIndex !== -1) {
+      const updatedProducts = [...products];
+      if (movement.type === 'entry') {
+        updatedProducts[productIndex].currentStock += movement.quantity;
+      } else {
+        updatedProducts[productIndex].currentStock -= movement.quantity;
+      }
+      updatedProducts[productIndex].lastUpdated = new Date();
+      setProducts(updatedProducts);
+    }
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard products={products} movements={movements} />;
+      case 'inventory':
+        return <InventoryControl products={products} />;
+      case 'entries':
+        return (
+          <MaterialEntry
+            products={products}
+            suppliers={suppliers}
+            movements={movements}
+            onAddMovement={handleAddMovement}
+          />
+        );
+      case 'exits':
+        return (
+          <MaterialExit
+            products={products}
+            movements={movements}
+            onAddMovement={handleAddMovement}
+          />
+        );
+      case 'products':
+        return (
+          <ProductManagement
+            products={products}
+            onAddProduct={handleAddProduct}
+            onDeleteProduct={handleDeleteProduct}
+          />
+        );
+      case 'suppliers':
+        return (
+          <SupplierManagement
+            suppliers={suppliers}
+            onAddSupplier={handleAddSupplier}
+          />
+        );
+      case 'purchases':
+        return <Purchases purchases={purchases} />;
+      default:
+        return <Dashboard products={products} movements={movements} />;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+      {renderContent()}
+    </Layout>
   );
 };
 
