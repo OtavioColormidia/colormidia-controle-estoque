@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Download } from 'lucide-react';
 import { Product } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
+import { exportToCSV } from '@/lib/export';
 
 interface ProductManagementProps {
   products: Product[];
@@ -49,11 +50,31 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
     setFormData({ code: '', name: '', description: '', unit: '', category: '', minStock: '', currentStock: '', location: '' });
   };
 
+  const handleExport = () => {
+    const exportData = products.map(p => ({
+      'Código': p.code,
+      'Nome': p.name,
+      'Descrição': p.description || '',
+      'Categoria': p.category,
+      'Unidade': p.unit,
+      'Estoque Atual': p.currentStock,
+      'Estoque Mínimo': p.minStock,
+      'Localização': p.location || ''
+    }));
+    exportToCSV(exportData, 'produtos');
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Cadastro de Produtos</h2>
-        <p className="text-muted-foreground mt-1">Gerencie os produtos do almoxarifado</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Cadastro de Produtos</h2>
+          <p className="text-muted-foreground mt-1">Gerencie os produtos do almoxarifado</p>
+        </div>
+        <Button onClick={handleExport} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar Produtos
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

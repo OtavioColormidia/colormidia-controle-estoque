@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Download, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Product } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
+import { exportToCSV } from '@/lib/export';
 
 interface InventoryControlProps {
   products: Product[];
@@ -64,25 +65,17 @@ export default function InventoryControl({ products }: InventoryControlProps) {
   };
 
   const handleExport = () => {
-    const csvContent = [
-      ['Código', 'Produto/Material', 'Estoque Inicial', 'Estoque Atual', 'Estoque Mínimo', 'Status', 'Localização'],
-      ...filteredProducts.map(p => [
-        p.code,
-        p.name,
-        p.currentStock + 10, // Simulating initial stock
-        p.currentStock,
-        p.minStock,
-        getStockStatus(p.currentStock, p.minStock),
-        p.location || ''
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `estoque_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+    const exportData = filteredProducts.map(p => ({
+      'Código': p.code,
+      'Produto/Material': p.name,
+      'Categoria': p.category,
+      'Estoque Inicial': p.currentStock + 10,
+      'Estoque Atual': p.currentStock,
+      'Estoque Mínimo': p.minStock,
+      'Status': getStockStatus(p.currentStock, p.minStock),
+      'Localização': p.location || ''
+    }));
+    exportToCSV(exportData, 'estoque');
   };
 
   return (

@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -8,8 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Download } from 'lucide-react';
 import { Purchase } from '@/types/inventory';
+import { exportToCSV } from '@/lib/export';
 
 interface PurchasesProps {
   purchases: Purchase[];
@@ -29,11 +31,31 @@ export default function Purchases({ purchases }: PurchasesProps) {
     }
   };
 
+  const handleExport = () => {
+    const exportData = purchases.map(p => ({
+      'Nº Pedido': p.documentNumber,
+      'Data': new Date(p.date).toLocaleDateString('pt-BR'),
+      'Fornecedor': p.supplierName,
+      'Qtd Itens': p.items.length,
+      'Valor Total': `R$ ${p.totalValue.toFixed(2)}`,
+      'Status': p.status === 'pending' ? 'Pendente' : 
+                p.status === 'approved' ? 'Aprovado' : 
+                p.status === 'delivered' ? 'Entregue' : 'Cancelado'
+    }));
+    exportToCSV(exportData, 'compras');
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Compras</h2>
-        <p className="text-muted-foreground mt-1">Gerencie as compras com fornecedores</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Compras</h2>
+          <p className="text-muted-foreground mt-1">Gerencie as compras com fornecedores</p>
+        </div>
+        <Button onClick={handleExport} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar Compras
+        </Button>
       </div>
 
       <Card className="p-6">

@@ -12,9 +12,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Building2, Mail, Phone } from 'lucide-react';
+import { Plus, Building2, Mail, Phone, Download } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
+import { exportToCSV } from '@/lib/export';
 
 interface SupplierManagementProps {
   suppliers: Supplier[];
@@ -46,11 +47,34 @@ export default function SupplierManagement({ suppliers, onAddSupplier }: Supplie
     });
   };
 
+  const handleExport = () => {
+    const exportData = suppliers.map(s => ({
+      'Código': s.code,
+      'Razão Social': s.name,
+      'CNPJ': s.cnpj,
+      'Contato': s.contact || '',
+      'Email': s.email || '',
+      'Telefone': s.phone || '',
+      'Endereço': s.address || '',
+      'Cidade': s.city || '',
+      'Estado': s.state || '',
+      'CEP': s.zipCode || '',
+      'Status': s.active ? 'Ativo' : 'Inativo'
+    }));
+    exportToCSV(exportData, 'fornecedores');
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Cadastro de Fornecedores</h2>
-        <p className="text-muted-foreground mt-1">Gerencie os fornecedores do almoxarifado</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Cadastro de Fornecedores</h2>
+          <p className="text-muted-foreground mt-1">Gerencie os fornecedores do almoxarifado</p>
+        </div>
+        <Button onClick={handleExport} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar Fornecedores
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

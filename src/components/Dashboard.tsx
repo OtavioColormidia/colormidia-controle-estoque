@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   Package,
   AlertTriangle,
@@ -8,9 +9,11 @@ import {
   Users,
   DollarSign,
   Activity,
+  Download,
 } from 'lucide-react';
 import { Product, StockMovement } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
+import { exportAllData } from '@/lib/export';
 import {
   LineChart,
   Line,
@@ -110,11 +113,17 @@ export default function Dashboard({ products, movements }: DashboardProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
-        <p className="text-muted-foreground mt-1">
-          Visão geral do controle de estoque
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
+          <p className="text-muted-foreground mt-1">
+            Visão geral do controle de estoque
+          </p>
+        </div>
+        <Button onClick={exportAllData} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar Todos os Dados
+        </Button>
       </div>
 
       {/* Metrics Cards */}

@@ -19,9 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Calendar, Package, Save, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Package, Save, Plus, Download } from 'lucide-react';
 import { Product, Supplier, StockMovement } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
+import { exportToCSV } from '@/lib/export';
 
 interface MaterialEntryProps {
   products: Product[];
@@ -96,13 +97,32 @@ export default function MaterialEntry({
     });
   };
 
+  const handleExport = () => {
+    const exportData = entries.map(e => ({
+      'Data': new Date(e.date).toLocaleDateString('pt-BR'),
+      'Produto': e.productName,
+      'Quantidade': e.quantity,
+      'Fornecedor': e.supplierName || '',
+      'Documento': e.documentNumber || '',
+      'Valor Total': e.totalValue ? `R$ ${e.totalValue.toFixed(2)}` : '',
+      'Observações': e.notes || ''
+    }));
+    exportToCSV(exportData, 'entradas');
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Entrada de Material</h2>
-        <p className="text-muted-foreground mt-1">
-          Registre a entrada de materiais no estoque
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Entrada de Material</h2>
+          <p className="text-muted-foreground mt-1">
+            Registre a entrada de materiais no estoque
+          </p>
+        </div>
+        <Button onClick={handleExport} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar Entradas
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
