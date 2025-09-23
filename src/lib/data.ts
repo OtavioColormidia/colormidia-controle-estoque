@@ -114,8 +114,13 @@ export const initialMovements: StockMovement[] = [];
 export const initialPurchases: Purchase[] = [];
 
 export function getStockStatus(current: number, min: number): 'critical' | 'warning' | 'normal' {
-  const percentage = (current / min) * 100;
-  if (percentage <= 50) return 'critical';
-  if (percentage <= 80) return 'warning';
+  // Crítico: estoque atual abaixo do mínimo
+  if (current < min) return 'critical';
+  
+  // Atenção: estoque atual até 20% acima do mínimo
+  const threshold = min * 1.2; // 20% acima do mínimo
+  if (current <= threshold) return 'warning';
+  
+  // Normal: estoque confortável (mais de 20% acima do mínimo)
   return 'normal';
 }
