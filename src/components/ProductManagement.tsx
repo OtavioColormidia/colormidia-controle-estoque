@@ -27,11 +27,9 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
     code: '',
     name: '',
     description: '',
-    unit: '',
     category: '',
     minStock: '',
     currentStock: '',
-    location: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,14 +38,14 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
       code: formData.code,
       name: formData.name,
       description: formData.description,
-      unit: formData.unit,
+      unit: 'UN', // Default value
       category: formData.category,
       minStock: parseInt(formData.minStock),
       currentStock: parseInt(formData.currentStock),
-      location: formData.location,
+      location: '', // Default empty
     });
     toast({ title: 'Produto cadastrado', description: `${formData.name} foi adicionado com sucesso` });
-    setFormData({ code: '', name: '', description: '', unit: '', category: '', minStock: '', currentStock: '', location: '' });
+    setFormData({ code: '', name: '', description: '', category: '', minStock: '', currentStock: '' });
   };
 
   const handleExport = () => {
@@ -101,16 +99,6 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
             <div className="space-y-2">
               <Label>Descrição</Label>
               <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Unidade</Label>
-                <Input value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} required />
-              </div>
-              <div className="space-y-2">
-                <Label>Localização</Label>
-                <Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
