@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar, Package, Save, Plus, Download } from 'lucide-react';
 import { Product, Supplier, StockMovement } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
@@ -39,6 +40,8 @@ export default function MaterialEntry({
 }: MaterialEntryProps) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
+    useExistingProduct: 'existing',
+    productId: '',
     productName: '',
     quantity: '',
     unitPrice: '',
@@ -52,20 +55,38 @@ export default function MaterialEntry({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.productName.trim()) {
-      toast({
-        title: 'Erro',
-        description: 'Por favor, digite o nome do produto',
-        variant: 'destructive',
-      });
-      return;
+    let productId: string | undefined;
+    let productName: string | undefined;
+    
+    if (formData.useExistingProduct === 'existing') {
+      const selectedProduct = products.find(p => p.id === formData.productId);
+      if (!selectedProduct) {
+        toast({
+          title: 'Erro',
+          description: 'Por favor, selecione um produto',
+          variant: 'destructive',
+        });
+        return;
+      }
+      productId = selectedProduct.id;
+      productName = selectedProduct.name;
+    } else {
+      if (!formData.productName.trim()) {
+        toast({
+          title: 'Erro',
+          description: 'Por favor, digite o nome do produto',
+          variant: 'destructive',
+        });
+        return;
+      }
+      productName = formData.productName.trim();
     }
 
     const movement: Omit<StockMovement, 'id'> = {
       date: new Date(formData.date),
       type: 'entry',
-      productId: undefined,
-      productName: formData.productName.trim(),
+      productId: productId,
+      productName: productName,
       quantity: parseInt(formData.quantity),
       unitPrice: parseFloat(formData.unitPrice) || undefined,
       totalValue: formData.unitPrice ? parseFloat(formData.unitPrice) * parseInt(formData.quantity) : undefined,
@@ -79,12 +100,14 @@ export default function MaterialEntry({
 
     toast({
       title: 'Entrada registrada',
-      description: `${formData.quantity} unidades de ${formData.productName} adicionadas ao estoque`,
+      description: `${formData.quantity} unidades de ${productName} adicionadas ao estoque`,
     });
 
     // Reset form
     setFormData({
       date: new Date().toISOString().split('T')[0],
+      useExistingProduct: 'existing',
+      productId: '',
       productName: '',
       quantity: '',
       unitPrice: '',
@@ -97,7 +120,7 @@ export default function MaterialEntry({
   const handleExport = () => {
     const exportData = entries.map(e => ({
       'Data': new Date(e.date).toLocaleDateString('pt-BR'),
-      'Produto': e.productName,
+      'Produto': e.productName || 'Produto não identificado',
       'Quantidade': e.quantity,
       'Fornecedor': e.supplierName || '',
       'Documento': e.documentNumber || '',
@@ -157,14 +180,49 @@ export default function MaterialEntry({
             </div>
 
             <div className="space-y-2">
+              <Label>Tipo de Produto</Label>
+              <RadioGroup
+                value={formData.useExistingProduct}
+                onValueChange={(value) => setFormData({ ...formData, useExistingProduct: value, productId: '', productName: '' })}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="existing" id="existing" />
+                  <Label htmlFor="existing">Produto Cadastrado</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="new" id="new" />
+                  <Label htmlFor="new">Novo Produto</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="product">Produto</Label>
-              <Input
-                id="product"
-                placeholder="Digite o nome do produto"
-                value={formData.productName}
-                onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                required
-              />
+              {formData.useExistingProduct === 'existing' ? (
+                <Select
+                  value={formData.productId}
+                  onValueChange={(value) => setFormData({ ...formData, productId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um produto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.code} - {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="product"
+                  placeholder="Digite o nome do produto"
+                  value={formData.productName}
+                  onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+                  required={formData.useExistingProduct === 'new'}
+                />
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -255,7 +313,7 @@ export default function MaterialEntry({
                       {new Date(entry.date).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <p className="font-medium">{entry.productName}</p>
+                      <p className="font-medium">{entry.productName || 'Produto não identificado'}</p>
                       {entry.supplierName && (
                         <p className="text-xs text-muted-foreground">{entry.supplierName}</p>
                       )}
