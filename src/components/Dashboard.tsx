@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -5,18 +6,13 @@ import {
   AlertTriangle,
   TrendingUp,
   TrendingDown,
-  ShoppingCart,
-  Users,
-  DollarSign,
-  Activity,
   Download,
 } from 'lucide-react';
 import { Product, StockMovement } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
 import { exportAllData } from '@/lib/export';
+import { supabase } from '@/integrations/supabase/client';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -36,18 +32,41 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ products, movements }: DashboardProps) {
+  // Set up real-time subscription for movements
+  useEffect(() => {
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stock_movements'
+        },
+        () => {
+          // Real-time update handled by parent component
+          window.location.reload(); // Simple refresh for real-time updates
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   // Calculate metrics
   const totalProducts = products.length;
   const lowStockItems = products.filter(
     (p) => getStockStatus(p.currentStock, p.minStock) !== 'normal'
   ).length;
 
-  // Prepare chart data
+  // Prepare chart data - filter out zero values
   const stockStatusData = [
     { name: 'Normal', value: products.filter(p => getStockStatus(p.currentStock, p.minStock) === 'normal').length, color: 'hsl(var(--success))' },
     { name: 'Atenção', value: products.filter(p => getStockStatus(p.currentStock, p.minStock) === 'warning').length, color: 'hsl(var(--warning))' },
     { name: 'Crítico', value: products.filter(p => getStockStatus(p.currentStock, p.minStock) === 'critical').length, color: 'hsl(var(--danger))' },
-  ];
+  ].filter(item => item.value > 0);
 
   const movementsByDay = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(Date.now() - (6 - i) * 86400000);
@@ -193,35 +212,42 @@ export default function Dashboard({ products, movements }: DashboardProps) {
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Movimentações Recentes</h3>
         <div className="space-y-3">
-          {movements.slice(0, 5).map((movement) => (
-            <div
-              key={movement.id}
-              className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-            >
-              <div className="flex items-center gap-3">
-                {movement.type === 'entry' ? (
-                  <TrendingUp className="h-5 w-5 text-success" />
-                ) : (
-                  <TrendingDown className="h-5 w-5 text-warning" />
-                )}
-                <div>
-                  <p className="font-medium">{movement.productName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {movement.type === 'entry' ? 'Entrada' : 'Saída'} -{' '}
-                    {new Date(movement.date).toLocaleDateString('pt-BR')}
-                  </p>
+          {movements.slice(0, 5).map((movement) => {
+            // Get product name from movement or from products list
+            const productName = movement.productName || 
+              products.find(p => p.id === movement.productId)?.name || 
+              'Produto não identificado';
+              
+            return (
+              <div
+                key={movement.id}
+                className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+              >
+                <div className="flex items-center gap-3">
+                  {movement.type === 'entry' ? (
+                    <TrendingUp className="h-5 w-5 text-success" />
+                  ) : (
+                    <TrendingDown className="h-5 w-5 text-warning" />
+                  )}
+                  <div>
+                    <p className="font-medium">{productName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {movement.type === 'entry' ? 'Entrada' : 'Saída'} -{' '}
+                      {new Date(movement.date).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">{movement.quantity} un.</p>
+                  {movement.totalValue && (
+                    <p className="text-sm text-muted-foreground">
+                      R$ {movement.totalValue.toFixed(2)}
+                    </p>
+                  )}
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-medium">{movement.quantity} un.</p>
-                {movement.totalValue && (
-                  <p className="text-sm text-muted-foreground">
-                    R$ {movement.totalValue.toFixed(2)}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
     </div>

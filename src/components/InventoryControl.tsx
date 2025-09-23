@@ -11,10 +11,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Search, Filter, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Product, StockMovement } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
-import { exportToCSV } from '@/lib/export';
+
 
 interface InventoryControlProps {
   products: Product[];
@@ -86,26 +86,6 @@ export default function InventoryControl({ products, movements }: InventoryContr
     }
   };
 
-  const handleExport = () => {
-    const exportData = filteredProducts.map(p => {
-      const movementData = productMovements.get(p.id) || { entries: 0, exits: 0 };
-      const initialStock = p.currentStock - movementData.entries + movementData.exits;
-      
-      return {
-        'Código': p.code,
-        'Produto/Material': p.name,
-        'Categoria': p.category,
-        'Estoque Inicial': initialStock,
-        'Entradas': movementData.entries,
-        'Saídas': movementData.exits,
-        'Estoque Atual': p.currentStock,
-        'Estoque Mínimo': p.minStock,
-        'Status': getStockStatus(p.currentStock, p.minStock),
-        'Localização': p.location || ''
-      };
-    });
-    exportToCSV(exportData, 'estoque');
-  };
 
   return (
     <div className="space-y-6">
@@ -155,16 +135,9 @@ export default function InventoryControl({ products, movements }: InventoryContr
               onClick={() => setFilterStatus('normal')}
               className="flex items-center gap-2"
             >
-              Normal
-            </Button>
-          </div>
-          <Button
-            onClick={handleExport}
-            className="bg-gradient-secondary hover:opacity-90"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
+            Normal
           </Button>
+        </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -179,7 +152,6 @@ export default function InventoryControl({ products, movements }: InventoryContr
                 <TableHead className="font-bold text-center">Estoque Mínimo</TableHead>
                 <TableHead className="font-bold text-center">Estoque Atual</TableHead>
                 <TableHead className="font-bold">Status</TableHead>
-                <TableHead className="font-bold">Localização</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -221,7 +193,6 @@ export default function InventoryControl({ products, movements }: InventoryContr
                     <TableCell>
                       {getStatusBadge(product.currentStock, product.minStock)}
                     </TableCell>
-                    <TableCell className="text-sm">{product.location || '-'}</TableCell>
                   </TableRow>
                 );
               })}

@@ -13,9 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Download, Trash2, Plus } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
-import { exportToCSV } from '@/lib/export';
+
 import { toast } from '@/components/ui/use-toast';
 
 interface PurchasesProps {
@@ -95,31 +95,12 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     }
   };
 
-  const handleExport = () => {
-    const exportData = purchases.map(p => ({
-      'Nº Pedido': p.documentNumber,
-      'Data': new Date(p.date).toLocaleDateString('pt-BR'),
-      'Fornecedor': p.supplierName,
-      'Qtd Itens': p.items.length,
-      'Valor Total': `R$ ${p.totalValue.toFixed(2)}`,
-      'Status': p.status === 'pending' ? 'Pendente' : 
-                p.status === 'approved' ? 'Aprovado' : 
-                p.status === 'delivered' ? 'Entregue' : 'Cancelado'
-    }));
-    exportToCSV(exportData, 'compras');
-  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Compras</h2>
-          <p className="text-muted-foreground mt-1">Gerencie as compras com fornecedores</p>
-        </div>
-        <Button onClick={handleExport} variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Exportar Compras
-        </Button>
+      <div>
+        <h2 className="text-3xl font-bold text-foreground">Compras</h2>
+        <p className="text-muted-foreground mt-1">Gerencie as compras com fornecedores</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
