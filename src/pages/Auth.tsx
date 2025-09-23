@@ -36,7 +36,7 @@ export default function Auth() {
 
       toast({
         title: "Conta criada com sucesso!",
-        description: "Aguarde a autorização do administrador para acessar o sistema.",
+        description: "Aguarde a autorização do administrador para acessar o sistema. Você pode tentar fazer login agora.",
       });
       
       // Clear form
@@ -189,8 +189,11 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="text-sm text-muted-foreground text-center">
-          Após criar sua conta, aguarde a autorização do administrador para acessar o sistema.
+        <CardFooter className="flex flex-col gap-2 text-sm text-muted-foreground text-center">
+          <p>Após criar sua conta, aguarde a autorização do administrador.</p>
+          <p className="text-xs">
+            Para desabilitar a confirmação por email, acesse as configurações de autenticação no Supabase.
+          </p>
         </CardFooter>
       </Card>
     </div>
