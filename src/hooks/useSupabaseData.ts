@@ -376,13 +376,25 @@ export const useSupabaseData = () => {
         ? product.currentStock + movement.quantity 
         : product.currentStock - movement.quantity;
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('products')
         .update({ 
           current_stock: newStock,
           updated_by: (await supabase.auth.getUser()).data.user?.id
         })
         .eq('id', movement.productId);
+      
+      if (updateError) {
+        toast({
+          title: "Erro ao atualizar estoque",
+          description: updateError.message,
+          variant: "destructive"
+        });
+        throw updateError;
+      }
+      
+      // Reload products to ensure UI is updated with latest data
+      await loadProducts();
     }
 
     toast({
