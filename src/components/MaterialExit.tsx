@@ -102,14 +102,11 @@ export default function MaterialExit({
   };
 
   const departments = [
-    'Administrativo',
-    'Financeiro',
-    'RH',
-    'TI',
-    'Operacional',
-    'Manutenção',
+    'Adesivagem',
+    'Serralheria',
+    'Montagem',
+    'Atendimento ao Cliente',
     'Vendas',
-    'Marketing',
   ];
 
 
