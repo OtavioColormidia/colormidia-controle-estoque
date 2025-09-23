@@ -216,6 +216,7 @@ export type Database = {
           id: string
           notes: string | null
           product_id: string
+          product_name: string | null
           quantity: number
           reason: string | null
           requested_by: string | null
@@ -233,6 +234,7 @@ export type Database = {
           id?: string
           notes?: string | null
           product_id: string
+          product_name?: string | null
           quantity: number
           reason?: string | null
           requested_by?: string | null
@@ -250,6 +252,7 @@ export type Database = {
           id?: string
           notes?: string | null
           product_id?: string
+          product_name?: string | null
           quantity?: number
           reason?: string | null
           requested_by?: string | null

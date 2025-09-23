@@ -337,17 +337,19 @@ export const useSupabaseData = () => {
     });
   };
 
-  const addMovement = async (movement: Omit<StockMovement, 'id' | 'productName' | 'supplierName'>) => {
+  const addMovement = async (movement: Omit<StockMovement, 'id'>) => {
     const { data, error } = await supabase
       .from('stock_movements')
       .insert({
         date: movement.date.toISOString(),
         type: movement.type,
-        product_id: movement.productId,
+        product_id: movement.productId || null,
+        product_name: movement.productName || null,
         quantity: movement.quantity,
         unit_price: movement.unitPrice,
         total_value: movement.totalValue,
-        supplier_id: movement.supplierId,
+        supplier_id: movement.supplierId || null,
+        supplier_name: movement.supplierName || null,
         document_number: movement.documentNumber,
         requested_by: movement.requestedBy,
         department: movement.department,

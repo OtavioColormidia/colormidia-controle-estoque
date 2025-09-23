@@ -39,10 +39,10 @@ export default function MaterialEntry({
 }: MaterialEntryProps) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    productId: '',
+    productName: '',
     quantity: '',
     unitPrice: '',
-    supplierId: '',
+    supplierName: '',
     documentNumber: '',
     notes: '',
   });
@@ -52,13 +52,10 @@ export default function MaterialEntry({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const product = products.find(p => p.id === formData.productId);
-    const supplier = suppliers.find(s => s.id === formData.supplierId);
-    
-    if (!product) {
+    if (!formData.productName.trim()) {
       toast({
         title: 'Erro',
-        description: 'Por favor, selecione um produto',
+        description: 'Por favor, digite o nome do produto',
         variant: 'destructive',
       });
       return;
@@ -67,13 +64,13 @@ export default function MaterialEntry({
     const movement: Omit<StockMovement, 'id'> = {
       date: new Date(formData.date),
       type: 'entry',
-      productId: formData.productId,
-      productName: product.name,
+      productId: undefined,
+      productName: formData.productName.trim(),
       quantity: parseInt(formData.quantity),
       unitPrice: parseFloat(formData.unitPrice) || undefined,
       totalValue: formData.unitPrice ? parseFloat(formData.unitPrice) * parseInt(formData.quantity) : undefined,
-      supplierId: formData.supplierId || undefined,
-      supplierName: supplier?.name,
+      supplierId: undefined,
+      supplierName: formData.supplierName.trim() || undefined,
       documentNumber: formData.documentNumber || undefined,
       notes: formData.notes || undefined,
     };
@@ -82,16 +79,16 @@ export default function MaterialEntry({
 
     toast({
       title: 'Entrada registrada',
-      description: `${formData.quantity} unidades de ${product.name} adicionadas ao estoque`,
+      description: `${formData.quantity} unidades de ${formData.productName} adicionadas ao estoque`,
     });
 
     // Reset form
     setFormData({
       date: new Date().toISOString().split('T')[0],
-      productId: '',
+      productName: '',
       quantity: '',
       unitPrice: '',
-      supplierId: '',
+      supplierName: '',
       documentNumber: '',
       notes: '',
     });
@@ -161,21 +158,13 @@ export default function MaterialEntry({
 
             <div className="space-y-2">
               <Label htmlFor="product">Produto</Label>
-              <Select
-                value={formData.productId}
-                onValueChange={(value) => setFormData({ ...formData, productId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o produto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.code} - {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="product"
+                placeholder="Digite o nome do produto"
+                value={formData.productName}
+                onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+                required
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -206,21 +195,12 @@ export default function MaterialEntry({
 
             <div className="space-y-2">
               <Label htmlFor="supplier">Fornecedor</Label>
-              <Select
-                value={formData.supplierId}
-                onValueChange={(value) => setFormData({ ...formData, supplierId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o fornecedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliers.map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="supplier"
+                placeholder="Digite o nome do fornecedor"
+                value={formData.supplierName}
+                onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })}
+              />
             </div>
 
             <div className="space-y-2">
