@@ -59,28 +59,27 @@ export default function InventoryControl({ products, movements }: InventoryContr
 
   const getStatusBadge = (current: number, min: number) => {
     const status = getStockStatus(current, min);
-    const percentage = Math.round((current / min) * 100);
 
     switch (status) {
       case 'critical':
         return (
           <Badge className="bg-danger text-danger-foreground">
             <AlertTriangle className="h-3 w-3 mr-1" />
-            Necessidade de Reposição ({percentage}%)
+            Necessidade de Reposição
           </Badge>
         );
       case 'warning':
         return (
           <Badge className="bg-warning text-warning-foreground">
             <AlertTriangle className="h-3 w-3 mr-1" />
-            Estoque Baixo ({percentage}%)
+            Estoque Baixo
           </Badge>
         );
       case 'normal':
         return (
           <Badge className="bg-success text-success-foreground">
             <CheckCircle className="h-3 w-3 mr-1" />
-            Estoque Confortável ({percentage}%)
+            Estoque Confortável
           </Badge>
         );
     }

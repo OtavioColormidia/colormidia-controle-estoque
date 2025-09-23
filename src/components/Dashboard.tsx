@@ -69,12 +69,20 @@ export default function Dashboard({ products, movements }: DashboardProps) {
   ].filter(item => item.value > 0);
 
   const movementsByDay = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(Date.now() - (6 - i) * 86400000);
-    const dayMovements = movements.filter(
-      (m) => new Date(m.date).toDateString() === date.toDateString()
-    );
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    date.setHours(0, 0, 0, 0);
+    
+    const nextDate = new Date(date);
+    nextDate.setDate(nextDate.getDate() + 1);
+    
+    const dayMovements = movements.filter((m) => {
+      const movementDate = new Date(m.date);
+      return movementDate >= date && movementDate < nextDate;
+    });
+    
     return {
-      day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+      day: date.toLocaleDateString('pt-BR', { weekday: 'short', timeZone: 'America/Sao_Paulo' }),
       entradas: dayMovements.filter((m) => m.type === 'entry').length,
       saidas: dayMovements.filter((m) => m.type === 'exit').length,
     };
