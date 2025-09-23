@@ -11,8 +11,12 @@ import {
   Menu,
   X,
   Box,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,6 +36,23 @@ const menuItems = [
 
 export default function Layout({ children, activeTab, onTabChange }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      navigate("/auth");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao sair",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -92,8 +113,19 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
 
           {/* Footer */}
           <div className="border-t border-sidebar-border p-4">
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent",
+                !sidebarOpen && "justify-center"
+              )}
+            >
+              <LogOut className="h-5 w-5 flex-shrink-0" />
+              {sidebarOpen && <span className="text-sm font-medium">Sair</span>}
+            </Button>
             {sidebarOpen && (
-              <p className="text-xs text-sidebar-foreground/70 text-center">
+              <p className="text-xs text-sidebar-foreground/70 text-center mt-4">
                 Sistema de Controle v1.0
               </p>
             )}

@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 import Layout from '@/components/Layout';
 import Dashboard from '@/components/Dashboard';
 import InventoryControl from '@/components/InventoryControl';
@@ -7,6 +10,7 @@ import MaterialExit from '@/components/MaterialExit';
 import ProductManagement from '@/components/ProductManagement';
 import SupplierManagement from '@/components/SupplierManagement';
 import Purchases from '@/components/Purchases';
+import { Loader2 } from 'lucide-react';
 import { 
   initialProducts, 
   initialSuppliers, 
@@ -16,11 +20,85 @@ import {
 import { Product, Supplier, StockMovement, Purchase } from '@/types/inventory';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
   const [movements, setMovements] = useState<StockMovement[]>(initialMovements);
   const [purchases, setPurchases] = useState<Purchase[]>(initialPurchases);
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Check authorization when session changes
+        if (session?.user) {
+          checkAuthorization(session.user.id);
+        } else {
+          setIsAuthorized(false);
+          setLoading(false);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        checkAuthorization(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const checkAuthorization = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("is_authorized")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error checking authorization:", error);
+        setIsAuthorized(false);
+      } else {
+        setIsAuthorized(profile?.is_authorized || false);
+      }
+    } catch (error) {
+      console.error("Error checking authorization:", error);
+      setIsAuthorized(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Redirect to auth if not logged in or not authorized
+  if (!user || !isAuthorized) {
+    navigate("/auth");
+    return null;
+  }
 
   const handleAddProduct = (product: Omit<Product, 'id' | 'lastUpdated'>) => {
     const newProduct: Product = {
