@@ -218,7 +218,7 @@ export type Database = {
           document_number: string | null
           id: string
           notes: string | null
-          product_id: string
+          product_id: string | null
           product_name: string | null
           quantity: number
           reason: string | null
@@ -236,7 +236,7 @@ export type Database = {
           document_number?: string | null
           id?: string
           notes?: string | null
-          product_id: string
+          product_id?: string | null
           product_name?: string | null
           quantity: number
           reason?: string | null
@@ -254,7 +254,7 @@ export type Database = {
           document_number?: string | null
           id?: string
           notes?: string | null
-          product_id?: string
+          product_id?: string | null
           product_name?: string | null
           quantity?: number
           reason?: string | null
