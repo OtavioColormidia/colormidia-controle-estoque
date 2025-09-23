@@ -117,10 +117,10 @@ export function getStockStatus(current: number, min: number): 'critical' | 'warn
   // Crítico: estoque atual abaixo do mínimo
   if (current < min) return 'critical';
   
-  // Atenção: estoque atual até 20% acima do mínimo
-  const threshold = min * 1.2; // 20% acima do mínimo
+  // Atenção: estoque atual até 10 itens acima do mínimo
+  const threshold = min + 10;
   if (current <= threshold) return 'warning';
   
-  // Normal: estoque confortável (mais de 20% acima do mínimo)
+  // Normal: estoque acima de 10 itens do mínimo
   return 'normal';
 }
