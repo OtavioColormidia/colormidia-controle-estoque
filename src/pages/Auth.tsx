@@ -191,9 +191,6 @@ export default function Auth() {
         </CardContent>
         <CardFooter className="flex flex-col gap-2 text-sm text-muted-foreground text-center">
           <p>Após criar sua conta, aguarde a autorização do administrador.</p>
-          <p className="text-xs">
-            Para desabilitar a confirmação por email, acesse as configurações de autenticação no Supabase.
-          </p>
         </CardFooter>
       </Card>
     </div>

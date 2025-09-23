@@ -10,9 +10,9 @@ import {
   ClipboardList,
   Menu,
   X,
-  Box,
   LogOut,
 } from 'lucide-react';
+import logoColorMedia from '@/assets/logo-colormedia.jpg';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -67,7 +67,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
           {/* Header */}
           <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
             <div className="flex items-center gap-3">
-              <Box className="h-8 w-8 text-sidebar-primary" />
+              <img src={logoColorMedia} alt="ColorMídia" className="h-8 w-8 object-contain" />
               {sidebarOpen && (
                 <h1 className="text-lg font-bold text-sidebar-foreground">
                   Almoxarifado

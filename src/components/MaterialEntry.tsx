@@ -22,7 +22,6 @@ import {
 import { Calendar, Package, Save, Plus, Download } from 'lucide-react';
 import { Product, Supplier, StockMovement } from '@/types/inventory';
 import { toast } from '@/hooks/use-toast';
-import { exportToCSV } from '@/lib/export';
 
 interface MaterialEntryProps {
   products: Product[];
@@ -42,6 +41,7 @@ export default function MaterialEntry({
     productId: '',
     quantity: '',
     unitPrice: '',
+    supplierId: '',
     supplierName: '',
     documentNumber: '',
     notes: '',
@@ -70,7 +70,7 @@ export default function MaterialEntry({
       quantity: parseInt(formData.quantity),
       unitPrice: parseFloat(formData.unitPrice) || undefined,
       totalValue: formData.unitPrice ? parseFloat(formData.unitPrice) * parseInt(formData.quantity) : undefined,
-      supplierId: undefined,
+      supplierId: formData.supplierId || undefined,
       supplierName: formData.supplierName.trim() || undefined,
       documentNumber: formData.documentNumber || undefined,
       notes: formData.notes || undefined,
@@ -89,39 +89,21 @@ export default function MaterialEntry({
       productId: '',
       quantity: '',
       unitPrice: '',
+      supplierId: '',
       supplierName: '',
       documentNumber: '',
       notes: '',
     });
   };
 
-  const handleExport = () => {
-    const exportData = entries.map(e => ({
-      'Data': new Date(e.date).toLocaleDateString('pt-BR'),
-      'Produto': e.productName || 'Produto não identificado',
-      'Quantidade': e.quantity,
-      'Valor Unitário': e.unitPrice ? `R$ ${e.unitPrice.toFixed(2)}` : '',
-      'Valor Total': e.totalValue ? `R$ ${e.totalValue.toFixed(2)}` : '',
-      'Fornecedor': e.supplierName || '',
-      'Documento': e.documentNumber || '',
-      'Observações': e.notes || ''
-    }));
-    exportToCSV(exportData, 'entradas');
-  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Entrada de Material</h2>
-          <p className="text-muted-foreground mt-1">
-            Registre a entrada de materiais no estoque
-          </p>
-        </div>
-        <Button onClick={handleExport} variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Exportar Entradas
-        </Button>
+      <div>
+        <h2 className="text-3xl font-bold text-foreground">Entrada de Material</h2>
+        <p className="text-muted-foreground mt-1">
+          Registre a entrada de materiais no estoque
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -206,12 +188,28 @@ export default function MaterialEntry({
 
             <div className="space-y-2">
               <Label htmlFor="supplier">Fornecedor</Label>
-              <Input
-                id="supplier"
-                placeholder="Digite o nome do fornecedor"
-                value={formData.supplierName}
-                onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })}
-              />
+              <Select
+                value={formData.supplierId}
+                onValueChange={(value) => {
+                  const supplier = suppliers.find(s => s.id === value);
+                  setFormData({
+                    ...formData,
+                    supplierId: value,
+                    supplierName: supplier?.name || ''
+                  });
+                }}
+              >
+                <SelectTrigger id="supplier">
+                  <SelectValue placeholder="Selecione um fornecedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

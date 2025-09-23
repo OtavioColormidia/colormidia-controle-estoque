@@ -41,15 +41,6 @@ export default function Dashboard({ products, movements }: DashboardProps) {
   const lowStockItems = products.filter(
     (p) => getStockStatus(p.currentStock, p.minStock) !== 'normal'
   ).length;
-  
-  const totalValue = products.reduce(
-    (sum, p) => sum + (p.currentStock * 50), // Assuming average value of 50 per unit
-    0
-  );
-
-  const recentMovements = movements.filter(
-    (m) => new Date(m.date) > new Date(Date.now() - 7 * 86400000)
-  ).length;
 
   // Prepare chart data
   const stockStatusData = [
@@ -80,36 +71,6 @@ export default function Dashboard({ products, movements }: DashboardProps) {
     return acc;
   }, {} as Record<string, { name: string; quantidade: number; valor: number }>);
 
-  const metrics = [
-    {
-      title: 'Total de Produtos',
-      value: totalProducts,
-      icon: Package,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-    },
-    {
-      title: 'Itens com Estoque Baixo',
-      value: lowStockItems,
-      icon: AlertTriangle,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
-    },
-    {
-      title: 'Valor Total em Estoque',
-      value: `R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      icon: DollarSign,
-      color: 'text-success',
-      bgColor: 'bg-success/10',
-    },
-    {
-      title: 'Movimentações (7 dias)',
-      value: recentMovements,
-      icon: Activity,
-      color: 'text-accent',
-      bgColor: 'bg-accent/10',
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -127,23 +88,29 @@ export default function Dashboard({ products, movements }: DashboardProps) {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((metric, index) => {
-          const Icon = metric.icon;
-          return (
-            <Card key={index} className="p-6 border-border hover:shadow-lg transition-all">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">{metric.title}</p>
-                  <p className="text-2xl font-bold text-foreground">{metric.value}</p>
-                </div>
-                <div className={`${metric.bgColor} p-3 rounded-lg`}>
-                  <Icon className={`h-6 w-6 ${metric.color}`} />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="p-6 border-border hover:shadow-lg transition-all">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Total de Produtos</p>
+              <p className="text-2xl font-bold text-foreground">{totalProducts}</p>
+            </div>
+            <div className="bg-primary/10 p-3 rounded-lg">
+              <Package className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-6 border-border hover:shadow-lg transition-all">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Itens com Estoque Baixo</p>
+              <p className="text-2xl font-bold text-foreground">{lowStockItems}</p>
+            </div>
+            <div className="bg-warning/10 p-3 rounded-lg">
+              <AlertTriangle className="h-6 w-6 text-warning" />
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Charts */}

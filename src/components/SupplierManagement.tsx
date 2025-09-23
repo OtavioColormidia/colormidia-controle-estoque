@@ -73,15 +73,9 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Cadastro de Fornecedores</h2>
-          <p className="text-muted-foreground mt-1">Gerencie os fornecedores do almoxarifado</p>
-        </div>
-        <Button onClick={handleExport} variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Exportar Fornecedores
-        </Button>
+      <div>
+        <h2 className="text-3xl font-bold text-foreground">Cadastro de Fornecedores</h2>
+        <p className="text-muted-foreground mt-1">Gerencie os fornecedores do almoxarifado</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
