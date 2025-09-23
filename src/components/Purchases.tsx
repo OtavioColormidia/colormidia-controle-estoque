@@ -29,31 +29,28 @@ interface PurchasesProps {
 
 export default function Purchases({ purchases, products, suppliers, onAddPurchase, onDeletePurchase, onUpdatePurchaseStatus }: PurchasesProps) {
   const [formData, setFormData] = useState({
-    supplierId: '',
+    supplierName: '',
     documentNumber: '',
     notes: '',
   });
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState('');
+  const [productName, setProductName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
 
   const handleAddItem = () => {
-    if (selectedProduct && quantity && unitPrice) {
-      const product = products.find(p => p.id === selectedProduct);
-      if (product) {
-        const newItem: PurchaseItem = {
-          productId: selectedProduct,
-          productName: product.name,
-          quantity: Number(quantity),
-          unitPrice: Number(unitPrice),
-          totalPrice: Number(quantity) * Number(unitPrice),
-        };
-        setPurchaseItems([...purchaseItems, newItem]);
-        setSelectedProduct('');
-        setQuantity('');
-        setUnitPrice('');
-      }
+    if (productName && quantity && unitPrice) {
+      const newItem: PurchaseItem = {
+        productId: '',
+        productName: productName,
+        quantity: Number(quantity),
+        unitPrice: Number(unitPrice),
+        totalPrice: Number(quantity) * Number(unitPrice),
+      };
+      setPurchaseItems([...purchaseItems, newItem]);
+      setProductName('');
+      setQuantity('');
+      setUnitPrice('');
     }
   };
 
@@ -63,14 +60,13 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.supplierId && purchaseItems.length > 0) {
-      const supplier = suppliers.find(s => s.id === formData.supplierId);
+    if (formData.supplierName && purchaseItems.length > 0) {
       const totalValue = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       
       onAddPurchase({
         date: new Date(),
-        supplierId: formData.supplierId,
-        supplierName: supplier?.name,
+        supplierId: '',
+        supplierName: formData.supplierName,
         items: purchaseItems,
         totalValue,
         status: 'pending',
@@ -81,7 +77,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
       toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
       
       // Reset form
-      setFormData({ supplierId: '', documentNumber: '', notes: '' });
+      setFormData({ supplierName: '', documentNumber: '', notes: '' });
       setPurchaseItems([]);
     }
   };
@@ -135,18 +131,11 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Fornecedor</Label>
-              <Select value={formData.supplierId} onValueChange={(value) => setFormData({ ...formData, supplierId: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o fornecedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliers.filter(s => s.active).map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input 
+                value={formData.supplierName} 
+                onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })}
+                placeholder="Digite o nome do fornecedor"
+              />
             </div>
             
             <div className="space-y-2">
@@ -170,18 +159,11 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             <div className="border-t pt-4">
               <Label className="mb-2 block">Adicionar Itens</Label>
               <div className="space-y-2">
-                <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input 
+                  value={productName} 
+                  onChange={(e) => setProductName(e.target.value)}
+                  placeholder="Digite o nome do produto"
+                />
                 
                 <div className="grid grid-cols-2 gap-2">
                   <Input 
@@ -234,7 +216,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             <Button 
               type="submit" 
               className="w-full bg-gradient-primary"
-              disabled={!formData.supplierId || purchaseItems.length === 0}
+              disabled={!formData.supplierName || purchaseItems.length === 0}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Criar Pedido

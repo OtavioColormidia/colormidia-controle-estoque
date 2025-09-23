@@ -389,12 +389,13 @@ export const useSupabaseData = () => {
     });
   };
 
-  const addPurchase = async (purchase: Omit<Purchase, 'id' | 'supplierName'>) => {
+  const addPurchase = async (purchase: Omit<Purchase, 'id'>) => {
     const { data: purchaseData, error: purchaseError } = await supabase
       .from('purchases')
       .insert({
         date: purchase.date.toISOString(),
-        supplier_id: purchase.supplierId,
+        supplier_id: purchase.supplierId || null,
+        supplier_name: purchase.supplierName || null,
         total_value: purchase.totalValue,
         status: purchase.status,
         document_number: purchase.documentNumber,
@@ -417,7 +418,8 @@ export const useSupabaseData = () => {
     if (purchaseData && purchase.items.length > 0) {
       const items = purchase.items.map(item => ({
         purchase_id: purchaseData.id,
-        product_id: item.productId,
+        product_id: item.productId || null,
+        product_name: item.productName,
         quantity: item.quantity,
         unit_price: item.unitPrice,
         total_price: item.totalPrice

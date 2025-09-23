@@ -108,7 +108,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          product_id: string
+          product_id: string | null
+          product_name: string | null
           purchase_id: string
           quantity: number
           total_price: number
@@ -117,7 +118,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          product_id: string
+          product_id?: string | null
+          product_name?: string | null
           purchase_id: string
           quantity: number
           total_price: number
@@ -126,7 +128,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          product_id?: string
+          product_id?: string | null
+          product_name?: string | null
           purchase_id?: string
           quantity?: number
           total_price?: number
@@ -158,7 +161,8 @@ export type Database = {
           id: string
           notes: string | null
           status: string
-          supplier_id: string
+          supplier_id: string | null
+          supplier_name: string | null
           total_value: number
         }
         Insert: {
@@ -169,7 +173,8 @@ export type Database = {
           id?: string
           notes?: string | null
           status?: string
-          supplier_id: string
+          supplier_id?: string | null
+          supplier_name?: string | null
           total_value: number
         }
         Update: {
@@ -180,7 +185,8 @@ export type Database = {
           id?: string
           notes?: string | null
           status?: string
-          supplier_id?: string
+          supplier_id?: string | null
+          supplier_name?: string | null
           total_value?: number
         }
         Relationships: [

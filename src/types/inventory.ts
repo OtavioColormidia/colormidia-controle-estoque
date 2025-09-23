@@ -47,7 +47,7 @@ export interface StockMovement {
 export interface Purchase {
   id: string;
   date: Date;
-  supplierId: string;
+  supplierId?: string;
   supplierName?: string;
   items: PurchaseItem[];
   totalValue: number;
@@ -57,7 +57,7 @@ export interface Purchase {
 }
 
 export interface PurchaseItem {
-  productId: string;
+  productId?: string;
   productName: string;
   quantity: number;
   unitPrice: number;
