@@ -47,6 +47,14 @@ const Index = () => {
     setSuppliers(suppliers.filter(s => s.id !== id));
   };
 
+  const handleAddPurchase = (purchase: Omit<Purchase, 'id'>) => {
+    const newPurchase: Purchase = {
+      ...purchase,
+      id: Date.now().toString(),
+    };
+    setPurchases([...purchases, newPurchase]);
+  };
+
   const handleAddMovement = (movement: Omit<StockMovement, 'id'>) => {
     const newMovement: StockMovement = {
       ...movement,
@@ -111,6 +119,9 @@ const Index = () => {
         return (
           <Purchases 
             purchases={purchases} 
+            products={products}
+            suppliers={suppliers}
+            onAddPurchase={handleAddPurchase}
             onDeletePurchase={(id: string) => setPurchases(purchases.filter(p => p.id !== id))}
             onUpdatePurchaseStatus={(id: string, status: Purchase['status']) => {
               setPurchases(purchases.map(p => 

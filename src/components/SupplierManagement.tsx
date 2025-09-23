@@ -146,26 +146,24 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                     <TableCell>{supplier.name}</TableCell>
                     <TableCell>{supplier.cnpj}</TableCell>
                     <TableCell>
-                      <TooltipProvider>
-                        <div className="flex gap-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Mail className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{supplier.email}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Phone className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{supplier.phone}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </TooltipProvider>
+                      <div className="flex gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Mail className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{supplier.email}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Phone className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{supplier.phone}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
