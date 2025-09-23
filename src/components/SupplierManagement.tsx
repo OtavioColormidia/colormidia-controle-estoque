@@ -12,17 +12,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Building2, Mail, Phone, Download } from 'lucide-react';
+import { Plus, Building2, Mail, Phone, Download, Trash2 } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
 import { exportToCSV } from '@/lib/export';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface SupplierManagementProps {
   suppliers: Supplier[];
   onAddSupplier: (supplier: Omit<Supplier, 'id'>) => void;
+  onDeleteSupplier: (id: string) => void;
 }
 
-export default function SupplierManagement({ suppliers, onAddSupplier }: SupplierManagementProps) {
+export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteSupplier }: SupplierManagementProps) {
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -139,17 +146,46 @@ export default function SupplierManagement({ suppliers, onAddSupplier }: Supplie
                     <TableCell>{supplier.name}</TableCell>
                     <TableCell>{supplier.cnpj}</TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                      </div>
+                      <TooltipProvider>
+                        <div className="flex gap-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Mail className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{supplier.email}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Phone className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{supplier.phone}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TooltipProvider>
                     </TableCell>
                     <TableCell>
-                      {supplier.active ? (
-                        <span className="text-success">Ativo</span>
-                      ) : (
-                        <span className="text-muted-foreground">Inativo</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {supplier.active ? (
+                          <span className="text-success">Ativo</span>
+                        ) : (
+                          <span className="text-muted-foreground">Inativo</span>
+                        )}
+                        <Button
+                          onClick={() => {
+                            onDeleteSupplier(supplier.id);
+                            toast({ title: 'Fornecedor removido', description: `${supplier.name} foi removido com sucesso` });
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

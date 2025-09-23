@@ -20,7 +20,7 @@ const Index = () => {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
   const [movements, setMovements] = useState<StockMovement[]>(initialMovements);
-  const [purchases] = useState<Purchase[]>(initialPurchases);
+  const [purchases, setPurchases] = useState<Purchase[]>(initialPurchases);
 
   const handleAddProduct = (product: Omit<Product, 'id' | 'lastUpdated'>) => {
     const newProduct: Product = {
@@ -41,6 +41,10 @@ const Index = () => {
       id: Date.now().toString(),
     };
     setSuppliers([...suppliers, newSupplier]);
+  };
+
+  const handleDeleteSupplier = (id: string) => {
+    setSuppliers(suppliers.filter(s => s.id !== id));
   };
 
   const handleAddMovement = (movement: Omit<StockMovement, 'id'>) => {
@@ -100,10 +104,21 @@ const Index = () => {
           <SupplierManagement
             suppliers={suppliers}
             onAddSupplier={handleAddSupplier}
+            onDeleteSupplier={handleDeleteSupplier}
           />
         );
       case 'purchases':
-        return <Purchases purchases={purchases} />;
+        return (
+          <Purchases 
+            purchases={purchases} 
+            onDeletePurchase={(id: string) => setPurchases(purchases.filter(p => p.id !== id))}
+            onUpdatePurchaseStatus={(id: string, status: Purchase['status']) => {
+              setPurchases(purchases.map(p => 
+                p.id === id ? { ...p, status } : p
+              ));
+            }}
+          />
+        );
       default:
         return <Dashboard products={products} movements={movements} />;
     }

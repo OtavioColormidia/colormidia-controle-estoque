@@ -9,15 +9,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Download } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Download, Trash2 } from 'lucide-react';
 import { Purchase } from '@/types/inventory';
 import { exportToCSV } from '@/lib/export';
+import { toast } from '@/components/ui/use-toast';
 
 interface PurchasesProps {
   purchases: Purchase[];
+  onDeletePurchase: (id: string) => void;
+  onUpdatePurchaseStatus: (id: string, status: Purchase['status']) => void;
 }
 
-export default function Purchases({ purchases }: PurchasesProps) {
+export default function Purchases({ purchases, onDeletePurchase, onUpdatePurchaseStatus }: PurchasesProps) {
   const getStatusBadge = (status: Purchase['status']) => {
     switch (status) {
       case 'pending':
@@ -73,6 +76,7 @@ export default function Purchases({ purchases }: PurchasesProps) {
                 <TableHead>Itens</TableHead>
                 <TableHead className="text-right">Valor Total</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -84,6 +88,34 @@ export default function Purchases({ purchases }: PurchasesProps) {
                   <TableCell>{purchase.items.length} itens</TableCell>
                   <TableCell className="text-right font-bold">R$ {purchase.totalValue.toFixed(2)}</TableCell>
                   <TableCell>{getStatusBadge(purchase.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      {purchase.status !== 'delivered' && purchase.status !== 'cancelled' && (
+                        <Button
+                          onClick={() => {
+                            onUpdatePurchaseStatus(purchase.id, 'delivered');
+                            toast({ title: 'Pedido atualizado', description: 'Pedido marcado como entregue' });
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="text-success hover:text-success"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        onClick={() => {
+                          onDeletePurchase(purchase.id);
+                          toast({ title: 'Pedido removido', description: 'Pedido de compra removido com sucesso' });
+                        }}
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

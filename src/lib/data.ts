@@ -109,86 +109,9 @@ export const initialSuppliers: Supplier[] = [
   },
 ];
 
-export const initialMovements: StockMovement[] = [
-  {
-    id: '1',
-    date: new Date(Date.now() - 86400000 * 5),
-    type: 'entry',
-    productId: '1',
-    productName: 'Papel A4',
-    quantity: 100,
-    unitPrice: 25.00,
-    totalValue: 2500.00,
-    supplierId: '1',
-    supplierName: 'Papelaria Central LTDA',
-    documentNumber: 'NF-001234',
-    notes: 'Reposição mensal',
-  },
-  {
-    id: '2',
-    date: new Date(Date.now() - 86400000 * 3),
-    type: 'exit',
-    productId: '1',
-    productName: 'Papel A4',
-    quantity: 55,
-    requestedBy: 'Carlos Mendes',
-    department: 'Administrativo',
-    reason: 'Uso diário',
-  },
-  {
-    id: '3',
-    date: new Date(Date.now() - 86400000 * 2),
-    type: 'entry',
-    productId: '3',
-    productName: 'Toner HP 85A',
-    quantity: 20,
-    unitPrice: 85.00,
-    totalValue: 1700.00,
-    supplierId: '2',
-    supplierName: 'Tech Suprimentos ME',
-    documentNumber: 'NF-005678',
-  },
-  {
-    id: '4',
-    date: new Date(Date.now() - 86400000),
-    type: 'exit',
-    productId: '3',
-    productName: 'Toner HP 85A',
-    quantity: 5,
-    requestedBy: 'Ana Paula',
-    department: 'TI',
-    reason: 'Manutenção impressoras',
-  },
-];
+export const initialMovements: StockMovement[] = [];
 
-export const initialPurchases: Purchase[] = [
-  {
-    id: '1',
-    date: new Date(),
-    supplierId: '1',
-    supplierName: 'Papelaria Central LTDA',
-    items: [
-      {
-        productId: '1',
-        productName: 'Papel A4',
-        quantity: 50,
-        unitPrice: 25.00,
-        totalPrice: 1250.00,
-      },
-      {
-        productId: '2',
-        productName: 'Caneta Esferográfica Azul',
-        quantity: 30,
-        unitPrice: 35.00,
-        totalPrice: 1050.00,
-      },
-    ],
-    totalValue: 2300.00,
-    status: 'pending',
-    documentNumber: 'PED-2024001',
-    notes: 'Reposição urgente de material de escritório',
-  },
-];
+export const initialPurchases: Purchase[] = [];
 
 export function getStockStatus(current: number, min: number): 'critical' | 'warning' | 'normal' {
   const percentage = (current / min) * 100;
