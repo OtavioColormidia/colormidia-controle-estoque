@@ -447,6 +447,67 @@ export const useSupabaseData = () => {
     });
   };
 
+  const deletePurchase = async (purchaseId: string) => {
+    // First delete the purchase items
+    const { error: itemsError } = await supabase
+      .from('purchase_items')
+      .delete()
+      .eq('purchase_id', purchaseId);
+
+    if (itemsError) {
+      toast({
+        title: "Erro ao excluir itens da compra",
+        description: itemsError.message,
+        variant: "destructive"
+      });
+      throw itemsError;
+    }
+
+    // Then delete the purchase
+    const { error } = await supabase
+      .from('purchases')
+      .delete()
+      .eq('id', purchaseId);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir compra",
+        description: error.message,
+        variant: "destructive"
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Compra excluída",
+      description: "A compra foi removida do banco de dados."
+    });
+  };
+
+  const updatePurchaseStatus = async (purchaseId: string, status: Purchase['status']) => {
+    const { error } = await supabase
+      .from('purchases')
+      .update({ 
+        status,
+        updated_by: (await supabase.auth.getUser()).data.user?.id
+      })
+      .eq('id', purchaseId);
+
+    if (error) {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message,
+        variant: "destructive"
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Status atualizado",
+      description: "O status da compra foi atualizado com sucesso."
+    });
+  };
+
   return {
     products,
     suppliers,
@@ -459,6 +520,8 @@ export const useSupabaseData = () => {
     deleteSupplier,
     addMovement,
     addPurchase,
+    deletePurchase,
+    updatePurchaseStatus,
     refresh: loadAllData
   };
 };

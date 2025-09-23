@@ -247,8 +247,16 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   <TableRow key={purchase.id}>
                     <TableCell className="font-mono">{purchase.documentNumber}</TableCell>
                     <TableCell>{new Date(purchase.date).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell>{purchase.supplierName}</TableCell>
-                    <TableCell>{purchase.items.length} itens</TableCell>
+                    <TableCell>{purchase.supplierName || '-'}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {purchase.items.map((item, idx) => (
+                          <div key={idx} className="text-xs">
+                            {item.productName} - {item.quantity} un. × R$ {item.unitPrice.toFixed(2)}
+                          </div>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right font-bold">R$ {purchase.totalValue.toFixed(2)}</TableCell>
                     <TableCell>{getStatusBadge(purchase.status)}</TableCell>
                     <TableCell>

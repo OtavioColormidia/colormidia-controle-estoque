@@ -34,7 +34,9 @@ const Index = () => {
     addSupplier,
     deleteSupplier,
     addMovement,
-    addPurchase
+    addPurchase,
+    deletePurchase,
+    updatePurchaseStatus
   } = useSupabaseData();
 
   useEffect(() => {
@@ -153,14 +155,8 @@ const Index = () => {
             products={products}
             suppliers={suppliers}
             onAddPurchase={addPurchase}
-            onDeletePurchase={(id: string) => {
-              // Delete functionality will be handled in the backend
-              console.log('Delete purchase:', id);
-            }}
-            onUpdatePurchaseStatus={(id: string, status: Purchase['status']) => {
-              // Status update will be handled in the backend
-              console.log('Update purchase status:', id, status);
-            }}
+            onDeletePurchase={deletePurchase}
+            onUpdatePurchaseStatus={updatePurchaseStatus}
           />
         );
       default:
