@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      products: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          created_by: string | null
+          current_stock: number
+          description: string | null
+          id: string
+          last_updated: string
+          location: string | null
+          min_stock: number
+          name: string
+          unit: string
+          updated_by: string | null
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_stock?: number
+          description?: string | null
+          id?: string
+          last_updated?: string
+          location?: string | null
+          min_stock?: number
+          name: string
+          unit: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_stock?: number
+          description?: string | null
+          id?: string
+          last_updated?: string
+          location?: string | null
+          min_stock?: number
+          name?: string
+          unit?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "products_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -40,6 +103,250 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      purchase_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          purchase_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          purchase_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          purchase_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_items_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchases: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          document_number: string | null
+          id: string
+          notes: string | null
+          status: string
+          supplier_id: string
+          total_value: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          document_number?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          supplier_id: string
+          total_value: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          document_number?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          supplier_id?: string
+          total_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "purchases_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          department: string | null
+          document_number: string | null
+          id: string
+          notes: string | null
+          product_id: string
+          quantity: number
+          reason: string | null
+          requested_by: string | null
+          supplier_id: string | null
+          total_value: number | null
+          type: string
+          unit_price: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          department?: string | null
+          document_number?: string | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          quantity: number
+          reason?: string | null
+          requested_by?: string | null
+          supplier_id?: string | null
+          total_value?: number | null
+          type: string
+          unit_price?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          department?: string | null
+          document_number?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          reason?: string | null
+          requested_by?: string | null
+          supplier_id?: string | null
+          total_value?: number | null
+          type?: string
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          active: boolean | null
+          address: string | null
+          city: string | null
+          cnpj: string
+          code: string
+          contact: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          state: string | null
+          updated_at: string
+          updated_by: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          address?: string | null
+          city?: string | null
+          cnpj: string
+          code: string
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          address?: string | null
+          city?: string | null
+          cnpj?: string
+          code?: string
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "suppliers_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {

@@ -11,25 +11,31 @@ import ProductManagement from '@/components/ProductManagement';
 import SupplierManagement from '@/components/SupplierManagement';
 import Purchases from '@/components/Purchases';
 import { Loader2 } from 'lucide-react';
-import { 
-  initialProducts, 
-  initialSuppliers, 
-  initialMovements, 
-  initialPurchases 
-} from '@/lib/data';
-import { Product, Supplier, StockMovement, Purchase } from '@/types/inventory';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { Purchase } from '@/types/inventory';
 
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
-  const [movements, setMovements] = useState<StockMovement[]>(initialMovements);
-  const [purchases, setPurchases] = useState<Purchase[]>(initialPurchases);
+  
+  // Use Supabase data hook
+  const {
+    products,
+    suppliers,
+    movements,
+    purchases,
+    loading: dataLoading,
+    addProduct,
+    deleteProduct,
+    addSupplier,
+    deleteSupplier,
+    addMovement,
+    addPurchase
+  } = useSupabaseData();
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -43,7 +49,7 @@ const Index = () => {
           checkAuthorization(session.user.id);
         } else {
           setIsAuthorized(false);
-          setLoading(false);
+          setAuthLoading(false);
         }
       }
     );
@@ -56,7 +62,7 @@ const Index = () => {
       if (session?.user) {
         checkAuthorization(session.user.id);
       } else {
-        setLoading(false);
+        setAuthLoading(false);
       }
     });
 
@@ -81,12 +87,12 @@ const Index = () => {
       console.error("Error checking authorization:", error);
       setIsAuthorized(false);
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
   // Show loading state
-  if (loading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -100,59 +106,6 @@ const Index = () => {
     return null;
   }
 
-  const handleAddProduct = (product: Omit<Product, 'id' | 'lastUpdated'>) => {
-    const newProduct: Product = {
-      ...product,
-      id: Date.now().toString(),
-      lastUpdated: new Date(),
-    };
-    setProducts([...products, newProduct]);
-  };
-
-  const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-  };
-
-  const handleAddSupplier = (supplier: Omit<Supplier, 'id'>) => {
-    const newSupplier: Supplier = {
-      ...supplier,
-      id: Date.now().toString(),
-    };
-    setSuppliers([...suppliers, newSupplier]);
-  };
-
-  const handleDeleteSupplier = (id: string) => {
-    setSuppliers(suppliers.filter(s => s.id !== id));
-  };
-
-  const handleAddPurchase = (purchase: Omit<Purchase, 'id'>) => {
-    const newPurchase: Purchase = {
-      ...purchase,
-      id: Date.now().toString(),
-    };
-    setPurchases([...purchases, newPurchase]);
-  };
-
-  const handleAddMovement = (movement: Omit<StockMovement, 'id'>) => {
-    const newMovement: StockMovement = {
-      ...movement,
-      id: Date.now().toString(),
-    };
-    setMovements([newMovement, ...movements]);
-
-    // Update product stock
-    const productIndex = products.findIndex(p => p.id === movement.productId);
-    if (productIndex !== -1) {
-      const updatedProducts = [...products];
-      if (movement.type === 'entry') {
-        updatedProducts[productIndex].currentStock += movement.quantity;
-      } else {
-        updatedProducts[productIndex].currentStock -= movement.quantity;
-      }
-      updatedProducts[productIndex].lastUpdated = new Date();
-      setProducts(updatedProducts);
-    }
-  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -166,7 +119,7 @@ const Index = () => {
             products={products}
             suppliers={suppliers}
             movements={movements}
-            onAddMovement={handleAddMovement}
+            onAddMovement={addMovement}
           />
         );
       case 'exits':
@@ -174,23 +127,23 @@ const Index = () => {
           <MaterialExit
             products={products}
             movements={movements}
-            onAddMovement={handleAddMovement}
+            onAddMovement={addMovement}
           />
         );
       case 'products':
         return (
           <ProductManagement
             products={products}
-            onAddProduct={handleAddProduct}
-            onDeleteProduct={handleDeleteProduct}
+            onAddProduct={addProduct}
+            onDeleteProduct={deleteProduct}
           />
         );
       case 'suppliers':
         return (
           <SupplierManagement
             suppliers={suppliers}
-            onAddSupplier={handleAddSupplier}
-            onDeleteSupplier={handleDeleteSupplier}
+            onAddSupplier={addSupplier}
+            onDeleteSupplier={deleteSupplier}
           />
         );
       case 'purchases':
@@ -199,12 +152,14 @@ const Index = () => {
             purchases={purchases} 
             products={products}
             suppliers={suppliers}
-            onAddPurchase={handleAddPurchase}
-            onDeletePurchase={(id: string) => setPurchases(purchases.filter(p => p.id !== id))}
+            onAddPurchase={addPurchase}
+            onDeletePurchase={(id: string) => {
+              // Delete functionality will be handled in the backend
+              console.log('Delete purchase:', id);
+            }}
             onUpdatePurchaseStatus={(id: string, status: Purchase['status']) => {
-              setPurchases(purchases.map(p => 
-                p.id === id ? { ...p, status } : p
-              ));
+              // Status update will be handled in the backend
+              console.log('Update purchase status:', id, status);
             }}
           />
         );
