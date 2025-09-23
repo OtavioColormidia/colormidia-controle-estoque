@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,17 +12,39 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Download, AlertTriangle, CheckCircle } from 'lucide-react';
-import { Product } from '@/types/inventory';
+import { Product, StockMovement } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
 import { exportToCSV } from '@/lib/export';
 
 interface InventoryControlProps {
   products: Product[];
+  movements: StockMovement[];
 }
 
-export default function InventoryControl({ products }: InventoryControlProps) {
+export default function InventoryControl({ products, movements }: InventoryControlProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'critical' | 'warning' | 'normal'>('all');
+
+  // Calculate real entries and exits for each product
+  const productMovements = useMemo(() => {
+    const movementsByProduct = new Map<string, { entries: number; exits: number }>();
+    
+    movements.forEach((movement) => {
+      if (!movement.productId) return;
+      
+      const current = movementsByProduct.get(movement.productId) || { entries: 0, exits: 0 };
+      
+      if (movement.type === 'entry') {
+        current.entries += movement.quantity;
+      } else {
+        current.exits += movement.quantity;
+      }
+      
+      movementsByProduct.set(movement.productId, current);
+    });
+    
+    return movementsByProduct;
+  }, [movements]);
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
@@ -65,16 +87,23 @@ export default function InventoryControl({ products }: InventoryControlProps) {
   };
 
   const handleExport = () => {
-    const exportData = filteredProducts.map(p => ({
-      'Código': p.code,
-      'Produto/Material': p.name,
-      'Categoria': p.category,
-      'Estoque Inicial': p.currentStock + 10,
-      'Estoque Atual': p.currentStock,
-      'Estoque Mínimo': p.minStock,
-      'Status': getStockStatus(p.currentStock, p.minStock),
-      'Localização': p.location || ''
-    }));
+    const exportData = filteredProducts.map(p => {
+      const movementData = productMovements.get(p.id) || { entries: 0, exits: 0 };
+      const initialStock = p.currentStock - movementData.entries + movementData.exits;
+      
+      return {
+        'Código': p.code,
+        'Produto/Material': p.name,
+        'Categoria': p.category,
+        'Estoque Inicial': initialStock,
+        'Entradas': movementData.entries,
+        'Saídas': movementData.exits,
+        'Estoque Atual': p.currentStock,
+        'Estoque Mínimo': p.minStock,
+        'Status': getStockStatus(p.currentStock, p.minStock),
+        'Localização': p.location || ''
+      };
+    });
     exportToCSV(exportData, 'estoque');
   };
 
@@ -155,9 +184,9 @@ export default function InventoryControl({ products }: InventoryControlProps) {
             </TableHeader>
             <TableBody>
               {filteredProducts.map((product) => {
-                const initialStock = product.currentStock + 10; // Simulating initial stock
-                const entries = 7; // Simulated entries
-                const exits = initialStock + entries - product.currentStock; // Calculate exits
+                const movementData = productMovements.get(product.id) || { entries: 0, exits: 0 };
+                // Calculate initial stock: current stock - entries + exits
+                const initialStock = product.currentStock - movementData.entries + movementData.exits;
 
                 return (
                   <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
@@ -170,10 +199,10 @@ export default function InventoryControl({ products }: InventoryControlProps) {
                     </TableCell>
                     <TableCell className="text-center">{initialStock}</TableCell>
                     <TableCell className="text-center text-success font-medium">
-                      {entries}
+                      {movementData.entries || 0}
                     </TableCell>
                     <TableCell className="text-center text-warning font-medium">
-                      {exits}
+                      {movementData.exits || 0}
                     </TableCell>
                     <TableCell className="text-center font-medium">
                       {product.minStock}

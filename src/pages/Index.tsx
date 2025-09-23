@@ -114,7 +114,7 @@ const Index = () => {
       case 'dashboard':
         return <Dashboard products={products} movements={movements} />;
       case 'inventory':
-        return <InventoryControl products={products} />;
+        return <InventoryControl products={products} movements={movements} />;
       case 'entries':
         return (
           <MaterialEntry
