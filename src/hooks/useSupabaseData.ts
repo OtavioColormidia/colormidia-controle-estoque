@@ -502,6 +502,9 @@ export const useSupabaseData = () => {
       throw error;
     }
 
+    // Reload purchases to update the UI
+    await loadPurchases();
+
     toast({
       title: "Status atualizado",
       description: "O status da compra foi atualizado com sucesso."

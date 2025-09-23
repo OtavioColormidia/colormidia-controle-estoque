@@ -22,9 +22,9 @@ interface PurchasesProps {
   purchases: Purchase[];
   products: Product[];
   suppliers: Supplier[];
-  onAddPurchase: (purchase: Omit<Purchase, 'id'>) => void;
-  onDeletePurchase: (id: string) => void;
-  onUpdatePurchaseStatus: (id: string, status: Purchase['status']) => void;
+  onAddPurchase: (purchase: Omit<Purchase, 'id'>) => Promise<void>;
+  onDeletePurchase: (id: string) => Promise<void>;
+  onUpdatePurchaseStatus: (id: string, status: Purchase['status']) => Promise<void>;
 }
 
 export default function Purchases({ purchases, products, suppliers, onAddPurchase, onDeletePurchase, onUpdatePurchaseStatus }: PurchasesProps) {
@@ -263,9 +263,12 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       <div className="flex gap-2">
                         {purchase.status !== 'delivered' && purchase.status !== 'cancelled' && (
                           <Button
-                            onClick={() => {
-                              onUpdatePurchaseStatus(purchase.id, 'delivered');
-                              toast({ title: 'Pedido atualizado', description: 'Pedido marcado como entregue' });
+                            onClick={async () => {
+                              try {
+                                await onUpdatePurchaseStatus(purchase.id, 'delivered');
+                              } catch (error) {
+                                console.error('Erro ao atualizar status:', error);
+                              }
                             }}
                             variant="outline"
                             size="sm"
@@ -275,9 +278,12 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                           </Button>
                         )}
                         <Button
-                          onClick={() => {
-                            onDeletePurchase(purchase.id);
-                            toast({ title: 'Pedido removido', description: 'Pedido de compra removido com sucesso' });
+                          onClick={async () => {
+                            try {
+                              await onDeletePurchase(purchase.id);
+                            } catch (error) {
+                              console.error('Erro ao excluir compra:', error);
+                            }
                           }}
                           variant="ghost"
                           size="sm"
