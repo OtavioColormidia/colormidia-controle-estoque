@@ -115,37 +115,37 @@ export default function Dashboard({ products, movements }: DashboardProps) {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="p-6 border-border hover:shadow-lg transition-all">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card className="p-4 sm:p-6 border-border hover:shadow-lg transition-all">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Total de Produtos</p>
-              <p className="text-2xl font-bold text-foreground">{totalProducts}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Total de Produtos</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground">{totalProducts}</p>
             </div>
-            <div className="bg-primary/10 p-3 rounded-lg">
-              <Package className="h-6 w-6 text-primary" />
+            <div className="bg-primary/10 p-2 sm:p-3 rounded-lg">
+              <Package className="h-5 sm:h-6 w-5 sm:w-6 text-primary" />
             </div>
           </div>
         </Card>
-        <Card className="p-6 border-border hover:shadow-lg transition-all">
+        <Card className="p-4 sm:p-6 border-border hover:shadow-lg transition-all">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Itens com Estoque Baixo</p>
-              <p className="text-2xl font-bold text-foreground">{lowStockItems}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Itens com Estoque Baixo</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground">{lowStockItems}</p>
             </div>
-            <div className="bg-warning/10 p-3 rounded-lg">
-              <AlertTriangle className="h-6 w-6 text-warning" />
+            <div className="bg-warning/10 p-2 sm:p-3 rounded-lg">
+              <AlertTriangle className="h-5 sm:h-6 w-5 sm:w-6 text-warning" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Movement Chart */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Movimentações da Semana</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <Card className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Movimentações da Semana</h3>
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={movementsByDay}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" />
@@ -196,9 +196,9 @@ export default function Dashboard({ products, movements }: DashboardProps) {
       </div>
 
       {/* Category Analysis */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Análise por Categoria</h3>
-        <ResponsiveContainer width="100%" height={300}>
+      <Card className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-4">Análise por Categoria</h3>
+        <ResponsiveContainer width="100%" height={250}>
           <BarChart data={Object.values(categoryData)}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />

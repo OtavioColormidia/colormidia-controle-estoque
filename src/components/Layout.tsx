@@ -56,20 +56,28 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
 
   return (
     <div className="flex h-screen bg-background">
+      {/* Mobile Menu Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-gradient-sidebar text-sidebar-foreground transition-all duration-300",
-          sidebarOpen ? "w-64" : "w-16"
+          "fixed lg:relative inset-y-0 left-0 z-50 bg-gradient-sidebar text-sidebar-foreground transition-all duration-300",
+          sidebarOpen ? "w-64 translate-x-0" : "w-16 lg:translate-x-0 -translate-x-full lg:w-16"
         )}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
-            <div className="flex items-center gap-3">
-              <img src={logoColorMedia} alt="ColorMídia" className="h-8 w-8 object-contain" />
+          <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 border-b border-sidebar-border">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <img src={logoColorMedia} alt="ColorMídia" className="h-7 sm:h-8 w-7 sm:w-8 object-contain" />
               {sidebarOpen && (
-                <h1 className="text-lg font-bold text-sidebar-foreground">
+                <h1 className="text-base sm:text-lg font-bold text-sidebar-foreground">
                   Almoxarifado
                 </h1>
               )}
@@ -78,9 +86,9 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-sidebar-foreground hover:bg-sidebar-accent"
+              className="text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8 sm:h-10 sm:w-10"
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sidebarOpen ? <X className="h-4 sm:h-5 w-4 sm:w-5" /> : <Menu className="h-4 sm:h-5 w-4 sm:w-5" />}
             </Button>
           </div>
 
@@ -135,7 +143,19 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        <div className="h-full p-6">{children}</div>
+        {/* Mobile Header */}
+        <div className="lg:hidden sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+            className="h-8 w-8"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <h1 className="text-lg font-semibold">Controle de Estoque</h1>
+        </div>
+        <div className="h-full p-4 sm:p-6">{children}</div>
       </main>
     </div>
   );
