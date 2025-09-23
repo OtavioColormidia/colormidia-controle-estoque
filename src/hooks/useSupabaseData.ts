@@ -349,7 +349,7 @@ export const useSupabaseData = () => {
         unit_price: movement.unitPrice,
         total_value: movement.totalValue,
         supplier_id: movement.supplierId || null,
-        supplier_name: movement.supplierName || null,
+        // supplier_name removed - this column doesn't exist in the database
         document_number: movement.documentNumber,
         requested_by: movement.requestedBy,
         department: movement.department,
