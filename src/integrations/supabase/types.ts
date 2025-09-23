@@ -164,6 +164,7 @@ export type Database = {
           supplier_id: string | null
           supplier_name: string | null
           total_value: number
+          updated_by: string | null
         }
         Insert: {
           created_at?: string
@@ -176,6 +177,7 @@ export type Database = {
           supplier_id?: string | null
           supplier_name?: string | null
           total_value: number
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
@@ -188,6 +190,7 @@ export type Database = {
           supplier_id?: string | null
           supplier_name?: string | null
           total_value?: number
+          updated_by?: string | null
         }
         Relationships: [
           {
