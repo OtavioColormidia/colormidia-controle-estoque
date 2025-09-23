@@ -182,10 +182,10 @@ export const useSupabaseData = () => {
       id: p.id,
       date: new Date(p.date),
       supplierId: p.supplier_id,
-      supplierName: p.supplier?.name,
+      supplierName: p.supplier?.name || p.supplier_name,
       items: p.purchase_items?.map((item: any) => ({
         productId: item.product_id,
-        productName: item.product?.name || '',
+        productName: item.product?.name || item.product_name || '',
         quantity: Number(item.quantity),
         unitPrice: Number(item.unit_price),
         totalPrice: Number(item.total_price)
