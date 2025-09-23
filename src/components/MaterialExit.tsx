@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Calendar, Package, Save, Minus, User, Download } from 'lucide-react';
 import { Product, StockMovement } from '@/types/inventory';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { exportToCSV } from '@/lib/export';
 
 interface MaterialExitProps {

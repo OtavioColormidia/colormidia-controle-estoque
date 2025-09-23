@@ -19,10 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar, Package, Save, Plus, Download } from 'lucide-react';
 import { Product, Supplier, StockMovement } from '@/types/inventory';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { exportToCSV } from '@/lib/export';
 
 interface MaterialEntryProps {
@@ -40,9 +39,7 @@ export default function MaterialEntry({
 }: MaterialEntryProps) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    useExistingProduct: 'existing',
     productId: '',
-    productName: '',
     quantity: '',
     unitPrice: '',
     supplierName: '',
@@ -55,38 +52,21 @@ export default function MaterialEntry({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    let productId: string | undefined;
-    let productName: string | undefined;
-    
-    if (formData.useExistingProduct === 'existing') {
-      const selectedProduct = products.find(p => p.id === formData.productId);
-      if (!selectedProduct) {
-        toast({
-          title: 'Erro',
-          description: 'Por favor, selecione um produto',
-          variant: 'destructive',
-        });
-        return;
-      }
-      productId = selectedProduct.id;
-      productName = selectedProduct.name;
-    } else {
-      if (!formData.productName.trim()) {
-        toast({
-          title: 'Erro',
-          description: 'Por favor, digite o nome do produto',
-          variant: 'destructive',
-        });
-        return;
-      }
-      productName = formData.productName.trim();
+    const selectedProduct = products.find(p => p.id === formData.productId);
+    if (!selectedProduct) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, selecione um produto',
+        variant: 'destructive',
+      });
+      return;
     }
 
     const movement: Omit<StockMovement, 'id'> = {
       date: new Date(formData.date),
       type: 'entry',
-      productId: productId,
-      productName: productName,
+      productId: selectedProduct.id,
+      productName: selectedProduct.name,
       quantity: parseInt(formData.quantity),
       unitPrice: parseFloat(formData.unitPrice) || undefined,
       totalValue: formData.unitPrice ? parseFloat(formData.unitPrice) * parseInt(formData.quantity) : undefined,
@@ -100,15 +80,13 @@ export default function MaterialEntry({
 
     toast({
       title: 'Entrada registrada',
-      description: `${formData.quantity} unidades de ${productName} adicionadas ao estoque`,
+      description: `${formData.quantity} unidades de ${selectedProduct.name} adicionadas ao estoque`,
     });
 
     // Reset form
     setFormData({
       date: new Date().toISOString().split('T')[0],
-      useExistingProduct: 'existing',
       productId: '',
-      productName: '',
       quantity: '',
       unitPrice: '',
       supplierName: '',
@@ -122,9 +100,10 @@ export default function MaterialEntry({
       'Data': new Date(e.date).toLocaleDateString('pt-BR'),
       'Produto': e.productName || 'Produto não identificado',
       'Quantidade': e.quantity,
+      'Valor Unitário': e.unitPrice ? `R$ ${e.unitPrice.toFixed(2)}` : '',
+      'Valor Total': e.totalValue ? `R$ ${e.totalValue.toFixed(2)}` : '',
       'Fornecedor': e.supplierName || '',
       'Documento': e.documentNumber || '',
-      'Valor Total': e.totalValue ? `R$ ${e.totalValue.toFixed(2)}` : '',
       'Observações': e.notes || ''
     }));
     exportToCSV(exportData, 'entradas');
@@ -180,49 +159,23 @@ export default function MaterialEntry({
             </div>
 
             <div className="space-y-2">
-              <Label>Tipo de Produto</Label>
-              <RadioGroup
-                value={formData.useExistingProduct}
-                onValueChange={(value) => setFormData({ ...formData, useExistingProduct: value, productId: '', productName: '' })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="existing" id="existing" />
-                  <Label htmlFor="existing">Produto Cadastrado</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="new" id="new" />
-                  <Label htmlFor="new">Novo Produto</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="product">Produto</Label>
-              {formData.useExistingProduct === 'existing' ? (
-                <Select
-                  value={formData.productId}
-                  onValueChange={(value) => setFormData({ ...formData, productId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.code} - {product.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id="product"
-                  placeholder="Digite o nome do produto"
-                  value={formData.productName}
-                  onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                  required={formData.useExistingProduct === 'new'}
-                />
-              )}
+              <Select
+                value={formData.productId}
+                onValueChange={(value) => setFormData({ ...formData, productId: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um produto" />
+                </SelectTrigger>
+                <SelectContent>
+                  {products.map((product) => (
+                    <SelectItem key={product.id} value={product.id}>
+                      {product.code} - {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -303,7 +256,8 @@ export default function MaterialEntry({
                   <TableHead>Data</TableHead>
                   <TableHead>Produto</TableHead>
                   <TableHead className="text-center">Qtd</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="text-right">Unitário</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -320,6 +274,15 @@ export default function MaterialEntry({
                     </TableCell>
                     <TableCell className="text-center font-medium text-success">
                       +{entry.quantity}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {entry.unitPrice ? (
+                        <span className="text-sm">
+                          R$ {entry.unitPrice.toFixed(2)}
+                        </span>
+                      ) : (
+                        '-'
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       {entry.totalValue ? (
