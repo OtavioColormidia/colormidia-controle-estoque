@@ -29,8 +29,18 @@ interface ProductManagementProps {
 }
 
 export default function ProductManagement({ products, onAddProduct, onDeleteProduct }: ProductManagementProps) {
+  // Gerar próximo código automaticamente
+  const getNextProductCode = () => {
+    const existingCodes = products.map(p => {
+      const match = p.code.match(/MAT(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
+    const maxNumber = existingCodes.length > 0 ? Math.max(...existingCodes) : 0;
+    return `MAT${String(maxNumber + 1).padStart(3, '0')}`;
+  };
+  
   const [formData, setFormData] = useState({
-    code: '',
+    code: getNextProductCode(),
     name: '',
     description: '',
     category: '',
@@ -51,7 +61,14 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
       location: '', // Default empty
     });
     toast({ title: 'Produto cadastrado', description: `${formData.name} foi adicionado com sucesso` });
-    setFormData({ code: '', name: '', description: '', category: '', minStock: '', currentStock: '' });
+    setFormData({ 
+      code: getNextProductCode(), // Gerar novo código após cadastro
+      name: '', 
+      description: '', 
+      category: '', 
+      minStock: '', 
+      currentStock: '' 
+    });
   };
 
   return (

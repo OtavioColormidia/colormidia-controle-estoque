@@ -152,11 +152,18 @@ export default function MaterialExit({
                   <SelectValue placeholder="Selecione o produto" />
                 </SelectTrigger>
                 <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.code} - {product.name} (Estoque: {product.currentStock})
-                    </SelectItem>
-                  ))}
+                  {products
+                    .sort((a, b) => {
+                      // Extrair números dos códigos MAT001, MAT002, etc.
+                      const numA = parseInt(a.code.replace(/\D/g, '') || '0');
+                      const numB = parseInt(b.code.replace(/\D/g, '') || '0');
+                      return numA - numB;
+                    })
+                    .map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.code} - {product.name} (Estoque: {product.currentStock})
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -255,6 +262,7 @@ export default function MaterialExit({
                   <TableHead>Data</TableHead>
                   <TableHead>Produto</TableHead>
                   <TableHead>Solicitante</TableHead>
+                  <TableHead>Motivo</TableHead>
                   <TableHead className="text-center">Qtd</TableHead>
                 </TableRow>
               </TableHeader>
@@ -272,6 +280,9 @@ export default function MaterialExit({
                     </TableCell>
                     <TableCell className="text-sm">
                       {exit.requestedBy || '-'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {exit.reason || '-'}
                     </TableCell>
                     <TableCell className="text-center font-medium text-warning">
                       -{exit.quantity}

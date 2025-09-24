@@ -15,6 +15,7 @@ export interface Supplier {
   id: string;
   code: string;
   name: string;
+  tradeName?: string;
   cnpj: string;
   contact: string;
   email: string;

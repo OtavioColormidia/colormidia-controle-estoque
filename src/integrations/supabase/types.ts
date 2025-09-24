@@ -303,6 +303,7 @@ export type Database = {
           name: string
           phone: string | null
           state: string | null
+          trade_name: string | null
           updated_at: string
           updated_by: string | null
           zip_code: string | null
@@ -321,6 +322,7 @@ export type Database = {
           name: string
           phone?: string | null
           state?: string | null
+          trade_name?: string | null
           updated_at?: string
           updated_by?: string | null
           zip_code?: string | null
@@ -339,6 +341,7 @@ export type Database = {
           name?: string
           phone?: string | null
           state?: string | null
+          trade_name?: string | null
           updated_at?: string
           updated_by?: string | null
           zip_code?: string | null

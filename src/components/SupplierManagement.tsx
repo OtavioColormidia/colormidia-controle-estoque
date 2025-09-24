@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Building2, Mail, Phone, Download, Trash2 } from 'lucide-react';
+import { Plus, Building2, Mail, Phone, Download, Trash2, Search } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
 import { exportToCSV } from '@/lib/export';
@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SupplierManagementProps {
   suppliers: Supplier[];
@@ -30,9 +31,20 @@ interface SupplierManagementProps {
 }
 
 export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteSupplier }: SupplierManagementProps) {
+  // Gerar próximo código automaticamente
+  const getNextSupplierCode = () => {
+    const existingCodes = suppliers.map(s => {
+      const match = s.code.match(/FORN(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
+    const maxNumber = existingCodes.length > 0 ? Math.max(...existingCodes) : 0;
+    return `FORN${String(maxNumber + 1).padStart(3, '0')}`;
+  };
+
   const [formData, setFormData] = useState({
-    code: '',
+    code: getNextSupplierCode(),
     name: '',
+    tradeName: '',
     cnpj: '',
     contact: '',
     email: '',
@@ -43,21 +55,80 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
     zipCode: '',
     active: true,
   });
+  
+  const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddSupplier(formData);
     toast({ title: 'Fornecedor cadastrado', description: `${formData.name} foi adicionado com sucesso` });
     setFormData({
-      code: '', name: '', cnpj: '', contact: '', email: '', phone: '',
-      address: '', city: '', state: '', zipCode: '', active: true,
+      code: getNextSupplierCode(), 
+      name: '', 
+      tradeName: '',
+      cnpj: '', 
+      contact: '', 
+      email: '', 
+      phone: '',
+      address: '', 
+      city: '', 
+      state: '', 
+      zipCode: '', 
+      active: true,
     });
+  };
+  
+  const searchCNPJ = async () => {
+    if (!formData.cnpj || formData.cnpj.length < 14) {
+      toast({ 
+        title: 'CNPJ inválido', 
+        description: 'Digite um CNPJ completo para buscar',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    setIsLoadingCNPJ(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('cnpj-lookup', {
+        body: { cnpj: formData.cnpj.replace(/\D/g, '') }
+      });
+      
+      if (error) throw error;
+      
+      if (data) {
+        setFormData(prev => ({
+          ...prev,
+          name: data.razao_social || prev.name,
+          tradeName: data.nome_fantasia || prev.tradeName,
+          email: data.email || prev.email,
+          phone: data.telefone || prev.phone,
+          address: data.logradouro ? `${data.logradouro}, ${data.numero}` : prev.address,
+          city: data.municipio || prev.city,
+          state: data.uf || prev.state,
+          zipCode: data.cep || prev.zipCode,
+        }));
+        toast({ 
+          title: 'Dados encontrados', 
+          description: 'As informações foram preenchidas automaticamente' 
+        });
+      }
+    } catch (error) {
+      toast({ 
+        title: 'Erro na busca', 
+        description: 'Não foi possível buscar os dados do CNPJ',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoadingCNPJ(false);
+    }
   };
 
   const handleExport = () => {
     const exportData = suppliers.map(s => ({
       'Código': s.code,
       'Razão Social': s.name,
+      'Nome Fantasia': s.tradeName || '',
       'CNPJ': s.cnpj,
       'Contato': s.contact || '',
       'Email': s.email || '',
@@ -88,16 +159,38 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Código</Label>
-                <Input value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} required />
+                <Input value={formData.code} disabled className="bg-muted" />
               </div>
               <div className="space-y-2">
                 <Label>CNPJ</Label>
-                <Input value={formData.cnpj} onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })} required />
+                <div className="flex gap-2">
+                  <Input 
+                    value={formData.cnpj} 
+                    onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })} 
+                    placeholder="00.000.000/0000-00"
+                    required 
+                  />
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="icon"
+                    onClick={searchCNPJ}
+                    disabled={isLoadingCNPJ}
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Razão Social</Label>
-              <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Razão Social</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Nome Fantasia</Label>
+                <Input value={formData.tradeName} onChange={(e) => setFormData({ ...formData, tradeName: e.target.value })} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -127,7 +220,8 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
               <TableHeader>
                 <TableRow>
                   <TableHead>Código</TableHead>
-                  <TableHead>Nome</TableHead>
+                  <TableHead>Razão Social</TableHead>
+                  <TableHead>Nome Fantasia</TableHead>
                   <TableHead>CNPJ</TableHead>
                   <TableHead>Contato</TableHead>
                   <TableHead>Status</TableHead>
@@ -138,6 +232,7 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                   <TableRow key={supplier.id}>
                     <TableCell className="font-mono">{supplier.code}</TableCell>
                     <TableCell>{supplier.name}</TableCell>
+                    <TableCell>{supplier.tradeName || '-'}</TableCell>
                     <TableCell>{supplier.cnpj}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
