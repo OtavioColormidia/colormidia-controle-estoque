@@ -10,10 +10,28 @@ export const useSupabaseData = () => {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Real-time handlers - defined before useEffect
+  const handleProductChange = async () => {
+    await loadProducts();
+  };
+
+  const handleSupplierChange = async () => {
+    await loadSuppliers();
+  };
+
+  const handleMovementChange = async () => {
+    await loadMovements();
+    await loadProducts(); // Reload products to update stock
+  };
+
+  const handlePurchaseChange = async () => {
+    await loadPurchases();
+  };
+
   // Load initial data
   useEffect(() => {
     loadAllData();
-    
+
     // Set up real-time subscriptions
     const channel = supabase
       .channel('inventory-changes')
@@ -116,6 +134,7 @@ export const useSupabaseData = () => {
       id: s.id,
       code: s.code,
       name: s.name,
+      tradeName: s.trade_name || '',
       cnpj: s.cnpj,
       contact: s.contact || '',
       email: s.email || '',
@@ -199,31 +218,6 @@ export const useSupabaseData = () => {
     setPurchases(formattedPurchases);
   };
 
-  // Real-time handlers
-  const handleProductChange = (payload: any) => {
-    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-      loadProducts();
-    } else if (payload.eventType === 'DELETE') {
-      setProducts(prev => prev.filter(p => p.id !== payload.old.id));
-    }
-  };
-
-  const handleSupplierChange = (payload: any) => {
-    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-      loadSuppliers();
-    } else if (payload.eventType === 'DELETE') {
-      setSuppliers(prev => prev.filter(s => s.id !== payload.old.id));
-    }
-  };
-
-  const handleMovementChange = (payload: any) => {
-    loadMovements();
-    loadProducts(); // Reload products to update stock
-  };
-
-  const handlePurchaseChange = (payload: any) => {
-    loadPurchases();
-  };
 
   // CRUD Operations
   const addProduct = async (product: Omit<Product, 'id' | 'lastUpdated'>) => {

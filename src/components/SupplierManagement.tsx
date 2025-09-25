@@ -235,27 +235,30 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                     <TableCell>{supplier.tradeName || '-'}</TableCell>
                     <TableCell>{supplier.cnpj}</TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Mail className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{supplier.email || 'Email não informado'}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Phone className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{supplier.phone || 'Telefone não informado'}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">{supplier.contact || '-'}</div>
+                        <div className="flex gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Mail className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{supplier.email || 'Email não informado'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Phone className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{supplier.phone || 'Telefone não informado'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>

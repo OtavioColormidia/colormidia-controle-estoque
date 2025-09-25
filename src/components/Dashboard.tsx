@@ -32,28 +32,6 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ products, movements }: DashboardProps) {
-  // Set up real-time subscription for movements
-  useEffect(() => {
-    const channel = supabase
-      .channel('dashboard-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'stock_movements'
-        },
-        () => {
-          // Real-time update handled by parent component
-          window.location.reload(); // Simple refresh for real-time updates
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   // Calculate metrics
   const totalProducts = products.length;
@@ -71,18 +49,18 @@ export default function Dashboard({ products, movements }: DashboardProps) {
   const movementsByDay = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
-    date.setHours(0, 0, 0, 0);
     
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + 1);
+    // Ensure we're working with local Brazil time
+    const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+    const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
     
     const dayMovements = movements.filter((m) => {
       const movementDate = new Date(m.date);
-      return movementDate >= date && movementDate < nextDate;
+      return movementDate >= startOfDay && movementDate <= endOfDay;
     });
     
     return {
-      day: date.toLocaleDateString('pt-BR', { weekday: 'short', timeZone: 'America/Sao_Paulo' }),
+      day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
       entradas: dayMovements.filter((m) => m.type === 'entry').length,
       saidas: dayMovements.filter((m) => m.type === 'exit').length,
     };
