@@ -47,6 +47,11 @@ export default function MaterialEntry({
     notes: '',
   });
 
+  const parseLocalDate = (yyyyMmDd: string) => {
+    const [y, m, d] = yyyyMmDd.split('-').map(Number);
+    return new Date(y, (m ?? 1) - 1, d ?? 1, 12, 0, 0);
+  };
+
   const entries = movements.filter((m) => m.type === 'entry').slice(0, 10);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,7 +68,7 @@ export default function MaterialEntry({
     }
 
     const movement: Omit<StockMovement, 'id'> = {
-      date: new Date(formData.date),
+      date: parseLocalDate(formData.date),
       type: 'entry',
       productId: selectedProduct.id,
       productName: selectedProduct.name,

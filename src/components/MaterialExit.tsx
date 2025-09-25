@@ -45,6 +45,11 @@ export default function MaterialExit({
     notes: '',
   });
 
+  const parseLocalDate = (yyyyMmDd: string) => {
+    const [y, m, d] = yyyyMmDd.split('-').map(Number);
+    return new Date(y, (m ?? 1) - 1, d ?? 1, 12, 0, 0);
+  };
+
   const exits = movements.filter((m) => m.type === 'exit').slice(0, 10);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -71,7 +76,7 @@ export default function MaterialExit({
     }
 
     const movement: Omit<StockMovement, 'id'> = {
-      date: new Date(formData.date),
+      date: parseLocalDate(formData.date),
       type: 'exit',
       productId: formData.productId,
       productName: product.name,
