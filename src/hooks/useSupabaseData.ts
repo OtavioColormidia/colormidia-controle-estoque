@@ -280,6 +280,7 @@ export const useSupabaseData = () => {
       .insert({
         code: supplier.code,
         name: supplier.name,
+        trade_name: supplier.tradeName,  // Adicionando o campo trade_name
         cnpj: supplier.cnpj,
         contact: supplier.contact,
         email: supplier.email,
@@ -303,6 +304,9 @@ export const useSupabaseData = () => {
       });
       throw error;
     }
+
+    // Atualizar a lista local imediatamente após adicionar
+    await loadSuppliers();
 
     toast({
       title: "Fornecedor adicionado",
