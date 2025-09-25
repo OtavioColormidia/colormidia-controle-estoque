@@ -58,6 +58,32 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
   
   const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
 
+  const formatCNPJ = (value: string) => {
+    // Remove todos os caracteres não numéricos
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 14 dígitos
+    const truncated = numbers.substring(0, 14);
+    
+    // Aplica a formatação
+    if (truncated.length <= 2) {
+      return truncated;
+    } else if (truncated.length <= 5) {
+      return `${truncated.substring(0, 2)}.${truncated.substring(2)}`;
+    } else if (truncated.length <= 8) {
+      return `${truncated.substring(0, 2)}.${truncated.substring(2, 5)}.${truncated.substring(5)}`;
+    } else if (truncated.length <= 12) {
+      return `${truncated.substring(0, 2)}.${truncated.substring(2, 5)}.${truncated.substring(5, 8)}/${truncated.substring(8)}`;
+    } else {
+      return `${truncated.substring(0, 2)}.${truncated.substring(2, 5)}.${truncated.substring(5, 8)}/${truncated.substring(8, 12)}-${truncated.substring(12)}`;
+    }
+  };
+
+  const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCNPJ(e.target.value);
+    setFormData({ ...formData, cnpj: formatted });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddSupplier(formData);
@@ -166,7 +192,7 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                 <div className="flex gap-2">
                   <Input 
                     value={formData.cnpj} 
-                    onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })} 
+                    onChange={handleCNPJChange} 
                     placeholder="00.000.000/0000-00"
                     required 
                   />
