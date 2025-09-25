@@ -247,6 +247,9 @@ export const useSupabaseData = () => {
       throw error;
     }
 
+    // Atualizar lista local imediatamente
+    await loadProducts();
+
     toast({
       title: "Produto adicionado",
       description: "O produto foi salvo no banco de dados."
@@ -395,6 +398,9 @@ export const useSupabaseData = () => {
       await loadProducts();
     }
 
+    // Atualizar a lista de movimentos imediatamente
+    await loadMovements();
+
     toast({
       title: "Movimento registrado",
       description: "O movimento de estoque foi salvo no banco de dados."
@@ -450,6 +456,9 @@ export const useSupabaseData = () => {
         throw itemsError;
       }
     }
+
+    // Atualizar lista local imediatamente
+    await loadPurchases();
 
     toast({
       title: "Compra adicionada",
