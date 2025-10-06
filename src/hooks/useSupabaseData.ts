@@ -283,6 +283,7 @@ export const useSupabaseData = () => {
       title: "Produto adicionado",
       description: "O produto foi salvo no banco de dados."
     });
+    broadcastRefresh();
   };
 
   const deleteProduct = async (productId: string) => {
@@ -304,6 +305,7 @@ export const useSupabaseData = () => {
       title: "Produto excluído",
       description: "O produto foi removido do banco de dados."
     });
+    broadcastRefresh();
   };
 
   const addSupplier = async (supplier: Omit<Supplier, 'id'>) => {
@@ -342,6 +344,7 @@ export const useSupabaseData = () => {
       title: "Fornecedor adicionado",
       description: "O fornecedor foi salvo no banco de dados."
     });
+    broadcastRefresh();
   };
 
   const deleteSupplier = async (supplierId: string) => {
@@ -363,6 +366,7 @@ export const useSupabaseData = () => {
       title: "Fornecedor excluído",
       description: "O fornecedor foi removido do banco de dados."
     });
+    broadcastRefresh();
   };
 
   const addMovement = async (movement: Omit<StockMovement, 'id'>) => {
@@ -427,6 +431,7 @@ export const useSupabaseData = () => {
       title: "Movimento registrado",
       description: "O movimento de estoque foi salvo no banco de dados."
     });
+    broadcastRefresh();
   };
 
   const addPurchase = async (purchase: Omit<Purchase, 'id'>) => {
@@ -484,6 +489,7 @@ export const useSupabaseData = () => {
       title: "Compra adicionada",
       description: "A compra foi salva no banco de dados."
     });
+    broadcastRefresh();
   };
 
   const deletePurchase = async (purchaseId: string) => {
@@ -521,6 +527,7 @@ export const useSupabaseData = () => {
       title: "Compra excluída",
       description: "A compra foi removida do banco de dados."
     });
+    broadcastRefresh();
   };
 
   const updatePurchaseStatus = async (purchaseId: string, status: Purchase['status']) => {
@@ -548,6 +555,7 @@ export const useSupabaseData = () => {
       title: "Status atualizado",
       description: "O status da compra foi atualizado com sucesso."
     });
+    broadcastRefresh();
   };
 
   return {
