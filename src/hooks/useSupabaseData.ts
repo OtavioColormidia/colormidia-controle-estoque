@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product, Supplier, StockMovement, Purchase } from "@/types/inventory";
 import { toast } from "./use-toast";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export const useSupabaseData = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -9,7 +10,7 @@ export const useSupabaseData = () => {
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const loadProducts = useCallback(async () => {
     const { data, error } = await supabase
       .from('products')
@@ -154,16 +155,14 @@ export const useSupabaseData = () => {
 
     loadAllData();
 
-    // Set up real-time subscriptions with stable handlers
-    const channel = supabase
-      .channel('inventory-changes')
+    // Set up real-time subscriptions with stable handlers + broadcast sync
+    const channel = supabase.channel('inventory-changes');
+    channelRef.current = channel;
+
+    channel
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'products'
-        },
+        { event: '*', schema: 'public', table: 'products' },
         () => {
           console.log('Real-time: products changed');
           loadProducts();
@@ -171,11 +170,7 @@ export const useSupabaseData = () => {
       )
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'suppliers'
-        },
+        { event: '*', schema: 'public', table: 'suppliers' },
         () => {
           console.log('Real-time: suppliers changed');
           loadSuppliers();
@@ -183,11 +178,7 @@ export const useSupabaseData = () => {
       )
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'stock_movements'
-        },
+        { event: '*', schema: 'public', table: 'stock_movements' },
         () => {
           console.log('Real-time: stock_movements changed');
           loadMovements();
@@ -196,11 +187,7 @@ export const useSupabaseData = () => {
       )
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'purchases'
-        },
+        { event: '*', schema: 'public', table: 'purchases' },
         () => {
           console.log('Real-time: purchases changed');
           loadPurchases();
@@ -208,16 +195,20 @@ export const useSupabaseData = () => {
       )
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'purchase_items'
-        },
+        { event: '*', schema: 'public', table: 'purchase_items' },
         () => {
           console.log('Real-time: purchase_items changed');
           loadPurchases();
         }
       )
+      .on('broadcast', { event: 'refresh-data' }, () => {
+        console.log('Broadcast: refresh-data received');
+        // Fallback: ensure all lists reload
+        loadProducts();
+        loadSuppliers();
+        loadMovements();
+        loadPurchases();
+      })
       .subscribe((status) => {
         console.log('Real-time subscription status:', status);
       });
@@ -247,7 +238,17 @@ export const useSupabaseData = () => {
     }
     setLoading(false);
   }, [loadProducts, loadSuppliers, loadMovements, loadPurchases]);
-
+  const broadcastRefresh = () => {
+    try {
+      channelRef.current?.send({
+        type: 'broadcast',
+        event: 'refresh-data',
+        payload: { ts: Date.now() }
+      });
+    } catch (e) {
+      console.error('Broadcast send error', e);
+    }
+  };
 
   // CRUD Operations
   const addProduct = async (product: Omit<Product, 'id' | 'lastUpdated'>) => {
