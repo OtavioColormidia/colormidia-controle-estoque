@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product, Supplier, StockMovement, Purchase } from "@/types/inventory";
 import { toast } from "./use-toast";
@@ -10,95 +10,7 @@ export const useSupabaseData = () => {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Real-time handlers - defined before useEffect
-  const handleProductChange = async () => {
-    await loadProducts();
-  };
-
-  const handleSupplierChange = async () => {
-    await loadSuppliers();
-  };
-
-  const handleMovementChange = async () => {
-    await loadMovements();
-    await loadProducts(); // Reload products to update stock
-  };
-
-  const handlePurchaseChange = async () => {
-    await loadPurchases();
-  };
-
-  // Load initial data
-  useEffect(() => {
-    loadAllData();
-
-    // Set up real-time subscriptions
-    const channel = supabase
-      .channel('inventory-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'products'
-        },
-        handleProductChange
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'suppliers'
-        },
-        handleSupplierChange
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'stock_movements'
-        },
-        handleMovementChange
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'purchases'
-        },
-        handlePurchaseChange
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const loadAllData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        loadProducts(),
-        loadSuppliers(),
-        loadMovements(),
-        loadPurchases()
-      ]);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Verifique sua conexão e tente novamente.",
-        variant: "destructive"
-      });
-    }
-    setLoading(false);
-  };
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -120,9 +32,9 @@ export const useSupabaseData = () => {
     })) || [];
     
     setProducts(formattedProducts);
-  };
+  }, []);
 
-  const loadSuppliers = async () => {
+  const loadSuppliers = useCallback(async () => {
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
@@ -147,9 +59,9 @@ export const useSupabaseData = () => {
     })) || [];
     
     setSuppliers(formattedSuppliers);
-  };
+  }, []);
 
-  const loadMovements = async () => {
+  const loadMovements = useCallback(async () => {
     const { data, error } = await supabase
       .from('stock_movements')
       .select(`
@@ -180,9 +92,9 @@ export const useSupabaseData = () => {
     })) || [];
     
     setMovements(formattedMovements);
-  };
+  }, []);
 
-  const loadPurchases = async () => {
+  const loadPurchases = useCallback(async () => {
     const { data, error } = await supabase
       .from('purchases')
       .select(`
@@ -216,7 +128,125 @@ export const useSupabaseData = () => {
     })) || [];
     
     setPurchases(formattedPurchases);
-  };
+  }, []);
+
+  // Load initial data
+  useEffect(() => {
+    const loadAllData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          loadProducts(),
+          loadSuppliers(),
+          loadMovements(),
+          loadPurchases()
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Verifique sua conexão e tente novamente.",
+          variant: "destructive"
+        });
+      }
+      setLoading(false);
+    };
+
+    loadAllData();
+
+    // Set up real-time subscriptions with stable handlers
+    const channel = supabase
+      .channel('inventory-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products'
+        },
+        () => {
+          console.log('Real-time: products changed');
+          loadProducts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'suppliers'
+        },
+        () => {
+          console.log('Real-time: suppliers changed');
+          loadSuppliers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stock_movements'
+        },
+        () => {
+          console.log('Real-time: stock_movements changed');
+          loadMovements();
+          loadProducts(); // Update stock
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'purchases'
+        },
+        () => {
+          console.log('Real-time: purchases changed');
+          loadPurchases();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'purchase_items'
+        },
+        () => {
+          console.log('Real-time: purchase_items changed');
+          loadPurchases();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [loadProducts, loadSuppliers, loadMovements, loadPurchases]);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadProducts(),
+        loadSuppliers(),
+        loadMovements(),
+        loadPurchases()
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Verifique sua conexão e tente novamente.",
+        variant: "destructive"
+      });
+    }
+    setLoading(false);
+  }, [loadProducts, loadSuppliers, loadMovements, loadPurchases]);
 
 
   // CRUD Operations
@@ -544,6 +574,6 @@ export const useSupabaseData = () => {
     addPurchase,
     deletePurchase,
     updatePurchaseStatus,
-    refresh: loadAllData
+    refresh
   };
 };
