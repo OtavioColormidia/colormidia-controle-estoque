@@ -277,9 +277,7 @@ export const useSupabaseData = () => {
       throw error;
     }
 
-    // Atualizar lista local imediatamente
-    await loadProducts();
-
+    // Real-time irá atualizar automaticamente
     toast({
       title: "Produto adicionado",
       description: "O produto foi salvo no banco de dados."
@@ -313,7 +311,7 @@ export const useSupabaseData = () => {
       .insert({
         code: supplier.code,
         name: supplier.name,
-        trade_name: supplier.tradeName,  // Adicionando o campo trade_name
+        trade_name: supplier.tradeName,
         cnpj: supplier.cnpj,
         contact: supplier.contact,
         email: supplier.email,
@@ -338,9 +336,7 @@ export const useSupabaseData = () => {
       throw error;
     }
 
-    // Atualizar a lista local imediatamente após adicionar
-    await loadSuppliers();
-
+    // Real-time irá atualizar automaticamente
     toast({
       title: "Fornecedor adicionado",
       description: "O fornecedor foi salvo no banco de dados."
@@ -423,14 +419,9 @@ export const useSupabaseData = () => {
         });
         throw updateError;
       }
-      
-      // Reload products to ensure UI is updated with latest data
-      await loadProducts();
     }
 
-    // Atualizar a lista de movimentos imediatamente
-    await loadMovements();
-
+    // Real-time irá atualizar automaticamente
     toast({
       title: "Movimento registrado",
       description: "O movimento de estoque foi salvo no banco de dados."
@@ -487,9 +478,7 @@ export const useSupabaseData = () => {
       }
     }
 
-    // Atualizar lista local imediatamente
-    await loadPurchases();
-
+    // Real-time irá atualizar automaticamente
     toast({
       title: "Compra adicionada",
       description: "A compra foi salva no banco de dados."

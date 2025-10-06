@@ -24,7 +24,7 @@ import { toast } from '@/components/ui/use-toast';
 
 interface ProductManagementProps {
   products: Product[];
-  onAddProduct: (product: Omit<Product, 'id' | 'lastUpdated'>) => void;
+  onAddProduct: (product: Omit<Product, 'id' | 'lastUpdated'>) => Promise<void>;
   onDeleteProduct: (id: string) => void;
 }
 
@@ -48,27 +48,31 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
     currentStock: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAddProduct({
-      code: formData.code,
-      name: formData.name,
-      description: formData.description,
-      unit: 'UN', // Default value
-      category: formData.category,
-      minStock: parseInt(formData.minStock),
-      currentStock: parseInt(formData.currentStock),
-      location: '', // Default empty
-    });
-    toast({ title: 'Produto cadastrado', description: `${formData.name} foi adicionado com sucesso` });
-    setFormData({ 
-      code: getNextProductCode(), // Gerar novo código após cadastro
-      name: '', 
-      description: '', 
-      category: '', 
-      minStock: '', 
-      currentStock: '' 
-    });
+    try {
+      await onAddProduct({
+        code: formData.code,
+        name: formData.name,
+        description: formData.description,
+        unit: 'UN', // Default value
+        category: formData.category,
+        minStock: parseInt(formData.minStock),
+        currentStock: parseInt(formData.currentStock),
+        location: '', // Default empty
+      });
+      toast({ title: 'Produto cadastrado', description: `${formData.name} foi adicionado com sucesso` });
+      setFormData({ 
+        code: getNextProductCode(), // Gerar novo código após cadastro
+        name: '', 
+        description: '', 
+        category: '', 
+        minStock: '', 
+        currentStock: '' 
+      });
+    } catch (error) {
+      console.error('Erro ao cadastrar produto:', error);
+    }
   };
 
   return (

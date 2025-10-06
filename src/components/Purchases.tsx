@@ -58,27 +58,31 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     setPurchaseItems(purchaseItems.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.supplierName && purchaseItems.length > 0) {
       const totalValue = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       
-      onAddPurchase({
-        date: new Date(),
-        supplierId: '',
-        supplierName: formData.supplierName,
-        items: purchaseItems,
-        totalValue,
-        status: 'pending',
-        documentNumber: formData.documentNumber,
-        notes: formData.notes,
-      });
+      try {
+        await onAddPurchase({
+          date: new Date(),
+          supplierId: '',
+          supplierName: formData.supplierName,
+          items: purchaseItems,
+          totalValue,
+          status: 'pending',
+          documentNumber: formData.documentNumber,
+          notes: formData.notes,
+        });
 
-      toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
-      
-      // Reset form
-      setFormData({ supplierName: '', documentNumber: '', notes: '' });
-      setPurchaseItems([]);
+        toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
+        
+        // Reset form
+        setFormData({ supplierName: '', documentNumber: '', notes: '' });
+        setPurchaseItems([]);
+      } catch (error) {
+        console.error('Erro ao criar pedido:', error);
+      }
     }
   };
 

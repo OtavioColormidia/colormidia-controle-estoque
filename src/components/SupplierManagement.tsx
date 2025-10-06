@@ -26,7 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface SupplierManagementProps {
   suppliers: Supplier[];
-  onAddSupplier: (supplier: Omit<Supplier, 'id'>) => void;
+  onAddSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<void>;
   onDeleteSupplier: (id: string) => void;
 }
 
@@ -84,24 +84,28 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
     setFormData({ ...formData, cnpj: formatted });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAddSupplier(formData);
-    toast({ title: 'Fornecedor cadastrado', description: `${formData.name} foi adicionado com sucesso` });
-    setFormData({
-      code: getNextSupplierCode(), 
-      name: '', 
-      tradeName: '',
-      cnpj: '', 
-      contact: '', 
-      email: '', 
-      phone: '',
-      address: '', 
-      city: '', 
-      state: '', 
-      zipCode: '', 
-      active: true,
-    });
+    try {
+      await onAddSupplier(formData);
+      toast({ title: 'Fornecedor cadastrado', description: `${formData.name} foi adicionado com sucesso` });
+      setFormData({
+        code: getNextSupplierCode(), 
+        name: '', 
+        tradeName: '',
+        cnpj: '', 
+        contact: '', 
+        email: '', 
+        phone: '',
+        address: '', 
+        city: '', 
+        state: '', 
+        zipCode: '', 
+        active: true,
+      });
+    } catch (error) {
+      console.error('Erro ao cadastrar fornecedor:', error);
+    }
   };
   
   const searchCNPJ = async () => {
