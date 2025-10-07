@@ -11,7 +11,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Search, Filter, AlertTriangle, CheckCircle, FileDown } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Product, StockMovement } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
 
@@ -25,14 +27,24 @@ export default function InventoryControl({ products, movements }: InventoryContr
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'critical' | 'warning' | 'normal'>('all');
 
-  // Calculate real entries and exits for each product
+  // Calculate real entries and exits for each product, plus average cost and last purchase price
   const productMovements = useMemo(() => {
-    const movementsByProduct = new Map<string, { entries: number; exits: number }>();
+    const movementsByProduct = new Map<string, { 
+      entries: number; 
+      exits: number;
+      averageCost: number;
+      lastPurchasePrice: number;
+    }>();
     
     movements.forEach((movement) => {
       if (!movement.productId) return;
       
-      const current = movementsByProduct.get(movement.productId) || { entries: 0, exits: 0 };
+      const current = movementsByProduct.get(movement.productId) || { 
+        entries: 0, 
+        exits: 0,
+        averageCost: 0,
+        lastPurchasePrice: 0
+      };
       
       if (movement.type === 'entry') {
         current.entries += movement.quantity;
@@ -43,8 +55,31 @@ export default function InventoryControl({ products, movements }: InventoryContr
       movementsByProduct.set(movement.productId, current);
     });
     
+    // Calculate average cost and last purchase price for each product
+    products.forEach((product) => {
+      const entryMovements = movements
+        .filter(m => m.productId === product.id && m.type === 'entry' && m.unitPrice)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      if (entryMovements.length > 0) {
+        // Calculate average cost
+        const totalCost = entryMovements.reduce((sum, m) => sum + (m.unitPrice! * m.quantity), 0);
+        const totalQuantity = entryMovements.reduce((sum, m) => sum + m.quantity, 0);
+        const averageCost = totalQuantity > 0 ? totalCost / totalQuantity : 0;
+        
+        // Get last purchase price
+        const lastPurchasePrice = entryMovements[0].unitPrice || 0;
+        
+        const current = movementsByProduct.get(product.id);
+        if (current) {
+          current.averageCost = averageCost;
+          current.lastPurchasePrice = lastPurchasePrice;
+        }
+      }
+    });
+    
     return movementsByProduct;
-  }, [movements]);
+  }, [movements, products]);
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
@@ -85,14 +120,74 @@ export default function InventoryControl({ products, movements }: InventoryContr
     }
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(16);
+    doc.text('Relatório de Controle de Estoque', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 22);
+    
+    const tableData = filteredProducts.map((product) => {
+      const movementData = productMovements.get(product.id) || { 
+        entries: 0, 
+        exits: 0, 
+        averageCost: 0, 
+        lastPurchasePrice: 0 
+      };
+      const initialStock = product.currentStock - movementData.entries + movementData.exits;
+      const status = getStockStatus(product.currentStock, product.minStock);
+      
+      return [
+        product.code,
+        product.name,
+        initialStock.toString(),
+        movementData.entries.toString(),
+        movementData.exits.toString(),
+        product.minStock.toString(),
+        product.currentStock.toString(),
+        `R$ ${movementData.averageCost.toFixed(2)}`,
+        `R$ ${movementData.lastPurchasePrice.toFixed(2)}`,
+        status === 'critical' ? 'Reposição' : status === 'warning' ? 'Baixo' : 'Confortável'
+      ];
+    });
+    
+    autoTable(doc, {
+      startY: 28,
+      head: [['Código', 'Produto', 'Est. Inicial', 'Entradas', 'Saídas', 'Est. Mín.', 'Est. Atual', 'Custo Médio', 'Últ. Compra', 'Status']],
+      body: tableData,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [66, 66, 66] },
+      columnStyles: {
+        0: { cellWidth: 20 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 15 },
+        3: { cellWidth: 15 },
+        4: { cellWidth: 15 },
+        5: { cellWidth: 15 },
+        6: { cellWidth: 15 },
+        7: { cellWidth: 20 },
+        8: { cellWidth: 20 },
+        9: { cellWidth: 20 }
+      }
+    });
+    
+    doc.save(`estoque_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Controle de Estoque</h2>
-        <p className="text-muted-foreground mt-1">
-          Visualize e gerencie o estoque do almoxarifado
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Controle de Estoque</h2>
+          <p className="text-muted-foreground mt-1">
+            Visualize e gerencie o estoque do almoxarifado
+          </p>
+        </div>
+        <Button onClick={exportToPDF} className="bg-gradient-primary">
+          <FileDown className="h-4 w-4 mr-2" />
+          Exportar PDF
+        </Button>
       </div>
 
       <Card className="p-6">
@@ -151,11 +246,18 @@ export default function InventoryControl({ products, movements }: InventoryContr
                 <TableHead className="font-bold text-center">Estoque Mínimo</TableHead>
                 <TableHead className="font-bold text-center">Estoque Atual</TableHead>
                 <TableHead className="font-bold">Status</TableHead>
+                <TableHead className="font-bold text-right">Custo Médio</TableHead>
+                <TableHead className="font-bold text-right">Preço Últ. Compra</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredProducts.map((product) => {
-                const movementData = productMovements.get(product.id) || { entries: 0, exits: 0 };
+                const movementData = productMovements.get(product.id) || { 
+                  entries: 0, 
+                  exits: 0, 
+                  averageCost: 0, 
+                  lastPurchasePrice: 0 
+                };
                 // Calculate initial stock: current stock - entries + exits
                 const initialStock = product.currentStock - movementData.entries + movementData.exits;
 
@@ -191,6 +293,12 @@ export default function InventoryControl({ products, movements }: InventoryContr
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(product.currentStock, product.minStock)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      R$ {movementData.averageCost.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      R$ {movementData.lastPurchasePrice.toFixed(2)}
                     </TableCell>
                   </TableRow>
                 );

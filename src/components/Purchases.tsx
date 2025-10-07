@@ -29,6 +29,7 @@ interface PurchasesProps {
 
 export default function Purchases({ purchases, products, suppliers, onAddPurchase, onDeletePurchase, onUpdatePurchaseStatus }: PurchasesProps) {
   const [formData, setFormData] = useState({
+    supplierId: '',
     supplierName: '',
     documentNumber: '',
     notes: '',
@@ -60,13 +61,13 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.supplierName && purchaseItems.length > 0) {
+    if (formData.supplierId && purchaseItems.length > 0) {
       const totalValue = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       
       try {
         await onAddPurchase({
           date: new Date(),
-          supplierId: '',
+          supplierId: formData.supplierId,
           supplierName: formData.supplierName,
           items: purchaseItems,
           totalValue,
@@ -78,7 +79,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
         toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
         
         // Reset form
-        setFormData({ supplierName: '', documentNumber: '', notes: '' });
+        setFormData({ supplierId: '', supplierName: '', documentNumber: '', notes: '' });
         setPurchaseItems([]);
       } catch (error) {
         console.error('Erro ao criar pedido:', error);
@@ -116,11 +117,28 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Fornecedor</Label>
-              <Input 
-                value={formData.supplierName} 
-                onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })}
-                placeholder="Digite o nome do fornecedor"
-              />
+              <Select 
+                value={formData.supplierId} 
+                onValueChange={(value) => {
+                  const supplier = suppliers.find(s => s.id === value);
+                  setFormData({ 
+                    ...formData, 
+                    supplierId: value,
+                    supplierName: supplier?.name || ''
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um fornecedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.filter(s => s.active).map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">
@@ -201,7 +219,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             <Button 
               type="submit" 
               className="w-full bg-gradient-primary"
-              disabled={!formData.supplierName || purchaseItems.length === 0}
+              disabled={!formData.supplierId || purchaseItems.length === 0}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Criar Pedido
