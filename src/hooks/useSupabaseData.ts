@@ -278,11 +278,11 @@ export const useSupabaseData = () => {
       throw error;
     }
 
-    // Real-time irá atualizar automaticamente
     toast({
       title: "Produto adicionado",
       description: "O produto foi salvo no banco de dados."
     });
+    await loadProducts();
     broadcastRefresh();
   };
 
@@ -305,6 +305,7 @@ export const useSupabaseData = () => {
       title: "Produto excluído",
       description: "O produto foi removido do banco de dados."
     });
+    await loadProducts();
     broadcastRefresh();
   };
 
@@ -339,11 +340,11 @@ export const useSupabaseData = () => {
       throw error;
     }
 
-    // Real-time irá atualizar automaticamente
     toast({
       title: "Fornecedor adicionado",
       description: "O fornecedor foi salvo no banco de dados."
     });
+    await loadSuppliers();
     broadcastRefresh();
   };
 
@@ -366,6 +367,7 @@ export const useSupabaseData = () => {
       title: "Fornecedor excluído",
       description: "O fornecedor foi removido do banco de dados."
     });
+    await loadSuppliers();
     broadcastRefresh();
   };
 
@@ -426,11 +428,12 @@ export const useSupabaseData = () => {
       }
     }
 
-    // Real-time irá atualizar automaticamente
     toast({
       title: "Movimento registrado",
       description: "O movimento de estoque foi salvo no banco de dados."
     });
+    await loadMovements();
+    await loadProducts();
     broadcastRefresh();
   };
 
@@ -484,11 +487,11 @@ export const useSupabaseData = () => {
       }
     }
 
-    // Real-time irá atualizar automaticamente
     toast({
       title: "Compra adicionada",
       description: "A compra foi salva no banco de dados."
     });
+    await loadPurchases();
     broadcastRefresh();
   };
 
@@ -527,6 +530,7 @@ export const useSupabaseData = () => {
       title: "Compra excluída",
       description: "A compra foi removida do banco de dados."
     });
+    await loadPurchases();
     broadcastRefresh();
   };
 
