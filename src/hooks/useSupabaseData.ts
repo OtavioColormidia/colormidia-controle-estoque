@@ -211,10 +211,52 @@ export const useSupabaseData = () => {
       })
       .subscribe((status) => {
         console.log('Real-time subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          // ok
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Realtime channel issue, scheduling resubscribe');
+          setTimeout(() => {
+            try {
+              channel.subscribe((s) => console.log('Resubscribe status:', s));
+            } catch (e) {
+              console.error('Resubscribe failed', e);
+            }
+          }, 1000);
+          // Fallback: refresh locally
+          loadProducts();
+          loadSuppliers();
+          loadMovements();
+          loadPurchases();
+        }
       });
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('Visibility change: visible, refreshing + ensuring realtime');
+        loadProducts();
+        loadSuppliers();
+        loadMovements();
+        loadPurchases();
+        try { channel.subscribe(); } catch {}
+      }
+    };
+
+    const handleOnline = () => {
+      console.log('Network online: refreshing + ensuring realtime');
+      loadProducts();
+      loadSuppliers();
+      loadMovements();
+      loadPurchases();
+      try { channel.subscribe(); } catch {}
+    };
+
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('online', handleOnline);
 
     return () => {
       console.log('Cleaning up real-time subscription');
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('online', handleOnline);
       supabase.removeChannel(channel);
     };
   }, [loadProducts, loadSuppliers, loadMovements, loadPurchases]);
