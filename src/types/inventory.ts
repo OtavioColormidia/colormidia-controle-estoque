@@ -55,6 +55,7 @@ export interface Purchase {
   status: 'pending' | 'approved' | 'delivered' | 'cancelled';
   documentNumber?: string;
   notes?: string;
+  expectedDeliveryDate?: Date;
 }
 
 export interface PurchaseItem {

@@ -158,6 +158,7 @@ export type Database = {
           created_by: string | null
           date: string
           document_number: string | null
+          expected_delivery_date: string | null
           id: string
           notes: string | null
           status: string
@@ -171,6 +172,7 @@ export type Database = {
           created_by?: string | null
           date?: string
           document_number?: string | null
+          expected_delivery_date?: string | null
           id?: string
           notes?: string | null
           status?: string
@@ -184,6 +186,7 @@ export type Database = {
           created_by?: string | null
           date?: string
           document_number?: string | null
+          expected_delivery_date?: string | null
           id?: string
           notes?: string | null
           status?: string

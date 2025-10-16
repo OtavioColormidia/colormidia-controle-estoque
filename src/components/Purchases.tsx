@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Table,
   TableBody,
@@ -13,8 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 import { toast } from '@/components/ui/use-toast';
 
@@ -33,6 +37,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     supplierName: '',
     documentNumber: '',
     notes: '',
+    expectedDeliveryDate: undefined as Date | undefined,
   });
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([]);
   const [productName, setProductName] = useState('');
@@ -74,12 +79,13 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
           status: 'pending',
           documentNumber: formData.documentNumber,
           notes: formData.notes,
+          expectedDeliveryDate: formData.expectedDeliveryDate,
         });
 
         toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
         
         // Reset form
-        setFormData({ supplierId: '', supplierName: '', documentNumber: '', notes: '' });
+        setFormData({ supplierId: '', supplierName: '', documentNumber: '', notes: '', expectedDeliveryDate: undefined });
         setPurchaseItems([]);
       } catch (error) {
         console.error('Erro ao criar pedido:', error);
@@ -157,6 +163,33 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Observações do pedido"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Previsão de Entrega</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.expectedDeliveryDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.expectedDeliveryDate ? format(formData.expectedDeliveryDate, "dd/MM/yyyy") : <span>Selecione a data</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.expectedDeliveryDate}
+                    onSelect={(date) => setFormData({ ...formData, expectedDeliveryDate: date })}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="border-t pt-4">
@@ -241,6 +274,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Itens</TableHead>
                   <TableHead className="text-right">Valor Total</TableHead>
+                  <TableHead>Previsão Entrega</TableHead>
+                  <TableHead>Observações</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -261,6 +296,15 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-bold">R$ {purchase.totalValue.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {purchase.expectedDeliveryDate 
+                        ? new Date(purchase.expectedDeliveryDate).toLocaleDateString('pt-BR')
+                        : '-'
+                      }
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {purchase.notes || '-'}
+                    </TableCell>
                     <TableCell>{getStatusBadge(purchase.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">

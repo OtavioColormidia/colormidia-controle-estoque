@@ -125,7 +125,8 @@ export const useSupabaseData = () => {
       totalValue: Number(p.total_value),
       status: p.status as 'pending' | 'approved' | 'delivered' | 'cancelled',
       documentNumber: p.document_number || undefined,
-      notes: p.notes || undefined
+      notes: p.notes || undefined,
+      expectedDeliveryDate: p.expected_delivery_date ? new Date(p.expected_delivery_date) : undefined
     })) || [];
     
     setPurchases(formattedPurchases);
@@ -490,6 +491,7 @@ export const useSupabaseData = () => {
         status: purchase.status,
         document_number: purchase.documentNumber,
         notes: purchase.notes,
+        expected_delivery_date: purchase.expectedDeliveryDate?.toISOString() || null,
         created_by: (await supabase.auth.getUser()).data.user?.id
       })
       .select()
