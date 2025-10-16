@@ -18,6 +18,7 @@ import {
 import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 import { toast } from '@/components/ui/use-toast';
@@ -186,6 +187,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     selected={formData.expectedDeliveryDate}
                     onSelect={(date) => setFormData({ ...formData, expectedDeliveryDate: date })}
                     initialFocus
+                    locale={ptBR}
                     className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
