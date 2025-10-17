@@ -606,6 +606,79 @@ export const useSupabaseData = () => {
     broadcastRefresh();
   };
 
+  const updatePurchase = async (purchaseId: string, purchase: Omit<Purchase, 'id' | 'date'>) => {
+    // Update purchase
+    const { error: purchaseError } = await supabase
+      .from('purchases')
+      .update({
+        supplier_id: purchase.supplierId || null,
+        supplier_name: purchase.supplierName || null,
+        total_value: purchase.totalValue,
+        status: purchase.status,
+        document_number: purchase.documentNumber,
+        notes: purchase.notes,
+        expected_delivery_date: purchase.expectedDeliveryDate?.toISOString() || null,
+        updated_by: (await supabase.auth.getUser()).data.user?.id
+      })
+      .eq('id', purchaseId);
+
+    if (purchaseError) {
+      toast({
+        title: "Erro ao atualizar compra",
+        description: purchaseError.message,
+        variant: "destructive"
+      });
+      throw purchaseError;
+    }
+
+    // Delete existing purchase items
+    const { error: deleteItemsError } = await supabase
+      .from('purchase_items')
+      .delete()
+      .eq('purchase_id', purchaseId);
+
+    if (deleteItemsError) {
+      toast({
+        title: "Erro ao atualizar itens da compra",
+        description: deleteItemsError.message,
+        variant: "destructive"
+      });
+      throw deleteItemsError;
+    }
+
+    // Add new purchase items
+    if (purchase.items.length > 0) {
+      const items = purchase.items.map(item => ({
+        purchase_id: purchaseId,
+        product_id: item.productId || null,
+        product_name: item.productName,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        total_price: item.totalPrice
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('purchase_items')
+        .insert(items);
+
+      if (itemsError) {
+        toast({
+          title: "Erro ao adicionar itens da compra",
+          description: itemsError.message,
+          variant: "destructive"
+        });
+        throw itemsError;
+      }
+    }
+
+    toast({
+      title: "Compra atualizada",
+      description: "A compra foi atualizada com sucesso."
+    });
+    await loadPurchases();
+    broadcastRefresh();
+  };
+
   return {
     products,
     suppliers,
@@ -620,6 +693,7 @@ export const useSupabaseData = () => {
     addPurchase,
     deletePurchase,
     updatePurchaseStatus,
+    updatePurchase,
     refresh
   };
 };

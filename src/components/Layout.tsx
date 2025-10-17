@@ -32,6 +32,7 @@ const menuItems = [
   { id: 'purchases', label: 'Compras', icon: ShoppingCart },
   { id: 'products', label: 'Cadastro de Produtos', icon: ClipboardList },
   { id: 'suppliers', label: 'Cadastro de Fornecedores', icon: Users },
+  { id: 'supplier-materials', label: 'Fornecedores / Material', icon: Package },
 ];
 
 export default function Layout({ children, activeTab, onTabChange }: LayoutProps) {

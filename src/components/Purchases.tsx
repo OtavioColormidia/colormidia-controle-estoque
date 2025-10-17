@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,15 +30,18 @@ interface PurchasesProps {
   onAddPurchase: (purchase: Omit<Purchase, 'id'>) => Promise<void>;
   onDeletePurchase: (id: string) => Promise<void>;
   onUpdatePurchaseStatus: (id: string, status: Purchase['status']) => Promise<void>;
+  onUpdatePurchase: (id: string, purchase: Omit<Purchase, 'id' | 'date'>) => Promise<void>;
 }
 
-export default function Purchases({ purchases, products, suppliers, onAddPurchase, onDeletePurchase, onUpdatePurchaseStatus }: PurchasesProps) {
+export default function Purchases({ purchases, products, suppliers, onAddPurchase, onDeletePurchase, onUpdatePurchaseStatus, onUpdatePurchase }: PurchasesProps) {
+  const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     supplierId: '',
     supplierName: '',
     documentNumber: '',
     notes: '',
     expectedDeliveryDate: undefined as Date | undefined,
+    status: 'pending' as Purchase['status'],
   });
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([]);
   const [productName, setProductName] = useState('');
@@ -65,31 +68,80 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     setPurchaseItems(purchaseItems.filter((_, i) => i !== index));
   };
 
+  const handleEditPurchase = (purchase: Purchase) => {
+    setEditingPurchaseId(purchase.id);
+    setFormData({
+      supplierId: purchase.supplierId || '',
+      supplierName: purchase.supplierName || '',
+      documentNumber: purchase.documentNumber || '',
+      notes: purchase.notes || '',
+      expectedDeliveryDate: purchase.expectedDeliveryDate,
+      status: purchase.status,
+    });
+    setPurchaseItems(purchase.items);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPurchaseId(null);
+    setFormData({ 
+      supplierId: '', 
+      supplierName: '', 
+      documentNumber: '', 
+      notes: '', 
+      expectedDeliveryDate: undefined,
+      status: 'pending',
+    });
+    setPurchaseItems([]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.supplierId && purchaseItems.length > 0) {
       const totalValue = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       
       try {
-        await onAddPurchase({
-          date: new Date(),
-          supplierId: formData.supplierId,
-          supplierName: formData.supplierName,
-          items: purchaseItems,
-          totalValue,
-          status: 'pending',
-          documentNumber: formData.documentNumber,
-          notes: formData.notes,
-          expectedDeliveryDate: formData.expectedDeliveryDate,
-        });
-
-        toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
+        if (editingPurchaseId) {
+          // Update existing purchase
+          await onUpdatePurchase(editingPurchaseId, {
+            supplierId: formData.supplierId,
+            supplierName: formData.supplierName,
+            items: purchaseItems,
+            totalValue,
+            status: formData.status,
+            documentNumber: formData.documentNumber,
+            notes: formData.notes,
+            expectedDeliveryDate: formData.expectedDeliveryDate,
+          });
+          toast({ title: 'Pedido atualizado', description: 'Pedido de compra atualizado com sucesso' });
+          setEditingPurchaseId(null);
+        } else {
+          // Create new purchase
+          await onAddPurchase({
+            date: new Date(),
+            supplierId: formData.supplierId,
+            supplierName: formData.supplierName,
+            items: purchaseItems,
+            totalValue,
+            status: 'pending',
+            documentNumber: formData.documentNumber,
+            notes: formData.notes,
+            expectedDeliveryDate: formData.expectedDeliveryDate,
+          });
+          toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
+        }
         
         // Reset form
-        setFormData({ supplierId: '', supplierName: '', documentNumber: '', notes: '', expectedDeliveryDate: undefined });
+        setFormData({ 
+          supplierId: '', 
+          supplierName: '', 
+          documentNumber: '', 
+          notes: '', 
+          expectedDeliveryDate: undefined,
+          status: 'pending',
+        });
         setPurchaseItems([]);
       } catch (error) {
-        console.error('Erro ao criar pedido:', error);
+        console.error('Erro ao salvar pedido:', error);
       }
     }
   };
@@ -117,10 +169,26 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Novo Pedido de Compra
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              {editingPurchaseId ? (
+                <>
+                  <Pencil className="h-5 w-5" />
+                  Editar Pedido de Compra
+                </>
+              ) : (
+                <>
+                  <Plus className="h-5 w-5" />
+                  Novo Pedido de Compra
+                </>
+              )}
+            </h3>
+            {editingPurchaseId && (
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                Cancelar
+              </Button>
+            )}
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Fornecedor</Label>
@@ -256,8 +324,17 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
               className="w-full bg-gradient-primary"
               disabled={!formData.supplierId || purchaseItems.length === 0}
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Criar Pedido
+              {editingPurchaseId ? (
+                <>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Atualizar Pedido
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Criar Pedido
+                </>
+              )}
             </Button>
           </form>
         </Card>
@@ -310,6 +387,14 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     <TableCell>{getStatusBadge(purchase.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleEditPurchase(purchase)}
+                          variant="outline"
+                          size="sm"
+                          className="text-primary hover:text-primary"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         {purchase.status !== 'delivered' && purchase.status !== 'cancelled' && (
                           <Button
                             onClick={async () => {

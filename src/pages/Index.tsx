@@ -10,6 +10,7 @@ import MaterialExit from '@/components/MaterialExit';
 import ProductManagement from '@/components/ProductManagement';
 import SupplierManagement from '@/components/SupplierManagement';
 import Purchases from '@/components/Purchases';
+import SupplierMaterials from '@/components/SupplierMaterials';
 import { Loader2 } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { Purchase } from '@/types/inventory';
@@ -36,7 +37,8 @@ const Index = () => {
     addMovement,
     addPurchase,
     deletePurchase,
-    updatePurchaseStatus
+    updatePurchaseStatus,
+    updatePurchase
   } = useSupabaseData();
 
   useEffect(() => {
@@ -157,8 +159,11 @@ const Index = () => {
             onAddPurchase={addPurchase}
             onDeletePurchase={deletePurchase}
             onUpdatePurchaseStatus={updatePurchaseStatus}
+            onUpdatePurchase={updatePurchase}
           />
         );
+      case 'supplier-materials':
+        return <SupplierMaterials suppliers={suppliers} />;
       default:
         return <Dashboard products={products} movements={movements} />;
     }
