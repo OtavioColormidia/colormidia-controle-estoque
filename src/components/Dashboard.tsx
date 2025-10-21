@@ -198,7 +198,10 @@ export default function Dashboard({ products, movements }: DashboardProps) {
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Movimentações Recentes</h3>
         <div className="space-y-3">
-          {movements.slice(0, 5).map((movement) => {
+          {movements
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 5)
+            .map((movement) => {
             // Get product name from movement or from products list
             const productName = movement.productName || 
               products.find(p => p.id === movement.productId)?.name || 
