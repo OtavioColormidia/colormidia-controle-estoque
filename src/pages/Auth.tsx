@@ -16,6 +16,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -29,6 +30,9 @@ export default function Auth() {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            display_name: displayName || email.split('@')[0],
+          },
         },
       });
 
@@ -42,6 +46,7 @@ export default function Auth() {
       // Clear form
       setEmail("");
       setPassword("");
+      setDisplayName("");
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -145,6 +150,18 @@ export default function Auth() {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="displayName-signup">Nome/Usuário</Label>
+                  <Input
+                    id="displayName-signup"
+                    type="text"
+                    placeholder="Seu nome"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email-signup">Email</Label>
                   <Input

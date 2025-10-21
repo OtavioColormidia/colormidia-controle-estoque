@@ -11,6 +11,7 @@ import ProductManagement from '@/components/ProductManagement';
 import SupplierManagement from '@/components/SupplierManagement';
 import Purchases from '@/components/Purchases';
 import SupplierMaterials from '@/components/SupplierMaterials';
+import UserManagement from '@/components/UserManagement';
 import { Loader2 } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { Purchase } from '@/types/inventory';
@@ -164,6 +165,8 @@ const Index = () => {
         );
       case 'supplier-materials':
         return <SupplierMaterials suppliers={suppliers} />;
+      case 'users':
+        return <UserManagement />;
       default:
         return <Dashboard products={products} movements={movements} />;
     }

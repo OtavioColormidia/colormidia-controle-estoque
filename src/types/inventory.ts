@@ -77,3 +77,16 @@ export interface DashboardMetrics {
   pendingPurchases: number;
   activeSuppliers: number;
 }
+
+export type UserRole = 'admin' | 'compras' | 'almoxarife';
+
+export interface UserProfile {
+  id: string;
+  userId: string;
+  email: string;
+  displayName?: string;
+  isAuthorized: boolean;
+  roles: UserRole[];
+  createdAt: Date;
+  updatedAt: Date;
+}
