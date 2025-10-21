@@ -70,13 +70,14 @@ export const useSupabaseData = () => {
         product:products(name),
         supplier:suppliers(name)
       `)
-      .order('date', { ascending: false });
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     
     const formattedMovements: StockMovement[] = data?.map(m => ({
       id: m.id,
       date: new Date(m.date),
+      createdAt: m.created_at ? new Date(m.created_at) : undefined,
       type: m.type as 'entry' | 'exit',
       productId: m.product_id,
       productName: m.product?.name,

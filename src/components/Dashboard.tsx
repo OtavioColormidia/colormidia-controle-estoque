@@ -199,7 +199,12 @@ export default function Dashboard({ products, movements }: DashboardProps) {
         <h3 className="text-lg font-semibold mb-4">Movimentações Recentes</h3>
         <div className="space-y-3">
           {movements
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice() // avoid mutating props
+            .sort((a, b) => {
+              const ta = (a as any).createdAt ? new Date(a.createdAt as Date).getTime() : new Date(a.date).getTime();
+              const tb = (b as any).createdAt ? new Date(b.createdAt as Date).getTime() : new Date(b.date).getTime();
+              return tb - ta;
+            })
             .slice(0, 5)
             .map((movement) => {
             // Get product name from movement or from products list

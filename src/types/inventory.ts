@@ -30,6 +30,7 @@ export interface Supplier {
 export interface StockMovement {
   id: string;
   date: Date;
+  createdAt?: Date;
   type: 'entry' | 'exit';
   productId: string;
   productName?: string;
