@@ -180,17 +180,56 @@ export default function UserManagement() {
     }
   };
 
+  const deleteUser = async (userId: string, userEmail: string) => {
+    if (!confirm(`Tem certeza que deseja deletar o usuário ${userEmail}? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      // Delete user roles first
+      const { error: rolesError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (rolesError) throw rolesError;
+
+      // Delete profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: 'Usuário deletado',
+        description: 'O usuário foi removido do sistema com sucesso.',
+      });
+
+      loadUsers();
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao deletar usuário',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getRoleBadge = (role: UserRole) => {
     const variants: Record<UserRole, string> = {
       admin: 'bg-red-500/10 text-red-500 hover:bg-red-500/20',
       compras: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20',
       almoxarife: 'bg-green-500/10 text-green-500 hover:bg-green-500/20',
+      visualizador: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20',
     };
 
     const labels: Record<UserRole, string> = {
       admin: 'Admin',
       compras: 'Compras',
       almoxarife: 'Almoxarife',
+      visualizador: 'Visualizador',
     };
 
     return (
@@ -268,6 +307,13 @@ export default function UserManagement() {
                     >
                       {user.isAuthorized ? 'Revogar' : 'Autorizar'}
                     </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteUser(user.userId, user.email)}
+                    >
+                      Deletar
+                    </Button>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
@@ -305,6 +351,7 @@ export default function UserManagement() {
                                 <SelectItem value="admin">Admin</SelectItem>
                                 <SelectItem value="compras">Compras</SelectItem>
                                 <SelectItem value="almoxarife">Almoxarife</SelectItem>
+                                <SelectItem value="visualizador">Visualizador</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>

@@ -34,7 +34,7 @@ interface MenuItem {
 }
 
 const allMenuItems: MenuItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, allowedRoles: ['admin', 'compras', 'almoxarife'] },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, allowedRoles: ['admin', 'compras', 'almoxarife', 'visualizador'] },
   { id: 'inventory', label: 'Controle de Estoque', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] },
   { id: 'entries', label: 'Entrada de Material', icon: PackagePlus, allowedRoles: ['admin', 'almoxarife'] },
   { id: 'exits', label: 'Saída de Material', icon: PackageMinus, allowedRoles: ['admin', 'almoxarife'] },
@@ -133,7 +133,8 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
                   {userRoles.length > 0 && (
                     <p className="text-xs text-sidebar-foreground/70">
                       {userRoles.includes('admin') ? 'Admin' : 
-                       userRoles.includes('compras') ? 'Compras' : 'Almoxarife'}
+                       userRoles.includes('compras') ? 'Compras' : 
+                       userRoles.includes('almoxarife') ? 'Almoxarife' : 'Visualizador'}
                     </p>
                   )}
                 </div>

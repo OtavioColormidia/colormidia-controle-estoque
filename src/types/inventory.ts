@@ -78,7 +78,7 @@ export interface DashboardMetrics {
   activeSuppliers: number;
 }
 
-export type UserRole = 'admin' | 'compras' | 'almoxarife';
+export type UserRole = 'admin' | 'compras' | 'almoxarife' | 'visualizador';
 
 export interface UserProfile {
   id: string;
