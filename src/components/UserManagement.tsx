@@ -95,6 +95,42 @@ export default function UserManagement() {
 
   useEffect(() => {
     loadUsers();
+
+    // Set up real-time subscriptions
+    const profilesChannel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          loadUsers();
+        }
+      )
+      .subscribe();
+
+    const rolesChannel = supabase
+      .channel('user-roles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles'
+        },
+        () => {
+          loadUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(rolesChannel);
+    };
   }, []);
 
   const toggleAuthorization = async (userId: string, currentStatus: boolean) => {
@@ -186,28 +222,36 @@ export default function UserManagement() {
     }
 
     try {
-      // Delete user roles first
-      const { error: rolesError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Usuário não autenticado');
+      }
 
-      if (rolesError) throw rolesError;
+      // Call the edge function to delete the user
+      const response = await fetch(
+        'https://xmaeixjvbpgwkhipaxys.supabase.co/functions/v1/delete-user',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
 
-      // Delete profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('user_id', userId);
+      const result = await response.json();
 
-      if (profileError) throw profileError;
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao deletar usuário');
+      }
 
       toast({
         title: 'Usuário deletado',
         description: 'O usuário foi removido do sistema com sucesso.',
       });
 
-      loadUsers();
+      // Users list will update automatically via real-time subscription
     } catch (error: any) {
       toast({
         title: 'Erro ao deletar usuário',
