@@ -139,20 +139,30 @@ export default function UserManagement() {
 
       if (profileError) throw profileError;
 
-      // Delete existing roles
-      const { error: deleteError } = await supabase
+      // Check if user already has a role
+      const { data: existingRoles, error: checkError } = await supabase
         .from('user_roles')
-        .delete()
+        .select('*')
         .eq('user_id', editingUser.userId);
 
-      if (deleteError) throw deleteError;
+      if (checkError) throw checkError;
 
-      // Insert new role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: editingUser.userId, role: editRole });
+      if (existingRoles && existingRoles.length > 0) {
+        // Update existing role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .update({ role: editRole })
+          .eq('user_id', editingUser.userId);
 
-      if (roleError) throw roleError;
+        if (roleError) throw roleError;
+      } else {
+        // Insert new role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: editingUser.userId, role: editRole });
+
+        if (roleError) throw roleError;
+      }
 
       toast({
         title: 'Usuário atualizado',
