@@ -222,10 +222,14 @@ export default function UserManagement() {
     }
 
     try {
+      console.log('Iniciando deleção do usuário:', userId);
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('Usuário não autenticado');
       }
+
+      console.log('Chamando edge function...');
 
       // Call the edge function to delete the user
       const response = await fetch(
@@ -240,7 +244,10 @@ export default function UserManagement() {
         }
       );
 
+      console.log('Response status:', response.status);
+      
       const result = await response.json();
+      console.log('Response result:', result);
 
       if (!response.ok) {
         throw new Error(result.error || 'Erro ao deletar usuário');
@@ -253,6 +260,7 @@ export default function UserManagement() {
 
       // Users list will update automatically via real-time subscription
     } catch (error: any) {
+      console.error('Erro ao deletar usuário:', error);
       toast({
         title: 'Erro ao deletar usuário',
         description: error.message,
