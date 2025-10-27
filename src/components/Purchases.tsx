@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -344,8 +345,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             <FileText className="h-5 w-5" />
             Pedidos Cadastrados
           </h3>
-          <div className="overflow-x-auto">
-            <Table>
+          <ScrollArea className="h-[600px] w-full">
+            <Table className="min-w-[1200px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Nº Pedido</TableHead>
@@ -431,7 +432,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                 ))}
               </TableBody>
             </Table>
-          </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </Card>
       </div>
     </div>
