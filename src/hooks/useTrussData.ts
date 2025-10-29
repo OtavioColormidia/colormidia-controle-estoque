@@ -6,7 +6,7 @@ export interface Truss {
   id: string;
   code: string;
   name: string;
-  description: string;
+  description?: string;
   unit: string;
   category: string;
   maxStock: number;

@@ -27,12 +27,10 @@ const TrussControl = () => {
   const [trussForm, setTrussForm] = useState({
     code: '',
     name: '',
-    description: '',
     unit: 'unidade',
     category: '',
     maxStock: 0,
     currentStock: 0,
-    location: '',
   });
 
   // Withdrawal form
@@ -58,12 +56,10 @@ const TrussControl = () => {
     setTrussForm({
       code: '',
       name: '',
-      description: '',
       unit: 'unidade',
       category: '',
       maxStock: 0,
       currentStock: 0,
-      location: '',
     });
   };
 
@@ -236,24 +232,6 @@ const TrussControl = () => {
                     onChange={(e) => setTrussForm({ ...trussForm, currentStock: Number(e.target.value) })}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="location">Localização</Label>
-                  <Input
-                    id="location"
-                    value={trussForm.location}
-                    onChange={(e) => setTrussForm({ ...trussForm, location: e.target.value })}
-                    placeholder="Ex: Galpão A"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea
-                  id="description"
-                  value={trussForm.description}
-                  onChange={(e) => setTrussForm({ ...trussForm, description: e.target.value })}
-                  placeholder="Descrição detalhada da treliça"
-                />
               </div>
               <Button type="submit">
                 <Plus className="h-4 w-4 mr-2" />
@@ -273,7 +251,6 @@ const TrussControl = () => {
                     <TableHead>Categoria</TableHead>
                     <TableHead>Estoque Atual</TableHead>
                     <TableHead>Máximo</TableHead>
-                    <TableHead>Localização</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -289,7 +266,6 @@ const TrussControl = () => {
                       <TableCell>
                         {truss.maxStock} {truss.unit}
                       </TableCell>
-                      <TableCell>{truss.location}</TableCell>
                       <TableCell>
                         <Button
                           variant="destructive"
