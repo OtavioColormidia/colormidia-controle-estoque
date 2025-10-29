@@ -36,6 +36,7 @@ interface MenuItem {
 const allMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, allowedRoles: ['admin', 'compras', 'almoxarife', 'visualizador'] },
   { id: 'inventory', label: 'Controle de Estoque', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] },
+  { id: 'truss-control', label: 'Controle de Treliça', icon: Package, allowedRoles: ['admin', 'almoxarife'] },
   { id: 'entries', label: 'Entrada de Material', icon: PackagePlus, allowedRoles: ['admin', 'almoxarife'] },
   { id: 'exits', label: 'Saída de Material', icon: PackageMinus, allowedRoles: ['admin', 'almoxarife'] },
   { id: 'purchases', label: 'Compras', icon: ShoppingCart, allowedRoles: ['admin', 'compras', 'almoxarife'] },

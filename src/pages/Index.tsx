@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 import Layout from '@/components/Layout';
 import Dashboard from '@/components/Dashboard';
 import InventoryControl from '@/components/InventoryControl';
+import TrussControl from '@/components/TrussControl';
 import MaterialEntry from '@/components/MaterialEntry';
 import MaterialExit from '@/components/MaterialExit';
 import ProductManagement from '@/components/ProductManagement';
@@ -118,6 +119,8 @@ const Index = () => {
         return <Dashboard products={products} movements={movements} />;
       case 'inventory':
         return <InventoryControl products={products} movements={movements} />;
+      case 'truss-control':
+        return <TrussControl />;
       case 'entries':
         return (
           <MaterialEntry

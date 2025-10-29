@@ -369,6 +369,99 @@ export type Database = {
           },
         ]
       }
+      truss_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          notes: string | null
+          quantity: number
+          service_description: string | null
+          status: string | null
+          taken_by: string | null
+          truss_id: string | null
+          truss_name: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          quantity: number
+          service_description?: string | null
+          status?: string | null
+          taken_by?: string | null
+          truss_id?: string | null
+          truss_name?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          quantity?: number
+          service_description?: string | null
+          status?: string | null
+          taken_by?: string | null
+          truss_id?: string | null
+          truss_name?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
+      trusses: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          created_by: string | null
+          current_stock: number
+          description: string | null
+          id: string
+          last_updated: string
+          location: string | null
+          max_stock: number
+          name: string
+          unit: string
+          updated_by: string | null
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_stock?: number
+          description?: string | null
+          id?: string
+          last_updated?: string
+          location?: string | null
+          max_stock?: number
+          name: string
+          unit: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_stock?: number
+          description?: string | null
+          id?: string
+          last_updated?: string
+          location?: string | null
+          max_stock?: number
+          name?: string
+          unit?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
