@@ -129,15 +129,11 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               {sidebarOpen && (
                 <div>
                   <h1 className="text-base sm:text-lg font-bold text-sidebar-foreground">
-                    {displayName || 'Almoxarifado'}
+                    ColorMídia - {displayName || 'Usuário'}
                   </h1>
-                  {userRoles.length > 0 && (
-                    <p className="text-xs text-sidebar-foreground/70">
-                      {userRoles.includes('admin') ? 'Admin' : 
-                       userRoles.includes('compras') ? 'Compras' : 
-                       userRoles.includes('almoxarife') ? 'Almoxarife' : 'Visualizador'}
-                    </p>
-                  )}
+                  <p className="text-xs text-sidebar-foreground/70">
+                    Controle de Estoque / Compras
+                  </p>
                 </div>
               )}
             </div>
@@ -191,11 +187,6 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               <LogOut className="h-5 w-5 flex-shrink-0" />
               {sidebarOpen && <span className="text-sm font-medium">Sair</span>}
             </Button>
-            {sidebarOpen && (
-              <p className="text-xs text-sidebar-foreground/70 text-center mt-4">
-                Sistema de Controle v1.0
-              </p>
-            )}
           </div>
         </div>
       </aside>
