@@ -123,15 +123,15 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 border-b border-sidebar-border">
+          <div className="flex h-16 sm:h-18 items-center justify-between px-3 sm:px-4 border-b border-sidebar-border">
             <div className="flex items-center gap-2 sm:gap-3">
-              <img src={logoColorMedia} alt="ColorMídia" className="h-7 sm:h-8 w-7 sm:w-8 object-contain" />
+              <img src={logoColorMedia} alt="ColorMídia" className="h-9 sm:h-10 w-9 sm:w-10 object-contain flex-shrink-0" />
               {sidebarOpen && (
-                <div>
-                  <h1 className="text-base sm:text-lg font-bold text-sidebar-foreground">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-sidebar-foreground truncate">
                     ColorMídia - {displayName || 'Usuário'}
                   </h1>
-                  <p className="text-xs text-sidebar-foreground/70">
+                  <p className="text-[10px] sm:text-xs text-sidebar-foreground/70 truncate">
                     Controle de Estoque / Compras
                   </p>
                 </div>
