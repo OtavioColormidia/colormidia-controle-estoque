@@ -31,6 +31,8 @@ const Index = () => {
     suppliers,
     movements,
     purchases,
+    trusses,
+    trussMovements,
     loading: dataLoading,
     addProduct,
     deleteProduct,
@@ -40,7 +42,11 @@ const Index = () => {
     addPurchase,
     deletePurchase,
     updatePurchaseStatus,
-    updatePurchase
+    updatePurchase,
+    addTruss,
+    deleteTruss,
+    addTrussMovement,
+    markAsReturned
   } = useSupabaseData();
 
   useEffect(() => {
@@ -120,7 +126,16 @@ const Index = () => {
       case 'inventory':
         return <InventoryControl products={products} movements={movements} />;
       case 'truss-control':
-        return <TrussControl />;
+        return (
+          <TrussControl
+            trusses={trusses}
+            trussMovements={trussMovements}
+            addTruss={addTruss}
+            deleteTruss={deleteTruss}
+            addTrussMovement={addTrussMovement}
+            markAsReturned={markAsReturned}
+          />
+        );
       case 'entries':
         return (
           <MaterialEntry

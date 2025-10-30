@@ -16,12 +16,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Trash2, Package, ArrowDownToLine, ArrowUpFromLine, CheckCircle } from 'lucide-react';
-import { useTrussData, Truss, TrussMovement } from '@/hooks/useTrussData';
+import { Truss, TrussMovement } from '@/hooks/useSupabaseData';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
-const TrussControl = () => {
-  const { trusses, trussMovements, loading, addTruss, deleteTruss, addTrussMovement, markAsReturned } = useTrussData();
+interface TrussControlProps {
+  trusses: Truss[];
+  trussMovements: TrussMovement[];
+  addTruss: (truss: Omit<Truss, 'id' | 'lastUpdated'>) => Promise<void>;
+  deleteTruss: (id: string) => Promise<void>;
+  addTrussMovement: (movement: Omit<TrussMovement, 'id' | 'createdAt'>) => Promise<void>;
+  markAsReturned: (movementId: string, returnQuantity: number) => Promise<void>;
+}
+
+const TrussControl = ({ trusses, trussMovements, addTruss, deleteTruss, addTrussMovement, markAsReturned }: TrussControlProps) => {
 
   // Truss registration form
   const [trussForm, setTrussForm] = useState({
@@ -143,10 +151,6 @@ const TrussControl = () => {
 
     await markAsReturned(movementId, movement.quantity);
   };
-
-  if (loading) {
-    return <div className="text-center py-8">Carregando...</div>;
-  }
 
   return (
     <div className="space-y-6">
