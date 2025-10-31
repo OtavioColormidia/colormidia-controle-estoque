@@ -19,10 +19,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Calendar, Package, Save, Minus, User } from 'lucide-react';
+import { Calendar, Package, Save, Minus, User, Plus, Trash2 } from 'lucide-react';
 import { Product, StockMovement } from '@/types/inventory';
 import { toast } from '@/hooks/use-toast';
 
+interface ExitItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  currentStock: number;
+}
 
 interface MaterialExitProps {
   products: Product[];
@@ -35,15 +41,20 @@ export default function MaterialExit({
   movements,
   onAddMovement,
 }: MaterialExitProps) {
-  const [formData, setFormData] = useState({
+  const [commonData, setCommonData] = useState({
     date: new Date().toISOString().split('T')[0],
-    productId: '',
-    quantity: '',
     requestedBy: '',
     department: '',
     reason: '',
     notes: '',
   });
+
+  const [itemData, setItemData] = useState({
+    productId: '',
+    quantity: '',
+  });
+
+  const [items, setItems] = useState<ExitItem[]>([]);
 
   const parseLocalDate = (yyyyMmDd: string) => {
     const [y, m, d] = yyyyMmDd.split('-').map(Number);
@@ -52,10 +63,8 @@ export default function MaterialExit({
 
   const exits = movements.filter((m) => m.type === 'exit').slice(0, 10);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const product = products.find(p => p.id === formData.productId);
+  const handleAddItem = () => {
+    const product = products.find(p => p.id === itemData.productId);
     
     if (!product) {
       toast({
@@ -66,7 +75,16 @@ export default function MaterialExit({
       return;
     }
 
-    if (parseInt(formData.quantity) > product.currentStock) {
+    if (!itemData.quantity || parseInt(itemData.quantity) <= 0) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, insira uma quantidade válida',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (parseInt(itemData.quantity) > product.currentStock) {
       toast({
         title: 'Erro',
         description: 'Quantidade solicitada maior que o estoque disponível',
@@ -75,35 +93,88 @@ export default function MaterialExit({
       return;
     }
 
-    const movement: Omit<StockMovement, 'id'> = {
-      date: parseLocalDate(formData.date),
-      type: 'exit',
-      productId: formData.productId,
+    // Check if product already in list
+    if (items.some(item => item.productId === itemData.productId)) {
+      toast({
+        title: 'Erro',
+        description: 'Este produto já foi adicionado à lista',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const newItem: ExitItem = {
+      productId: itemData.productId,
       productName: product.name,
-      quantity: parseInt(formData.quantity),
-      requestedBy: formData.requestedBy,
-      department: formData.department,
-      reason: formData.reason || undefined,
-      notes: formData.notes || undefined,
+      quantity: parseInt(itemData.quantity),
+      currentStock: product.currentStock,
     };
 
-    onAddMovement(movement);
+    setItems([...items, newItem]);
+    setItemData({ productId: '', quantity: '' });
 
     toast({
-      title: 'Saída registrada',
-      description: `${formData.quantity} unidades de ${product.name} retiradas do estoque`,
+      title: 'Item adicionado',
+      description: `${newItem.quantity} unidades de ${newItem.productName}`,
+    });
+  };
+
+  const handleRemoveItem = (productId: string) => {
+    setItems(items.filter(item => item.productId !== productId));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (items.length === 0) {
+      toast({
+        title: 'Erro',
+        description: 'Adicione pelo menos um item antes de registrar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!commonData.requestedBy || !commonData.department) {
+      toast({
+        title: 'Erro',
+        description: 'Preencha os dados do solicitante e departamento',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Create a movement for each item
+    items.forEach(item => {
+      const movement: Omit<StockMovement, 'id'> = {
+        date: parseLocalDate(commonData.date),
+        type: 'exit',
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        requestedBy: commonData.requestedBy,
+        department: commonData.department,
+        reason: commonData.reason || undefined,
+        notes: commonData.notes || undefined,
+      };
+
+      onAddMovement(movement);
+    });
+
+    toast({
+      title: 'Saídas registradas',
+      description: `${items.length} ${items.length === 1 ? 'item registrado' : 'itens registrados'} para ${commonData.requestedBy}`,
     });
 
     // Reset form
-    setFormData({
+    setCommonData({
       date: new Date().toISOString().split('T')[0],
-      productId: '',
-      quantity: '',
       requestedBy: '',
       department: '',
       reason: '',
       notes: '',
     });
+    setItems([]);
   };
 
   const departments = [
@@ -131,125 +202,188 @@ export default function MaterialExit({
             <Minus className="h-5 w-5" />
             Nova Saída
           </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Data</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="product">Produto</Label>
-              <Select
-                value={formData.productId}
-                onValueChange={(value) => setFormData({ ...formData, productId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o produto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products
-                    .sort((a, b) => {
-                      // Extrair números dos códigos MAT001, MAT002, etc.
-                      const numA = parseInt(a.code.replace(/\D/g, '') || '0');
-                      const numB = parseInt(b.code.replace(/\D/g, '') || '0');
-                      return numA - numB;
-                    })
-                    .map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.code} - {product.name} (Estoque: {product.currentStock})
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantidade</Label>
-              <Input
-                id="quantity"
-                type="number"
-                placeholder="0"
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                min="1"
-                required
-              />
-              {formData.productId && (
-                <p className="text-sm text-muted-foreground">
-                  Disponível: {products.find(p => p.id === formData.productId)?.currentStock || 0} unidades
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Common Data Section */}
+            <div className="space-y-4 pb-4 border-b">
+              <h4 className="font-medium text-sm">Dados do Solicitante</h4>
+              
               <div className="space-y-2">
-                <Label htmlFor="requestedBy">Solicitante</Label>
+                <Label htmlFor="date">Data</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="requestedBy"
-                    placeholder="Nome do solicitante"
-                    value={formData.requestedBy}
-                    onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
+                    id="date"
+                    type="date"
+                    value={commonData.date}
+                    onChange={(e) => setCommonData({ ...commonData, date: e.target.value })}
                     className="pl-10"
                     required
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="requestedBy">Solicitante</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="requestedBy"
+                      placeholder="Nome"
+                      value={commonData.requestedBy}
+                      onChange={(e) => setCommonData({ ...commonData, requestedBy: e.target.value })}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="department">Departamento</Label>
+                  <Select
+                    value={commonData.department}
+                    onValueChange={(value) => setCommonData({ ...commonData, department: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="department">Departamento</Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) => setFormData({ ...formData, department: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="reason">Motivo</Label>
+                <Input
+                  id="reason"
+                  placeholder="Motivo da retirada"
+                  value={commonData.reason}
+                  onChange={(e) => setCommonData({ ...commonData, reason: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Observações</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Observações adicionais..."
+                  value={commonData.notes}
+                  onChange={(e) => setCommonData({ ...commonData, notes: e.target.value })}
+                  rows={2}
+                />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="reason">Motivo</Label>
-              <Input
-                id="reason"
-                placeholder="Motivo da retirada"
-                value={formData.reason}
-                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-              />
+            {/* Add Items Section */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm">Adicionar Materiais</h4>
+              
+              <div className="space-y-2">
+                <Label htmlFor="product">Produto</Label>
+                <Select
+                  value={itemData.productId}
+                  onValueChange={(value) => setItemData({ ...itemData, productId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o produto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products
+                      .sort((a, b) => {
+                        const numA = parseInt(a.code.replace(/\D/g, '') || '0');
+                        const numB = parseInt(b.code.replace(/\D/g, '') || '0');
+                        return numA - numB;
+                      })
+                      .filter(p => !items.some(item => item.productId === p.id))
+                      .map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.code} - {product.name} (Estoque: {product.currentStock})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantidade</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  placeholder="0"
+                  value={itemData.quantity}
+                  onChange={(e) => setItemData({ ...itemData, quantity: e.target.value })}
+                  min="1"
+                />
+                {itemData.productId && (
+                  <p className="text-sm text-muted-foreground">
+                    Disponível: {products.find(p => p.id === itemData.productId)?.currentStock || 0} unidades
+                  </p>
+                )}
+              </div>
+
+              <Button 
+                type="button" 
+                onClick={handleAddItem}
+                className="w-full"
+                variant="outline"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Item
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Observações</Label>
-              <Textarea
-                id="notes"
-                placeholder="Observações adicionais..."
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-              />
-            </div>
+            {/* Items List */}
+            {items.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Itens Adicionados ({items.length})</h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead className="text-center">Qtd</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item) => (
+                        <TableRow key={item.productId}>
+                          <TableCell className="text-sm font-medium">
+                            {item.productName}
+                          </TableCell>
+                          <TableCell className="text-center text-warning font-medium">
+                            -{item.quantity}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveItem(item.productId)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
 
-            <Button type="submit" className="w-full bg-gradient-secondary">
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-secondary"
+              disabled={items.length === 0}
+            >
               <Save className="h-4 w-4 mr-2" />
-              Registrar Saída
+              Registrar {items.length > 0 ? `${items.length} ${items.length === 1 ? 'Saída' : 'Saídas'}` : 'Saídas'}
             </Button>
           </form>
         </Card>
