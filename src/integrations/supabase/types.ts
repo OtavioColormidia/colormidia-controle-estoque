@@ -294,6 +294,44 @@ export type Database = {
           },
         ]
       }
+      supplier_materials: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          materials: string[]
+          supplier_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          materials?: string[]
+          supplier_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          materials?: string[]
+          supplier_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_materials_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           active: boolean | null

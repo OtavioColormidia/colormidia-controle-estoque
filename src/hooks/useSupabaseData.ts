@@ -31,6 +31,14 @@ export interface TrussMovement {
   status: 'active' | 'returned';
 }
 
+export interface SupplierMaterial {
+  id: string;
+  supplierId: string;
+  materials: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export const useSupabaseData = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -38,6 +46,7 @@ export const useSupabaseData = () => {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [trusses, setTrusses] = useState<Truss[]>([]);
   const [trussMovements, setTrussMovements] = useState<TrussMovement[]>([]);
+  const [supplierMaterials, setSupplierMaterials] = useState<SupplierMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const loadProducts = useCallback(async () => {
@@ -211,6 +220,25 @@ export const useSupabaseData = () => {
     setTrussMovements(formattedMovements);
   }, []);
 
+  const loadSupplierMaterials = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('supplier_materials')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const formatted: SupplierMaterial[] = (data || []).map(item => ({
+      id: item.id,
+      supplierId: item.supplier_id,
+      materials: item.materials || [],
+      createdAt: item.created_at ? new Date(item.created_at) : undefined,
+      updatedAt: item.updated_at ? new Date(item.updated_at) : undefined,
+    }));
+
+    setSupplierMaterials(formatted);
+  }, []);
+
   // Load initial data
   useEffect(() => {
     const loadAllData = async () => {
@@ -222,7 +250,8 @@ export const useSupabaseData = () => {
           loadMovements(),
           loadPurchases(),
           loadTrusses(),
-          loadTrussMovements()
+          loadTrussMovements(),
+          loadSupplierMaterials()
         ]);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -300,6 +329,14 @@ export const useSupabaseData = () => {
           loadTrusses(); // Update stock
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'supplier_materials' },
+        () => {
+          console.log('Real-time: supplier_materials changed');
+          loadSupplierMaterials();
+        }
+      )
       .on('broadcast', { event: 'refresh-data' }, () => {
         console.log('Broadcast: refresh-data received');
         // Fallback: ensure all lists reload
@@ -309,6 +346,7 @@ export const useSupabaseData = () => {
         loadPurchases();
         loadTrusses();
         loadTrussMovements();
+        loadSupplierMaterials();
       })
       .subscribe((status) => {
         console.log('Real-time subscription status:', status);
@@ -340,6 +378,7 @@ export const useSupabaseData = () => {
         loadPurchases();
         loadTrusses();
         loadTrussMovements();
+        loadSupplierMaterials();
         try { channel.subscribe(); } catch {}
       }
     };
@@ -352,6 +391,7 @@ export const useSupabaseData = () => {
       loadPurchases();
       loadTrusses();
       loadTrussMovements();
+      loadSupplierMaterials();
       try { channel.subscribe(); } catch {}
     };
 
@@ -364,7 +404,7 @@ export const useSupabaseData = () => {
       window.removeEventListener('online', handleOnline);
       supabase.removeChannel(channel);
     };
-  }, [loadProducts, loadSuppliers, loadMovements, loadPurchases, loadTrusses, loadTrussMovements]);
+  }, [loadProducts, loadSuppliers, loadMovements, loadPurchases, loadTrusses, loadTrussMovements, loadSupplierMaterials]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -375,7 +415,8 @@ export const useSupabaseData = () => {
         loadMovements(),
         loadPurchases(),
         loadTrusses(),
-        loadTrussMovements()
+        loadTrussMovements(),
+        loadSupplierMaterials()
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -386,7 +427,7 @@ export const useSupabaseData = () => {
       });
     }
     setLoading(false);
-  }, [loadProducts, loadSuppliers, loadMovements, loadPurchases, loadTrusses, loadTrussMovements]);
+  }, [loadProducts, loadSuppliers, loadMovements, loadPurchases, loadTrusses, loadTrussMovements, loadSupplierMaterials]);
   const broadcastRefresh = () => {
     try {
       channelRef.current?.send({
@@ -951,6 +992,87 @@ export const useSupabaseData = () => {
     }
   };
 
+  const addSupplierMaterial = async (supplierId: string, materials: string[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Check if already exists
+      const existing = supplierMaterials.find(sm => sm.supplierId === supplierId);
+
+      if (existing) {
+        // Update existing
+        const { error } = await supabase
+          .from('supplier_materials')
+          .update({
+            materials,
+            updated_by: user?.id
+          })
+          .eq('id', existing.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Materiais atualizados",
+          description: "Lista de materiais atualizada com sucesso."
+        });
+      } else {
+        // Insert new
+        const { error } = await supabase
+          .from('supplier_materials')
+          .insert({
+            supplier_id: supplierId,
+            materials,
+            created_by: user?.id
+          });
+
+        if (error) throw error;
+
+        toast({
+          title: "Materiais cadastrados",
+          description: "Materiais do fornecedor cadastrados com sucesso."
+        });
+      }
+
+      await loadSupplierMaterials();
+      broadcastRefresh();
+    } catch (error: any) {
+      console.error('Error saving supplier materials:', error);
+      toast({
+        title: "Erro ao salvar materiais",
+        description: error.message,
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
+  const deleteSupplierMaterial = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('supplier_materials')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Materiais removidos",
+        description: "Materiais do fornecedor removidos com sucesso."
+      });
+
+      await loadSupplierMaterials();
+      broadcastRefresh();
+    } catch (error: any) {
+      console.error('Error deleting supplier materials:', error);
+      toast({
+        title: "Erro ao remover materiais",
+        description: error.message,
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   return {
     products,
     suppliers,
@@ -958,6 +1080,7 @@ export const useSupabaseData = () => {
     purchases,
     trusses,
     trussMovements,
+    supplierMaterials,
     loading,
     addProduct,
     deleteProduct,
@@ -972,6 +1095,8 @@ export const useSupabaseData = () => {
     deleteTruss,
     addTrussMovement,
     markAsReturned,
+    addSupplierMaterial,
+    deleteSupplierMaterial,
     refresh
   };
 };

@@ -33,6 +33,7 @@ const Index = () => {
     purchases,
     trusses,
     trussMovements,
+    supplierMaterials,
     loading: dataLoading,
     addProduct,
     deleteProduct,
@@ -46,7 +47,9 @@ const Index = () => {
     addTruss,
     deleteTruss,
     addTrussMovement,
-    markAsReturned
+    markAsReturned,
+    addSupplierMaterial,
+    deleteSupplierMaterial
   } = useSupabaseData();
 
   useEffect(() => {
@@ -182,7 +185,14 @@ const Index = () => {
           />
         );
       case 'supplier-materials':
-        return <SupplierMaterials suppliers={suppliers} />;
+        return (
+          <SupplierMaterials 
+            suppliers={suppliers} 
+            supplierMaterials={supplierMaterials}
+            onAddSupplierMaterial={addSupplierMaterial}
+            onDeleteSupplierMaterial={deleteSupplierMaterial}
+          />
+        );
       case 'users':
         return <UserManagement />;
       default:

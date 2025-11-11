@@ -14,21 +14,21 @@ import {
 } from '@/components/ui/table';
 import { Package, Plus, Trash2, FileText } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
-import { toast } from '@/components/ui/use-toast';
+import type { SupplierMaterial } from '@/hooks/useSupabaseData';
 
 interface SupplierMaterialsProps {
   suppliers: Supplier[];
+  supplierMaterials: SupplierMaterial[];
+  onAddSupplierMaterial: (supplierId: string, materials: string[]) => Promise<void>;
+  onDeleteSupplierMaterial: (id: string) => Promise<void>;
 }
 
-interface SupplierMaterial {
-  id: string;
-  supplierId: string;
-  supplierName: string;
-  materials: string[];
-}
-
-export default function SupplierMaterials({ suppliers }: SupplierMaterialsProps) {
-  const [supplierMaterials, setSupplierMaterials] = useState<SupplierMaterial[]>([]);
+export default function SupplierMaterials({ 
+  suppliers, 
+  supplierMaterials,
+  onAddSupplierMaterial,
+  onDeleteSupplierMaterial 
+}: SupplierMaterialsProps) {
   const [selectedSupplierId, setSelectedSupplierId] = useState('');
   const [materialName, setMaterialName] = useState('');
   const [currentMaterials, setCurrentMaterials] = useState<string[]>([]);
@@ -44,40 +44,18 @@ export default function SupplierMaterials({ suppliers }: SupplierMaterialsProps)
     setCurrentMaterials(currentMaterials.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedSupplierId && currentMaterials.length > 0) {
-      const supplier = suppliers.find(s => s.id === selectedSupplierId);
-      if (!supplier) return;
-
-      const existingIndex = supplierMaterials.findIndex(sm => sm.supplierId === selectedSupplierId);
-      
-      if (existingIndex >= 0) {
-        // Update existing
-        const updated = [...supplierMaterials];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          materials: currentMaterials
-        };
-        setSupplierMaterials(updated);
-        toast({ title: 'Materiais atualizados', description: 'Lista de materiais atualizada com sucesso' });
-      } else {
-        // Add new
-        setSupplierMaterials([
-          ...supplierMaterials,
-          {
-            id: Date.now().toString(),
-            supplierId: selectedSupplierId,
-            supplierName: supplier.name,
-            materials: currentMaterials
-          }
-        ]);
-        toast({ title: 'Materiais cadastrados', description: 'Materiais do fornecedor cadastrados com sucesso' });
+      try {
+        await onAddSupplierMaterial(selectedSupplierId, currentMaterials);
+        
+        // Reset form
+        setSelectedSupplierId('');
+        setCurrentMaterials([]);
+      } catch (error) {
+        console.error('Error saving supplier materials:', error);
       }
-
-      // Reset form
-      setSelectedSupplierId('');
-      setCurrentMaterials([]);
     }
   };
 
@@ -86,9 +64,12 @@ export default function SupplierMaterials({ suppliers }: SupplierMaterialsProps)
     setCurrentMaterials([...supplierMaterial.materials]);
   };
 
-  const handleDeleteSupplierMaterials = (id: string) => {
-    setSupplierMaterials(supplierMaterials.filter(sm => sm.id !== id));
-    toast({ title: 'Materiais removidos', description: 'Materiais do fornecedor removidos com sucesso' });
+  const handleDeleteSupplierMaterials = async (id: string) => {
+    try {
+      await onDeleteSupplierMaterial(id);
+    } catch (error) {
+      console.error('Error deleting supplier materials:', error);
+    }
   };
 
   return (
@@ -187,42 +168,45 @@ export default function SupplierMaterials({ suppliers }: SupplierMaterialsProps)
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {supplierMaterials.map((sm) => (
-                  <TableRow key={sm.id}>
-                    <TableCell className="font-medium">{sm.supplierName}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {sm.materials.map((material, idx) => (
-                          <span 
-                            key={idx} 
-                            className="inline-block px-2 py-1 text-xs bg-primary/10 text-primary rounded"
+                {supplierMaterials.map((sm) => {
+                  const supplier = suppliers.find(s => s.id === sm.supplierId);
+                  return (
+                    <TableRow key={sm.id}>
+                      <TableCell className="font-medium">{supplier?.name || 'Fornecedor não encontrado'}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {sm.materials.map((material, idx) => (
+                            <span 
+                              key={idx} 
+                              className="inline-block px-2 py-1 text-xs bg-primary/10 text-primary rounded"
+                            >
+                              {material}
+                            </span>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleEditSupplierMaterials(sm)}
+                            variant="outline"
+                            size="sm"
                           >
-                            {material}
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleEditSupplierMaterials(sm)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          onClick={() => handleDeleteSupplierMaterials(sm.id)}
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                            Editar
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteSupplierMaterials(sm.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
