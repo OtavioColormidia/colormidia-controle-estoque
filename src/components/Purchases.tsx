@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,6 +36,7 @@ interface PurchasesProps {
 
 export default function Purchases({ purchases, products, suppliers, onAddPurchase, onDeletePurchase, onUpdatePurchaseStatus, onUpdatePurchase }: PurchasesProps) {
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
+  const [filterSupplierId, setFilterSupplierId] = useState<string>('all');
   const [formData, setFormData] = useState({
     supplierId: '',
     supplierName: '',
@@ -159,6 +160,11 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
         return <Badge className="bg-destructive text-destructive-foreground"><XCircle className="h-3 w-3 mr-1" />Cancelado</Badge>;
     }
   };
+
+  // Filter purchases by supplier
+  const filteredPurchases = filterSupplierId === 'all' 
+    ? purchases 
+    : purchases.filter(p => p.supplierId === filterSupplierId);
 
 
   return (
@@ -341,10 +347,28 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
         </Card>
 
         <Card className="p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Pedidos Cadastrados
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Pedidos Cadastrados
+            </h3>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={filterSupplierId} onValueChange={setFilterSupplierId}>
+                <SelectTrigger className="w-[250px]">
+                  <SelectValue placeholder="Filtrar por fornecedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os fornecedores</SelectItem>
+                  {suppliers.filter(s => s.active).map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <ScrollArea className="h-[600px] w-full">
             <Table className="min-w-[1200px]">
               <TableHeader>
@@ -361,7 +385,16 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {purchases.map((purchase) => (
+                {filteredPurchases.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      {filterSupplierId === 'all' 
+                        ? 'Nenhum pedido cadastrado' 
+                        : 'Nenhum pedido encontrado para este fornecedor'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPurchases.map((purchase) => (
                   <TableRow key={purchase.id}>
                     <TableCell className="font-mono">{purchase.documentNumber}</TableCell>
                     <TableCell>{new Date(purchase.date).toLocaleDateString('pt-BR')}</TableCell>
@@ -429,7 +462,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+                )}
               </TableBody>
             </Table>
             <ScrollBar orientation="horizontal" />
