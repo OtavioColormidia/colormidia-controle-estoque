@@ -86,6 +86,20 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Verifica se já existe um fornecedor com o mesmo CNPJ
+    const cnpjNumbers = formData.cnpj.replace(/\D/g, '');
+    const existingSupplier = suppliers.find(s => s.cnpj.replace(/\D/g, '') === cnpjNumbers);
+    
+    if (existingSupplier) {
+      toast({ 
+        title: 'Fornecedor já cadastrado', 
+        description: `Já existe um fornecedor cadastrado com este CNPJ: ${existingSupplier.name}`,
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     try {
       await onAddSupplier(formData);
       toast({ title: 'Fornecedor cadastrado', description: `${formData.name} foi adicionado com sucesso` });
