@@ -12,6 +12,7 @@ import {
   X,
   LogOut,
   UserCog,
+  AlertTriangle,
 } from 'lucide-react';
 import logoColorMedia from '@/assets/logo-colormedia.jpg';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import type { UserRole } from '@/types/inventory';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,25 +34,27 @@ interface MenuItem {
   label: string;
   icon: any;
   allowedRoles: UserRole[];
+  group?: string;
 }
 
 const allMenuItems: MenuItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, allowedRoles: ['admin', 'compras', 'almoxarife', 'visualizador'] },
-  { id: 'inventory', label: 'Controle de Estoque', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] },
-  { id: 'truss-control', label: 'Controle de Treliça', icon: Package, allowedRoles: ['admin', 'almoxarife'] },
-  { id: 'entries', label: 'Entrada de Material', icon: PackagePlus, allowedRoles: ['admin', 'almoxarife'] },
-  { id: 'exits', label: 'Saída de Material', icon: PackageMinus, allowedRoles: ['admin', 'almoxarife'] },
-  { id: 'purchases', label: 'Compras', icon: ShoppingCart, allowedRoles: ['admin', 'compras', 'almoxarife'] },
-  { id: 'products', label: 'Cadastro de Produtos', icon: ClipboardList, allowedRoles: ['admin', 'almoxarife'] },
-  { id: 'suppliers', label: 'Cadastro de Fornecedores', icon: Users, allowedRoles: ['admin', 'compras', 'almoxarife'] },
-  { id: 'supplier-materials', label: 'Fornecedores / Material', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] },
-  { id: 'users', label: 'Usuários', icon: UserCog, allowedRoles: ['admin'] },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, allowedRoles: ['admin', 'compras', 'almoxarife', 'visualizador'], group: 'principal' },
+  { id: 'inventory', label: 'Controle de Estoque', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'estoque' },
+  { id: 'truss-control', label: 'Controle de Treliça', icon: Package, allowedRoles: ['admin', 'almoxarife'], group: 'estoque' },
+  { id: 'entries', label: 'Entrada de Material', icon: PackagePlus, allowedRoles: ['admin', 'almoxarife'], group: 'movimentacao' },
+  { id: 'exits', label: 'Saída de Material', icon: PackageMinus, allowedRoles: ['admin', 'almoxarife'], group: 'movimentacao' },
+  { id: 'purchases', label: 'Compras', icon: ShoppingCart, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'compras' },
+  { id: 'products', label: 'Cadastro de Produtos', icon: ClipboardList, allowedRoles: ['admin', 'almoxarife'], group: 'cadastros' },
+  { id: 'suppliers', label: 'Cadastro de Fornecedores', icon: Users, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'cadastros' },
+  { id: 'supplier-materials', label: 'Fornecedores / Material', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'cadastros' },
+  { id: 'users', label: 'Usuários', icon: UserCog, allowedRoles: ['admin'], group: 'admin' },
 ];
 
 export default function Layout({ children, activeTab, onTabChange }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [displayName, setDisplayName] = useState<string>('');
+  const [lowStockCount, setLowStockCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,6 +83,16 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
       if (roles) {
         setUserRoles(roles.map(r => r.role as UserRole));
       }
+
+      // Load low stock count
+      const { data: products } = await supabase
+        .from('products')
+        .select('current_stock, min_stock');
+      
+      if (products) {
+        const lowStock = products.filter(p => p.current_stock <= p.min_stock).length;
+        setLowStockCount(lowStock);
+      }
     };
 
     loadUserData();
@@ -104,12 +119,22 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
 
   const menuItems = allMenuItems.filter(item => hasAccess(item.allowedRoles));
 
+  // Get user initials
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Mobile Menu Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -117,22 +142,24 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:relative inset-y-0 left-0 z-50 bg-gradient-sidebar text-sidebar-foreground transition-all duration-300",
+          "fixed lg:relative inset-y-0 left-0 z-50 bg-gradient-sidebar text-sidebar-foreground transition-all duration-300 ease-out",
           sidebarOpen ? "w-64 translate-x-0" : "w-16 lg:translate-x-0 -translate-x-full lg:w-16"
         )}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex h-14 sm:h-16 items-center justify-between px-2 sm:px-3 border-b border-sidebar-border">
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-hidden flex-1">
-              <img src={logoColorMedia} alt="ColorMídia" className="h-7 sm:h-8 w-7 sm:w-8 object-contain flex-shrink-0" />
+          <div className="flex h-16 items-center justify-between px-3 border-b border-sidebar-border">
+            <div className="flex items-center gap-3 overflow-hidden flex-1">
+              <div className="h-9 w-9 rounded-lg overflow-hidden shadow-lg flex-shrink-0 ring-2 ring-sidebar-primary/20">
+                <img src={logoColorMedia} alt="ColorMídia" className="h-full w-full object-cover" />
+              </div>
               {sidebarOpen && (
-                <div className="flex-1 min-w-0 overflow-hidden">
-                  <h1 className="text-xs sm:text-sm font-bold text-sidebar-foreground truncate leading-tight">
-                    ColorMídia - {displayName || 'Usuário'}
+                <div className="flex-1 min-w-0 overflow-hidden animate-fade-in">
+                  <h1 className="text-sm font-semibold text-sidebar-foreground truncate">
+                    ColorMídia
                   </h1>
-                  <p className="text-[9px] sm:text-[10px] text-sidebar-foreground/70 truncate leading-tight">
-                    Controle de Estoque / Compras
+                  <p className="text-[10px] text-sidebar-foreground/60 truncate">
+                    Controle de Estoque
                   </p>
                 </div>
               )}
@@ -141,31 +168,74 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8 sm:h-10 sm:w-10"
+              className="text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8 flex-shrink-0"
             >
-              {sidebarOpen ? <X className="h-4 sm:h-5 w-4 sm:w-5" /> : <Menu className="h-4 sm:h-5 w-4 sm:w-5" />}
+              {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
 
+          {/* User Profile Section */}
+          {sidebarOpen && (
+            <div className="px-3 py-4 border-b border-sidebar-border">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-semibold text-sm shadow-lg">
+                  {getInitials(displayName || 'U')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-sidebar-foreground truncate">
+                    {displayName || 'Usuário'}
+                  </p>
+                  <p className="text-xs text-sidebar-foreground/60 truncate">
+                    {userRoles[0] || 'Carregando...'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Navigation */}
-          <nav className="flex-1 p-4">
-            <ul className="space-y-2">
-              {menuItems.map((item) => {
+          <nav className="flex-1 p-3 overflow-y-auto">
+            <ul className="space-y-1">
+              {menuItems.map((item, index) => {
                 const Icon = item.icon;
+                const showSeparator = index > 0 && menuItems[index - 1]?.group !== item.group;
+                const showBadge = item.id === 'inventory' && lowStockCount > 0;
+                
                 return (
                   <li key={item.id}>
+                    {showSeparator && sidebarOpen && (
+                      <Separator className="my-3 bg-sidebar-border" />
+                    )}
                     <button
                       onClick={() => onTabChange(item.id)}
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all",
+                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
                         activeTab === item.id
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-                          : "hover:bg-sidebar-accent text-sidebar-foreground"
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/25"
+                          : "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground"
                       )}
                     >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <div className={cn(
+                        "flex items-center justify-center h-8 w-8 rounded-md transition-all",
+                        activeTab === item.id 
+                          ? "bg-sidebar-primary-foreground/15" 
+                          : "bg-transparent group-hover:bg-sidebar-accent"
+                      )}>
+                        <Icon className="h-4 w-4 flex-shrink-0" />
+                      </div>
                       {sidebarOpen && (
-                        <span className="text-sm font-medium">{item.label}</span>
+                        <span className="text-sm font-medium truncate">{item.label}</span>
+                      )}
+                      {showBadge && sidebarOpen && (
+                        <Badge 
+                          variant="destructive" 
+                          className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle"
+                        >
+                          {lowStockCount}
+                        </Badge>
+                      )}
+                      {showBadge && !sidebarOpen && (
+                        <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-danger animate-pulse" />
                       )}
                     </button>
                   </li>
@@ -175,16 +245,16 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-sidebar-border p-4">
+          <div className="border-t border-sidebar-border p-3">
             <Button
               variant="ghost"
               onClick={handleLogout}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent",
+                "w-full flex items-center gap-3 px-3 py-2.5 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-lg transition-all",
                 !sidebarOpen && "justify-center"
               )}
             >
-              <LogOut className="h-5 w-5 flex-shrink-0" />
+              <LogOut className="h-4 w-4 flex-shrink-0" />
               {sidebarOpen && <span className="text-sm font-medium">Sair</span>}
             </Button>
           </div>
@@ -192,20 +262,25 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto bg-background">
         {/* Mobile Header */}
-        <div className="lg:hidden sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center gap-3">
+        <div className="lg:hidden sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSidebarOpen(true)}
-            className="h-8 w-8"
+            className="h-9 w-9"
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold">Controle de Estoque</h1>
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-md overflow-hidden">
+              <img src={logoColorMedia} alt="ColorMídia" className="h-full w-full object-cover" />
+            </div>
+            <h1 className="text-lg font-semibold">ColorMídia</h1>
+          </div>
         </div>
-        <div className="h-full p-4 sm:p-6">{children}</div>
+        <div className="h-full p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );
