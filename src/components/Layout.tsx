@@ -54,7 +54,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [displayName, setDisplayName] = useState<string>('');
-  const [lowStockCount, setLowStockCount] = useState(0);
+  const [alertStockCount, setAlertStockCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -84,14 +84,15 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
         setUserRoles(roles.map(r => r.role as UserRole));
       }
 
-      // Load low stock count
+      // Load alert stock count (atenção + crítico)
       const { data: products } = await supabase
         .from('products')
         .select('current_stock, min_stock');
       
       if (products) {
-        const lowStock = products.filter(p => p.current_stock <= p.min_stock).length;
-        setLowStockCount(lowStock);
+        // Atenção: estoque <= min_stock * 1.5, Crítico: estoque <= min_stock
+        const alertStock = products.filter(p => p.current_stock <= p.min_stock * 1.5).length;
+        setAlertStockCount(alertStock);
       }
     };
 
@@ -175,23 +176,29 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
           </div>
 
           {/* User Profile Section */}
-          {sidebarOpen && (
-            <div className="px-3 py-4 border-b border-sidebar-border">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-semibold text-sm shadow-lg">
-                  {getInitials(displayName || 'U')}
-                </div>
+          <div className={cn(
+            "border-b border-sidebar-border transition-all",
+            sidebarOpen ? "px-3 py-3" : "px-2 py-3"
+          )}>
+            <div className={cn(
+              "flex items-center",
+              sidebarOpen ? "gap-3" : "justify-center"
+            )}>
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0">
+                {getInitials(displayName || 'U')}
+              </div>
+              {sidebarOpen && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  <p className="text-sm font-medium text-sidebar-foreground truncate leading-tight">
                     {displayName || 'Usuário'}
                   </p>
-                  <p className="text-xs text-sidebar-foreground/60 truncate">
+                  <p className="text-[11px] text-sidebar-foreground/50 capitalize">
                     {userRoles[0] || 'Carregando...'}
                   </p>
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-3 overflow-y-auto">
@@ -199,7 +206,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               {menuItems.map((item, index) => {
                 const Icon = item.icon;
                 const showSeparator = index > 0 && menuItems[index - 1]?.group !== item.group;
-                const showBadge = item.id === 'inventory' && lowStockCount > 0;
+                const showBadge = item.id === 'inventory' && alertStockCount > 0;
                 
                 return (
                   <li key={item.id}>
@@ -228,14 +235,14 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
                       )}
                       {showBadge && sidebarOpen && (
                         <Badge 
-                          variant="destructive" 
+                          variant="warning" 
                           className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle"
                         >
-                          {lowStockCount}
+                          {alertStockCount}
                         </Badge>
                       )}
                       {showBadge && !sidebarOpen && (
-                        <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-danger animate-pulse" />
+                        <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse" />
                       )}
                     </button>
                   </li>

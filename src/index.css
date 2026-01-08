@@ -11,8 +11,8 @@ All colors MUST be HSL.
     /* Typography */
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     
-    /* Base colors */
-    --background: 220 20% 97%;
+    /* Base colors - Light gray background */
+    --background: 220 14% 94%;
     --foreground: 222 47% 11%;
 
     /* Card colors */
@@ -165,6 +165,33 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted));
   }
 }
 
