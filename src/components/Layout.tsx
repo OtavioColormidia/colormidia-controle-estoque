@@ -175,30 +175,6 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
             </Button>
           </div>
 
-          {/* User Profile Section */}
-          <div className={cn(
-            "border-b border-sidebar-border transition-all",
-            sidebarOpen ? "px-3 py-3" : "px-2 py-3"
-          )}>
-            <div className={cn(
-              "flex items-center",
-              sidebarOpen ? "gap-3" : "justify-center"
-            )}>
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0">
-                {getInitials(displayName || 'U')}
-              </div>
-              {sidebarOpen && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate leading-tight">
-                    {displayName || 'Usuário'}
-                  </p>
-                  <p className="text-[11px] text-sidebar-foreground/50 capitalize">
-                    {userRoles[0] || 'Carregando...'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-3 overflow-y-auto">
@@ -251,18 +227,39 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
             </ul>
           </nav>
 
-          {/* Footer */}
-          <div className="border-t border-sidebar-border p-3">
+          {/* Footer with User Profile */}
+          <div className="border-t border-sidebar-border p-3 space-y-2">
+            {/* User Profile */}
+            <div className={cn(
+              "flex items-center rounded-lg p-2 bg-sidebar-accent/50",
+              sidebarOpen ? "gap-3" : "justify-center"
+            )}>
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-xs shadow-md flex-shrink-0">
+                {getInitials(displayName || 'U')}
+              </div>
+              {sidebarOpen && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-sidebar-foreground truncate leading-tight">
+                    {displayName || 'Usuário'}
+                  </p>
+                  <p className="text-[10px] text-sidebar-foreground/50 capitalize">
+                    {userRoles[0] || 'Carregando...'}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {/* Logout Button */}
             <Button
               variant="ghost"
               onClick={handleLogout}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-lg transition-all",
+                "w-full flex items-center gap-3 px-3 py-2 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-lg transition-all h-9",
                 !sidebarOpen && "justify-center"
               )}
             >
               <LogOut className="h-4 w-4 flex-shrink-0" />
-              {sidebarOpen && <span className="text-sm font-medium">Sair</span>}
+              {sidebarOpen && <span className="text-sm">Sair</span>}
             </Button>
           </div>
         </div>
