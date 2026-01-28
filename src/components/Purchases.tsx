@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
   Table,
   TableBody,
   TableCell,
@@ -16,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter, ChevronsUpDown, Check } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -51,6 +59,22 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const [unitPrice, setUnitPrice] = useState('');
   const [discount, setDiscount] = useState('');
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [supplierOpen, setSupplierOpen] = useState(false);
+  const [supplierSearch, setSupplierSearch] = useState('');
+
+  // Filter active suppliers based on search
+  const filteredActiveSuppliers = useMemo(() => {
+    return suppliers.filter(s => {
+      if (!s.active) return false;
+      if (!supplierSearch.trim()) return true;
+      const search = supplierSearch.toLowerCase();
+      return (
+        s.name.toLowerCase().includes(search) ||
+        s.tradeName?.toLowerCase().includes(search) ||
+        s.code.toLowerCase().includes(search)
+      );
+    });
+  }, [suppliers, supplierSearch]);
 
   const handleAddItem = () => {
     if (productName && quantity && unitPrice) {
@@ -238,28 +262,63 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Fornecedor</Label>
-              <Select 
-                value={formData.supplierId} 
-                onValueChange={(value) => {
-                  const supplier = suppliers.find(s => s.id === value);
-                  setFormData({ 
-                    ...formData, 
-                    supplierId: value,
-                    supplierName: supplier?.name || ''
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um fornecedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliers.filter(s => s.active).map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={supplierOpen} onOpenChange={setSupplierOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={supplierOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {formData.supplierId
+                      ? suppliers.find((s) => s.id === formData.supplierId)?.name
+                      : "Selecione um fornecedor"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command shouldFilter={false}>
+                    <CommandInput 
+                      placeholder="Buscar fornecedor..." 
+                      value={supplierSearch}
+                      onValueChange={setSupplierSearch}
+                    />
+                    <CommandList>
+                      <CommandEmpty>Nenhum fornecedor encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {filteredActiveSuppliers.map((supplier) => (
+                          <CommandItem
+                            key={supplier.id}
+                            value={supplier.id}
+                            onSelect={(currentValue) => {
+                              setFormData({
+                                ...formData,
+                                supplierId: currentValue,
+                                supplierName: supplier.name
+                              });
+                              setSupplierOpen(false);
+                              setSupplierSearch('');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.supplierId === supplier.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span>{supplier.name}</span>
+                              {supplier.tradeName && (
+                                <span className="text-xs text-muted-foreground">{supplier.tradeName}</span>
+                              )}
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             
             <div className="space-y-2">

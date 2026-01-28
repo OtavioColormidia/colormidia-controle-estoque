@@ -57,6 +57,7 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
   });
   
   const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const formatCNPJ = (value: string) => {
     // Remove todos os caracteres não numéricos
@@ -186,6 +187,19 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
     exportToCSV(exportData, 'fornecedores');
   };
 
+  // Filter suppliers by search query
+  const filteredSuppliers = suppliers.filter(supplier => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      supplier.name.toLowerCase().includes(query) ||
+      supplier.tradeName?.toLowerCase().includes(query) ||
+      supplier.code.toLowerCase().includes(query) ||
+      supplier.cnpj.includes(query) ||
+      supplier.contact?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -258,7 +272,18 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
         </Card>
 
         <Card className="p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">Fornecedores Cadastrados</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Fornecedores Cadastrados</h3>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar fornecedor..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -272,7 +297,14 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {suppliers.map((supplier) => (
+                {filteredSuppliers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      {searchQuery ? 'Nenhum fornecedor encontrado' : 'Nenhum fornecedor cadastrado'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell className="font-mono">{supplier.code}</TableCell>
                     <TableCell>{supplier.name}</TableCell>
@@ -324,9 +356,10 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
+                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+                )}
               </TableBody>
             </Table>
           </div>
