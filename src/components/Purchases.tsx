@@ -49,6 +49,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const [productName, setProductName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
+  const [discount, setDiscount] = useState('');
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   const handleAddItem = () => {
     if (productName && quantity && unitPrice) {
@@ -59,11 +61,37 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
         unitPrice: Number(unitPrice),
         totalPrice: Number(quantity) * Number(unitPrice),
       };
-      setPurchaseItems([...purchaseItems, newItem]);
+      
+      if (editingItemIndex !== null) {
+        // Update existing item
+        const updatedItems = [...purchaseItems];
+        updatedItems[editingItemIndex] = newItem;
+        setPurchaseItems(updatedItems);
+        setEditingItemIndex(null);
+      } else {
+        // Add new item
+        setPurchaseItems([...purchaseItems, newItem]);
+      }
+      
       setProductName('');
       setQuantity('');
       setUnitPrice('');
     }
+  };
+
+  const handleEditItem = (index: number) => {
+    const item = purchaseItems[index];
+    setProductName(item.productName);
+    setQuantity(item.quantity.toString());
+    setUnitPrice(item.unitPrice.toString());
+    setEditingItemIndex(index);
+  };
+
+  const handleCancelItemEdit = () => {
+    setProductName('');
+    setQuantity('');
+    setUnitPrice('');
+    setEditingItemIndex(null);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -94,12 +122,16 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
       status: 'pending',
     });
     setPurchaseItems([]);
+    setDiscount('');
+    setEditingItemIndex(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.supplierId && purchaseItems.length > 0) {
-      const totalValue = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
+      const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
+      const discountValue = Number(discount) || 0;
+      const totalValue = itemsTotal - discountValue;
       
       try {
         if (editingPurchaseId) {
@@ -142,11 +174,18 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
           status: 'pending',
         });
         setPurchaseItems([]);
+        setDiscount('');
+        setEditingItemIndex(null);
       } catch (error) {
         console.error('Erro ao salvar pedido:', error);
       }
     }
   };
+
+  // Calculate totals
+  const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
+  const discountValue = Number(discount) || 0;
+  const finalTotal = itemsTotal - discountValue;
 
   const getStatusBadge = (status: Purchase['status']) => {
     switch (status) {
@@ -270,7 +309,14 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             </div>
 
             <div className="border-t pt-4">
-              <Label className="mb-2 block">Adicionar Itens</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Adicionar Itens</Label>
+                {editingItemIndex !== null && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelItemEdit} className="text-xs h-6">
+                    Cancelar edição
+                  </Button>
+                )}
+              </div>
               <div className="space-y-2">
                 <Input 
                   value={productName} 
@@ -294,9 +340,26 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   />
                 </div>
                 
-                <Button type="button" onClick={handleAddItem} variant="outline" className="w-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Item
+                <Button 
+                  type="button" 
+                  onClick={handleAddItem} 
+                  variant="outline" 
+                  className={cn(
+                    "w-full",
+                    editingItemIndex !== null && "bg-primary/10 border-primary text-primary hover:bg-primary/20"
+                  )}
+                >
+                  {editingItemIndex !== null ? (
+                    <>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Atualizar Item
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Item
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -305,14 +368,34 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
               <div className="space-y-2 border-t pt-4">
                 <Label>Itens do Pedido</Label>
                 {purchaseItems.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm p-2 bg-secondary/50 rounded">
-                    <span>{item.productName}</span>
-                    <div className="flex items-center gap-2">
-                      <span>{item.quantity}x R$ {item.unitPrice.toFixed(2)}</span>
+                  <div 
+                    key={index} 
+                    className={cn(
+                      "flex justify-between items-center text-sm p-2 rounded transition-colors",
+                      editingItemIndex === index 
+                        ? "bg-primary/20 ring-1 ring-primary" 
+                        : "bg-secondary/50"
+                    )}
+                  >
+                    <span className="truncate flex-1 mr-2">{item.productName}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs whitespace-nowrap">
+                        {item.quantity}x R$ {item.unitPrice.toFixed(2)}
+                      </span>
                       <Button
                         type="button"
                         size="sm"
                         variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={() => handleEditItem(index)}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
                         onClick={() => handleRemoveItem(index)}
                       >
                         <XCircle className="h-3 w-3" />
@@ -320,8 +403,39 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     </div>
                   </div>
                 ))}
-                <div className="font-bold text-right">
-                  Total: R$ {purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)}
+                
+                {/* Discount Section */}
+                <div className="border-t pt-3 mt-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">Desconto (R$)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={discount}
+                      onChange={(e) => setDiscount(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                  
+                  {discountValue > 0 && (
+                    <div className="flex justify-between items-center text-sm p-2 bg-success/20 rounded text-success-foreground">
+                      <span>DESCONTO</span>
+                      <span>- R$ {discountValue.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t pt-2 mt-2 space-y-1">
+                  {discountValue > 0 && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Subtotal:</span>
+                      <span>R$ {itemsTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="font-bold text-right text-lg">
+                    Total: R$ {finalTotal.toFixed(2)}
+                  </div>
                 </div>
               </div>
             )}
