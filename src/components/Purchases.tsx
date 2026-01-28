@@ -270,9 +270,11 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     aria-expanded={supplierOpen}
                     className="w-full justify-between font-normal"
                   >
-                    {formData.supplierId
-                      ? suppliers.find((s) => s.id === formData.supplierId)?.name
-                      : "Selecione um fornecedor"}
+                    <span className="truncate">
+                      {formData.supplierId
+                        ? suppliers.find((s) => s.id === formData.supplierId)?.name
+                        : "Selecione um fornecedor"}
+                    </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
