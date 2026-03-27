@@ -160,9 +160,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string
+          discount: number | null
           document_number: string | null
           expected_delivery_date: string | null
+          frete: number | null
           id: string
+          ipi: number | null
           notes: string | null
           status: string
           supplier_id: string | null
@@ -174,9 +177,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          discount?: number | null
           document_number?: string | null
           expected_delivery_date?: string | null
+          frete?: number | null
           id?: string
+          ipi?: number | null
           notes?: string | null
           status?: string
           supplier_id?: string | null
@@ -188,9 +194,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          discount?: number | null
           document_number?: string | null
           expected_delivery_date?: string | null
+          frete?: number | null
           id?: string
+          ipi?: number | null
           notes?: string | null
           status?: string
           supplier_id?: string | null

@@ -53,6 +53,9 @@ export interface Purchase {
   supplierName?: string;
   items: PurchaseItem[];
   totalValue: number;
+  discount?: number;
+  ipi?: number;
+  frete?: number;
   status: 'pending' | 'approved' | 'delivered' | 'cancelled';
   documentNumber?: string;
   notes?: string;
