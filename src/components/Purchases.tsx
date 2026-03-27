@@ -235,10 +235,20 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     }
   };
 
-  // Filter purchases by supplier
-  const filteredPurchases = filterSupplierId === 'all' 
-    ? purchases 
-    : purchases.filter(p => p.supplierId === filterSupplierId);
+  // Filter purchases by supplier and product
+  const filteredPurchases = useMemo(() => {
+    let filtered = purchases;
+    if (filterSupplierId !== 'all') {
+      filtered = filtered.filter(p => p.supplierId === filterSupplierId);
+    }
+    if (filterProductName.trim()) {
+      const search = filterProductName.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.items.some(item => item.productName.toLowerCase().includes(search))
+      );
+    }
+    return filtered;
+  }, [purchases, filterSupplierId, filterProductName]);
 
 
   return (
