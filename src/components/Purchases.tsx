@@ -58,9 +58,12 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const [quantity, setQuantity] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
   const [discount, setDiscount] = useState('');
+  const [ipi, setIpi] = useState('');
+  const [frete, setFrete] = useState('');
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
+  const [filterProductName, setFilterProductName] = useState('');
 
   // Filter active suppliers based on search
   const filteredActiveSuppliers = useMemo(() => {
