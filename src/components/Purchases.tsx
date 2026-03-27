@@ -582,10 +582,10 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
               <FileText className="h-5 w-5" />
               Pedidos Cadastrados
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={filterSupplierId} onValueChange={setFilterSupplierId}>
-                <SelectTrigger className="w-[250px]">
+                <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Filtrar por fornecedor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -597,6 +597,12 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   ))}
                 </SelectContent>
               </Select>
+              <Input
+                placeholder="Filtrar por produto..."
+                value={filterProductName}
+                onChange={(e) => setFilterProductName(e.target.value)}
+                className="w-[200px]"
+              />
             </div>
           </div>
           <ScrollArea className="h-[600px] w-full">
