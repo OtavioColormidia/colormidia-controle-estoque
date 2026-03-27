@@ -206,6 +206,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
         });
         setPurchaseItems([]);
         setDiscount('');
+        setIpi('');
+        setFrete('');
         setEditingItemIndex(null);
       } catch (error) {
         console.error('Erro ao salvar pedido:', error);
