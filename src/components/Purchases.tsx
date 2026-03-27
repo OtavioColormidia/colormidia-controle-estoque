@@ -732,7 +732,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
