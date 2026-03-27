@@ -160,7 +160,9 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     if (formData.supplierId && purchaseItems.length > 0) {
       const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       const discountValue = Number(discount) || 0;
-      const totalValue = itemsTotal - discountValue;
+      const ipiValue = Number(ipi) || 0;
+      const freteValue = Number(frete) || 0;
+      const totalValue = itemsTotal - discountValue + ipiValue + freteValue;
       
       try {
         if (editingPurchaseId) {
