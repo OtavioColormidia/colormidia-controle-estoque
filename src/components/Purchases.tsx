@@ -58,9 +58,12 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const [quantity, setQuantity] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
   const [discount, setDiscount] = useState('');
+  const [ipi, setIpi] = useState('');
+  const [frete, setFrete] = useState('');
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
+  const [filterProductName, setFilterProductName] = useState('');
 
   // Filter active suppliers based on search
   const filteredActiveSuppliers = useMemo(() => {
@@ -147,6 +150,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     });
     setPurchaseItems([]);
     setDiscount('');
+    setIpi('');
+    setFrete('');
     setEditingItemIndex(null);
   };
 
@@ -155,7 +160,9 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     if (formData.supplierId && purchaseItems.length > 0) {
       const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       const discountValue = Number(discount) || 0;
-      const totalValue = itemsTotal - discountValue;
+      const ipiValue = Number(ipi) || 0;
+      const freteValue = Number(frete) || 0;
+      const totalValue = itemsTotal - discountValue + ipiValue + freteValue;
       
       try {
         if (editingPurchaseId) {
@@ -199,6 +206,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
         });
         setPurchaseItems([]);
         setDiscount('');
+        setIpi('');
+        setFrete('');
         setEditingItemIndex(null);
       } catch (error) {
         console.error('Erro ao salvar pedido:', error);
@@ -209,7 +218,9 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   // Calculate totals
   const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const discountValue = Number(discount) || 0;
-  const finalTotal = itemsTotal - discountValue;
+  const ipiValue = Number(ipi) || 0;
+  const freteValue = Number(frete) || 0;
+  const finalTotal = itemsTotal - discountValue + ipiValue + freteValue;
 
   const getStatusBadge = (status: Purchase['status']) => {
     switch (status) {
@@ -224,10 +235,20 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     }
   };
 
-  // Filter purchases by supplier
-  const filteredPurchases = filterSupplierId === 'all' 
-    ? purchases 
-    : purchases.filter(p => p.supplierId === filterSupplierId);
+  // Filter purchases by supplier and product
+  const filteredPurchases = useMemo(() => {
+    let filtered = purchases;
+    if (filterSupplierId !== 'all') {
+      filtered = filtered.filter(p => p.supplierId === filterSupplierId);
+    }
+    if (filterProductName.trim()) {
+      const search = filterProductName.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.items.some(item => item.productName.toLowerCase().includes(search))
+      );
+    }
+    return filtered;
+  }, [purchases, filterSupplierId, filterProductName]);
 
 
   return (
@@ -465,7 +486,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   </div>
                 ))}
                 
-                {/* Discount Section */}
+                {/* Discount, IPI, Frete Section */}
                 <div className="border-t pt-3 mt-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <Label className="text-sm whitespace-nowrap">Desconto (R$)</Label>
@@ -478,6 +499,28 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       className="flex-1"
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">IPI (R$)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={ipi}
+                      onChange={(e) => setIpi(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">Frete (R$)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={frete}
+                      onChange={(e) => setFrete(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
                   
                   {discountValue > 0 && (
                     <div className="flex justify-between items-center text-sm p-2 bg-success/20 rounded text-success-foreground">
@@ -485,10 +528,22 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       <span>- R$ {discountValue.toFixed(2)}</span>
                     </div>
                   )}
+                  {ipiValue > 0 && (
+                    <div className="flex justify-between items-center text-sm p-2 bg-warning/20 rounded">
+                      <span>IPI</span>
+                      <span>+ R$ {ipiValue.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {freteValue > 0 && (
+                    <div className="flex justify-between items-center text-sm p-2 bg-warning/20 rounded">
+                      <span>FRETE</span>
+                      <span>+ R$ {freteValue.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t pt-2 mt-2 space-y-1">
-                  {discountValue > 0 && (
+                  {(discountValue > 0 || ipiValue > 0 || freteValue > 0) && (
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Subtotal:</span>
                       <span>R$ {itemsTotal.toFixed(2)}</span>
@@ -527,10 +582,10 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
               <FileText className="h-5 w-5" />
               Pedidos Cadastrados
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={filterSupplierId} onValueChange={setFilterSupplierId}>
-                <SelectTrigger className="w-[250px]">
+                <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Filtrar por fornecedor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -542,6 +597,12 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   ))}
                 </SelectContent>
               </Select>
+              <Input
+                placeholder="Filtrar por produto..."
+                value={filterProductName}
+                onChange={(e) => setFilterProductName(e.target.value)}
+                className="w-[200px]"
+              />
             </div>
           </div>
           <ScrollArea className="h-[600px] w-full">
