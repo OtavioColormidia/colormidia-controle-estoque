@@ -486,7 +486,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   </div>
                 ))}
                 
-                {/* Discount Section */}
+                {/* Discount, IPI, Frete Section */}
                 <div className="border-t pt-3 mt-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <Label className="text-sm whitespace-nowrap">Desconto (R$)</Label>
@@ -499,6 +499,28 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       className="flex-1"
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">IPI (R$)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={ipi}
+                      onChange={(e) => setIpi(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">Frete (R$)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={frete}
+                      onChange={(e) => setFrete(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
                   
                   {discountValue > 0 && (
                     <div className="flex justify-between items-center text-sm p-2 bg-success/20 rounded text-success-foreground">
@@ -506,10 +528,22 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       <span>- R$ {discountValue.toFixed(2)}</span>
                     </div>
                   )}
+                  {ipiValue > 0 && (
+                    <div className="flex justify-between items-center text-sm p-2 bg-warning/20 rounded">
+                      <span>IPI</span>
+                      <span>+ R$ {ipiValue.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {freteValue > 0 && (
+                    <div className="flex justify-between items-center text-sm p-2 bg-warning/20 rounded">
+                      <span>FRETE</span>
+                      <span>+ R$ {freteValue.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t pt-2 mt-2 space-y-1">
-                  {discountValue > 0 && (
+                  {(discountValue > 0 || ipiValue > 0 || freteValue > 0) && (
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Subtotal:</span>
                       <span>R$ {itemsTotal.toFixed(2)}</span>
