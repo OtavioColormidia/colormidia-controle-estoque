@@ -162,6 +162,9 @@ export const useSupabaseData = () => {
         totalPrice: Number(item.total_price)
       })) || [],
       totalValue: Number(p.total_value),
+      discount: Number(p.discount) || 0,
+      ipi: Number(p.ipi) || 0,
+      frete: Number(p.frete) || 0,
       status: p.status as 'pending' | 'approved' | 'delivered' | 'cancelled',
       documentNumber: p.document_number || undefined,
       notes: p.notes || undefined,
