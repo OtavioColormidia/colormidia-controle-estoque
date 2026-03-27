@@ -218,7 +218,9 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   // Calculate totals
   const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const discountValue = Number(discount) || 0;
-  const finalTotal = itemsTotal - discountValue;
+  const ipiValue = Number(ipi) || 0;
+  const freteValue = Number(frete) || 0;
+  const finalTotal = itemsTotal - discountValue + ipiValue + freteValue;
 
   const getStatusBadge = (status: Purchase['status']) => {
     switch (status) {
