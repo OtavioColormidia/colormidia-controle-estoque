@@ -136,6 +136,9 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
       status: purchase.status,
     });
     setPurchaseItems(purchase.items);
+    setDiscount((purchase.discount || 0).toString());
+    setIpi((purchase.ipi || 0).toString());
+    setFrete((purchase.frete || 0).toString());
   };
 
   const handleCancelEdit = () => {
