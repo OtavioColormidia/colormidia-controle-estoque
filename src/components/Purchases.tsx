@@ -615,14 +615,18 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             </div>
           </div>
           <ScrollArea className="h-[600px] w-full">
-            <Table className="min-w-[1200px]">
+            <Table className="min-w-[1400px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Nº Pedido</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Itens</TableHead>
-                  <TableHead className="text-right">Valor Total</TableHead>
+                  <TableHead className="text-right">Subtotal</TableHead>
+                  <TableHead className="text-right">Desconto</TableHead>
+                  <TableHead className="text-right">IPI</TableHead>
+                  <TableHead className="text-right">Frete</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                   <TableHead>Previsão Entrega</TableHead>
                   <TableHead>Observações</TableHead>
                   <TableHead>Status</TableHead>
@@ -632,14 +636,19 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
               <TableBody>
                 {filteredPurchases.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                      {filterSupplierId === 'all' 
+                    <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                      {filterSupplierId === 'all' && !filterProductName.trim()
                         ? 'Nenhum pedido cadastrado' 
-                        : 'Nenhum pedido encontrado para este fornecedor'}
+                        : 'Nenhum pedido encontrado com os filtros aplicados'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredPurchases.map((purchase) => (
+                  filteredPurchases.map((purchase) => {
+                    const subtotal = purchase.items.reduce((sum, item) => sum + item.totalPrice, 0);
+                    const pDiscount = purchase.discount || 0;
+                    const pIpi = purchase.ipi || 0;
+                    const pFrete = purchase.frete || 0;
+                    return (
                   <TableRow key={purchase.id}>
                     <TableCell className="font-mono">{purchase.documentNumber}</TableCell>
                     <TableCell>{new Date(purchase.date).toLocaleDateString('pt-BR')}</TableCell>
@@ -652,6 +661,22 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                           </div>
                         ))}
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right">R$ {subtotal.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      {pDiscount > 0 ? (
+                        <span className="text-destructive font-medium">- R$ {pDiscount.toFixed(2)}</span>
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {pIpi > 0 ? (
+                        <span className="text-warning font-medium">+ R$ {pIpi.toFixed(2)}</span>
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {pFrete > 0 ? (
+                        <span className="text-warning font-medium">+ R$ {pFrete.toFixed(2)}</span>
+                      ) : '-'}
                     </TableCell>
                     <TableCell className="text-right font-bold">R$ {purchase.totalValue.toFixed(2)}</TableCell>
                     <TableCell>
