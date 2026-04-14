@@ -66,6 +66,78 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
   const [filterProductName, setFilterProductName] = useState('');
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+  const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Load attachments for all purchases
+  const loadAttachments = async (purchaseId: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('purchase-attachments')
+        .list(purchaseId);
+      if (error) throw error;
+      if (data) {
+        setPurchaseAttachments(prev => ({
+          ...prev,
+          [purchaseId]: data.map(f => f.name),
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar anexos:', error);
+    }
+  };
+
+  // Load attachments on mount
+  useState(() => {
+    purchases.forEach(p => loadAttachments(p.id));
+  });
+
+  const handleFileUpload = async (purchaseId: string, files: FileList) => {
+    setUploadingFiles(prev => ({ ...prev, [purchaseId]: true }));
+    try {
+      for (const file of Array.from(files)) {
+        const { error } = await supabase.storage
+          .from('purchase-attachments')
+          .upload(`${purchaseId}/${file.name}`, file, { upsert: true });
+        if (error) throw error;
+      }
+      toast({ title: 'Anexo(s) enviado(s)', description: `${files.length} arquivo(s) enviado(s) com sucesso` });
+      await loadAttachments(purchaseId);
+    } catch (error: any) {
+      toast({ title: 'Erro ao enviar anexo', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, [purchaseId]: false }));
+    }
+  };
+
+  const handleDownloadAttachment = async (purchaseId: string, fileName: string) => {
+    const { data, error } = await supabase.storage
+      .from('purchase-attachments')
+      .download(`${purchaseId}/${fileName}`);
+    if (error) {
+      toast({ title: 'Erro ao baixar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    const url = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteAttachment = async (purchaseId: string, fileName: string) => {
+    const { error } = await supabase.storage
+      .from('purchase-attachments')
+      .remove([`${purchaseId}/${fileName}`]);
+    if (error) {
+      toast({ title: 'Erro ao excluir anexo', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Anexo excluído' });
+    await loadAttachments(purchaseId);
+  };
 
   // Filter active suppliers based on search
   const filteredActiveSuppliers = useMemo(() => {
