@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,11 +24,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter, ChevronsUpDown, Check } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter, ChevronsUpDown, Check, Upload, Download, X, Loader2 } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 import { toast } from '@/components/ui/use-toast';
 
