@@ -152,6 +152,19 @@ export default function Purchases({
     await loadAttachments(purchaseId);
   };
 
+  const handlePreviewAttachment = async (purchaseId: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("purchase-attachments")
+        .createSignedUrl(`${purchaseId}/${fileName}`, 3600);
+      if (error) throw error;
+      setPreviewUrl(data.signedUrl);
+      setPreviewFileName(fileName);
+    } catch (error: any) {
+      toast({ title: "Erro ao visualizar", description: error.message, variant: "destructive" });
+    }
+  };
+
   // Filter active suppliers based on search
   const filteredActiveSuppliers = useMemo(() => {
     return suppliers.filter((s) => {
