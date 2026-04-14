@@ -1,71 +1,82 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter, ChevronsUpDown, Check, Upload, Download, X, Loader2 } from 'lucide-react';
-import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import ConfirmDialog from '@/components/ConfirmDialog';
+  ShoppingCart,
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Trash2,
+  Plus,
+  CalendarIcon,
+  Pencil,
+  Filter,
+  ChevronsUpDown,
+  Check,
+  Upload,
+  Download,
+  X,
+  Loader2,
+} from "lucide-react";
+import { Purchase, Product, Supplier, PurchaseItem } from "@/types/inventory";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
-import { toast } from '@/components/ui/use-toast';
+import { toast } from "@/components/ui/use-toast";
 
 interface PurchasesProps {
   purchases: Purchase[];
   products: Product[];
   suppliers: Supplier[];
-  onAddPurchase: (purchase: Omit<Purchase, 'id'>) => Promise<void>;
+  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<void>;
   onDeletePurchase: (id: string) => Promise<void>;
-  onUpdatePurchaseStatus: (id: string, status: Purchase['status']) => Promise<void>;
-  onUpdatePurchase: (id: string, purchase: Omit<Purchase, 'id' | 'date'>) => Promise<void>;
+  onUpdatePurchaseStatus: (id: string, status: Purchase["status"]) => Promise<void>;
+  onUpdatePurchase: (id: string, purchase: Omit<Purchase, "id" | "date">) => Promise<void>;
 }
 
-export default function Purchases({ purchases, products, suppliers, onAddPurchase, onDeletePurchase, onUpdatePurchaseStatus, onUpdatePurchase }: PurchasesProps) {
+export default function Purchases({
+  purchases,
+  products,
+  suppliers,
+  onAddPurchase,
+  onDeletePurchase,
+  onUpdatePurchaseStatus,
+  onUpdatePurchase,
+}: PurchasesProps) {
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
-  const [filterSupplierId, setFilterSupplierId] = useState<string>('all');
+  const [filterSupplierId, setFilterSupplierId] = useState<string>("all");
   const [formData, setFormData] = useState({
-    supplierId: '',
-    supplierName: '',
-    documentNumber: '',
-    notes: '',
+    supplierId: "",
+    supplierName: "",
+    documentNumber: "",
+    notes: "",
     expectedDeliveryDate: undefined as Date | undefined,
-    status: 'pending' as Purchase['status'],
+    status: "pending" as Purchase["status"],
   });
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([]);
-  const [productName, setProductName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [unitPrice, setUnitPrice] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [ipi, setIpi] = useState('');
-  const [frete, setFrete] = useState('');
+  const [productName, setProductName] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [ipi, setIpi] = useState("");
+  const [frete, setFrete] = useState("");
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [supplierOpen, setSupplierOpen] = useState(false);
-  const [supplierSearch, setSupplierSearch] = useState('');
-  const [filterProductName, setFilterProductName] = useState('');
+  const [supplierSearch, setSupplierSearch] = useState("");
+  const [filterProductName, setFilterProductName] = useState("");
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -73,54 +84,50 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   // Load attachments for all purchases
   const loadAttachments = async (purchaseId: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('purchase-attachments')
-        .list(purchaseId);
+      const { data, error } = await supabase.storage.from("purchase-attachments").list(purchaseId);
       if (error) throw error;
       if (data) {
-        setPurchaseAttachments(prev => ({
+        setPurchaseAttachments((prev) => ({
           ...prev,
-          [purchaseId]: data.map(f => f.name),
+          [purchaseId]: data.map((f) => f.name),
         }));
       }
     } catch (error) {
-      console.error('Erro ao carregar anexos:', error);
+      console.error("Erro ao carregar anexos:", error);
     }
   };
 
   // Load attachments on mount and when purchases change
   useEffect(() => {
-    purchases.forEach(p => loadAttachments(p.id));
+    purchases.forEach((p) => loadAttachments(p.id));
   }, [purchases.length]);
 
   const handleFileUpload = async (purchaseId: string, files: FileList) => {
-    setUploadingFiles(prev => ({ ...prev, [purchaseId]: true }));
+    setUploadingFiles((prev) => ({ ...prev, [purchaseId]: true }));
     try {
       for (const file of Array.from(files)) {
         const { error } = await supabase.storage
-          .from('purchase-attachments')
+          .from("purchase-attachments")
           .upload(`${purchaseId}/${file.name}`, file, { upsert: true });
         if (error) throw error;
       }
-      toast({ title: 'Anexo(s) enviado(s)', description: `${files.length} arquivo(s) enviado(s) com sucesso` });
+      toast({ title: "Anexo(s) enviado(s)", description: `${files.length} arquivo(s) enviado(s) com sucesso` });
       await loadAttachments(purchaseId);
     } catch (error: any) {
-      toast({ title: 'Erro ao enviar anexo', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao enviar anexo", description: error.message, variant: "destructive" });
     } finally {
-      setUploadingFiles(prev => ({ ...prev, [purchaseId]: false }));
+      setUploadingFiles((prev) => ({ ...prev, [purchaseId]: false }));
     }
   };
 
   const handleDownloadAttachment = async (purchaseId: string, fileName: string) => {
-    const { data, error } = await supabase.storage
-      .from('purchase-attachments')
-      .download(`${purchaseId}/${fileName}`);
+    const { data, error } = await supabase.storage.from("purchase-attachments").download(`${purchaseId}/${fileName}`);
     if (error) {
-      toast({ title: 'Erro ao baixar', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao baixar", description: error.message, variant: "destructive" });
       return;
     }
     const url = URL.createObjectURL(data);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = fileName;
     a.click();
@@ -128,20 +135,18 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   };
 
   const handleDeleteAttachment = async (purchaseId: string, fileName: string) => {
-    const { error } = await supabase.storage
-      .from('purchase-attachments')
-      .remove([`${purchaseId}/${fileName}`]);
+    const { error } = await supabase.storage.from("purchase-attachments").remove([`${purchaseId}/${fileName}`]);
     if (error) {
-      toast({ title: 'Erro ao excluir anexo', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao excluir anexo", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: 'Anexo excluído' });
+    toast({ title: "Anexo excluído" });
     await loadAttachments(purchaseId);
   };
 
   // Filter active suppliers based on search
   const filteredActiveSuppliers = useMemo(() => {
-    return suppliers.filter(s => {
+    return suppliers.filter((s) => {
       if (!s.active) return false;
       if (!supplierSearch.trim()) return true;
       const search = supplierSearch.toLowerCase();
@@ -156,13 +161,13 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const handleAddItem = () => {
     if (productName && quantity && unitPrice) {
       const newItem: PurchaseItem = {
-        productId: '',
+        productId: "",
         productName: productName,
         quantity: Number(quantity),
         unitPrice: Number(unitPrice),
         totalPrice: Number(quantity) * Number(unitPrice),
       };
-      
+
       if (editingItemIndex !== null) {
         // Update existing item
         const updatedItems = [...purchaseItems];
@@ -173,10 +178,10 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
         // Add new item
         setPurchaseItems([...purchaseItems, newItem]);
       }
-      
-      setProductName('');
-      setQuantity('');
-      setUnitPrice('');
+
+      setProductName("");
+      setQuantity("");
+      setUnitPrice("");
     }
   };
 
@@ -189,9 +194,9 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   };
 
   const handleCancelItemEdit = () => {
-    setProductName('');
-    setQuantity('');
-    setUnitPrice('');
+    setProductName("");
+    setQuantity("");
+    setUnitPrice("");
     setEditingItemIndex(null);
   };
 
@@ -202,10 +207,10 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const handleEditPurchase = (purchase: Purchase) => {
     setEditingPurchaseId(purchase.id);
     setFormData({
-      supplierId: purchase.supplierId || '',
-      supplierName: purchase.supplierName || '',
-      documentNumber: purchase.documentNumber || '',
-      notes: purchase.notes || '',
+      supplierId: purchase.supplierId || "",
+      supplierName: purchase.supplierName || "",
+      documentNumber: purchase.documentNumber || "",
+      notes: purchase.notes || "",
       expectedDeliveryDate: purchase.expectedDeliveryDate,
       status: purchase.status,
     });
@@ -217,18 +222,18 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
 
   const handleCancelEdit = () => {
     setEditingPurchaseId(null);
-    setFormData({ 
-      supplierId: '', 
-      supplierName: '', 
-      documentNumber: '', 
-      notes: '', 
+    setFormData({
+      supplierId: "",
+      supplierName: "",
+      documentNumber: "",
+      notes: "",
       expectedDeliveryDate: undefined,
-      status: 'pending',
+      status: "pending",
     });
     setPurchaseItems([]);
-    setDiscount('');
-    setIpi('');
-    setFrete('');
+    setDiscount("");
+    setIpi("");
+    setFrete("");
     setEditingItemIndex(null);
   };
 
@@ -240,7 +245,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
       const ipiValue = Number(ipi) || 0;
       const freteValue = Number(frete) || 0;
       const totalValue = itemsTotal - discountValue + ipiValue + freteValue;
-      
+
       try {
         if (editingPurchaseId) {
           // Update existing purchase
@@ -257,7 +262,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             notes: formData.notes,
             expectedDeliveryDate: formData.expectedDeliveryDate,
           });
-          toast({ title: 'Pedido atualizado', description: 'Pedido de compra atualizado com sucesso' });
+          toast({ title: "Pedido atualizado", description: "Pedido de compra atualizado com sucesso" });
           setEditingPurchaseId(null);
         } else {
           // Create new purchase
@@ -270,30 +275,30 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
             discount: discountValue,
             ipi: ipiValue,
             frete: freteValue,
-            status: 'pending',
+            status: "pending",
             documentNumber: formData.documentNumber,
             notes: formData.notes,
             expectedDeliveryDate: formData.expectedDeliveryDate,
           });
-          toast({ title: 'Pedido criado', description: 'Pedido de compra criado com sucesso' });
+          toast({ title: "Pedido criado", description: "Pedido de compra criado com sucesso" });
         }
-        
+
         // Reset form
-        setFormData({ 
-          supplierId: '', 
-          supplierName: '', 
-          documentNumber: '', 
-          notes: '', 
+        setFormData({
+          supplierId: "",
+          supplierName: "",
+          documentNumber: "",
+          notes: "",
           expectedDeliveryDate: undefined,
-          status: 'pending',
+          status: "pending",
         });
         setPurchaseItems([]);
-        setDiscount('');
-        setIpi('');
-        setFrete('');
+        setDiscount("");
+        setIpi("");
+        setFrete("");
         setEditingItemIndex(null);
       } catch (error) {
-        console.error('Erro ao salvar pedido:', error);
+        console.error("Erro ao salvar pedido:", error);
       }
     }
   };
@@ -305,22 +310,18 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const freteValue = Number(frete) || 0;
   const finalTotal = itemsTotal - discountValue + ipiValue + freteValue;
 
-
   // Filter purchases by supplier and product
   const filteredPurchases = useMemo(() => {
     let filtered = purchases;
-    if (filterSupplierId !== 'all') {
-      filtered = filtered.filter(p => p.supplierId === filterSupplierId);
+    if (filterSupplierId !== "all") {
+      filtered = filtered.filter((p) => p.supplierId === filterSupplierId);
     }
     if (filterProductName.trim()) {
       const search = filterProductName.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.items.some(item => item.productName.toLowerCase().includes(search))
-      );
+      filtered = filtered.filter((p) => p.items.some((item) => item.productName.toLowerCase().includes(search)));
     }
     return filtered;
   }, [purchases, filterSupplierId, filterProductName]);
-
 
   return (
     <div className="space-y-6">
@@ -372,8 +373,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0" align="start">
                   <Command shouldFilter={false}>
-                    <CommandInput 
-                      placeholder="Buscar fornecedor..." 
+                    <CommandInput
+                      placeholder="Buscar fornecedor..."
                       value={supplierSearch}
                       onValueChange={setSupplierSearch}
                     />
@@ -388,16 +389,16 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                               setFormData({
                                 ...formData,
                                 supplierId: currentValue,
-                                supplierName: supplier.name
+                                supplierName: supplier.name,
                               });
                               setSupplierOpen(false);
-                              setSupplierSearch('');
+                              setSupplierSearch("");
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                formData.supplierId === supplier.id ? "opacity-100" : "opacity-0"
+                                formData.supplierId === supplier.id ? "opacity-100" : "opacity-0",
                               )}
                             />
                             <div className="flex flex-col">
@@ -414,20 +415,20 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                 </PopoverContent>
               </Popover>
             </div>
-            
+
             <div className="space-y-2">
-              <Label>Nº Documento</Label>
-              <Input 
-                value={formData.documentNumber} 
+              <Label>Nº de OS</Label>
+              <Input
+                value={formData.documentNumber}
                 onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
-                placeholder="PED-2024001"
+                placeholder="OS-2024001"
               />
             </div>
 
             <div className="space-y-2">
               <Label>Observações</Label>
-              <Input 
-                value={formData.notes} 
+              <Input
+                value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Observações do pedido"
               />
@@ -441,11 +442,15 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     variant={"outline"}
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !formData.expectedDeliveryDate && "text-muted-foreground"
+                      !formData.expectedDeliveryDate && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.expectedDeliveryDate ? format(formData.expectedDeliveryDate, "dd/MM/yyyy") : <span>Selecione a data</span>}
+                    {formData.expectedDeliveryDate ? (
+                      format(formData.expectedDeliveryDate, "dd/MM/yyyy")
+                    ) : (
+                      <span>Selecione a data</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -465,41 +470,47 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
               <div className="flex items-center justify-between mb-2">
                 <Label>Adicionar Itens</Label>
                 {editingItemIndex !== null && (
-                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelItemEdit} className="text-xs h-6">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCancelItemEdit}
+                    className="text-xs h-6"
+                  >
                     Cancelar edição
                   </Button>
                 )}
               </div>
               <div className="space-y-2">
-                <Input 
-                  value={productName} 
+                <Input
+                  value={productName}
                   onChange={(e) => setProductName(e.target.value)}
                   placeholder="Digite o nome do produto"
                 />
-                
+
                 <div className="grid grid-cols-2 gap-2">
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     placeholder="Quantidade"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                   />
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
                     placeholder="Preço Unit."
                     value={unitPrice}
                     onChange={(e) => setUnitPrice(e.target.value)}
                   />
                 </div>
-                
-                <Button 
-                  type="button" 
-                  onClick={handleAddItem} 
-                  variant="outline" 
+
+                <Button
+                  type="button"
+                  onClick={handleAddItem}
+                  variant="outline"
                   className={cn(
                     "w-full",
-                    editingItemIndex !== null && "bg-primary/10 border-primary text-primary hover:bg-primary/20"
+                    editingItemIndex !== null && "bg-primary/10 border-primary text-primary hover:bg-primary/20",
                   )}
                 >
                   {editingItemIndex !== null ? (
@@ -521,13 +532,11 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
               <div className="space-y-2 border-t pt-4">
                 <Label>Itens do Pedido</Label>
                 {purchaseItems.map((item, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={cn(
                       "flex justify-between items-center text-sm p-2 rounded transition-colors",
-                      editingItemIndex === index 
-                        ? "bg-primary/20 ring-1 ring-primary" 
-                        : "bg-secondary/50"
+                      editingItemIndex === index ? "bg-primary/20 ring-1 ring-primary" : "bg-secondary/50",
                     )}
                   >
                     <span className="truncate flex-1 mr-2">{item.productName}</span>
@@ -556,13 +565,13 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Discount, IPI, Frete Section */}
                 <div className="border-t pt-3 mt-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <Label className="text-sm whitespace-nowrap">Desconto (R$)</Label>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.01"
                       placeholder="0.00"
                       value={discount}
@@ -572,8 +581,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-sm whitespace-nowrap">IPI (R$)</Label>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.01"
                       placeholder="0.00"
                       value={ipi}
@@ -583,8 +592,8 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-sm whitespace-nowrap">Frete (R$)</Label>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.01"
                       placeholder="0.00"
                       value={frete}
@@ -592,7 +601,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       className="flex-1"
                     />
                   </div>
-                  
+
                   {discountValue > 0 && (
                     <div className="flex justify-between items-center text-sm p-2 bg-success/20 rounded text-success-foreground">
                       <span>DESCONTO</span>
@@ -620,15 +629,13 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                       <span>R$ {itemsTotal.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="font-bold text-right text-lg">
-                    Total: R$ {finalTotal.toFixed(2)}
-                  </div>
+                  <div className="font-bold text-right text-lg">Total: R$ {finalTotal.toFixed(2)}</div>
                 </div>
               </div>
             )}
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-gradient-primary"
               disabled={!formData.supplierId || purchaseItems.length === 0}
             >
@@ -661,11 +668,13 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os fornecedores</SelectItem>
-                  {suppliers.filter(s => s.active).map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
+                  {suppliers
+                    .filter((s) => s.active)
+                    .map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.id}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               <Input
@@ -699,9 +708,9 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                 {filteredPurchases.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
-                      {filterSupplierId === 'all' && !filterProductName.trim()
-                        ? 'Nenhum pedido cadastrado' 
-                        : 'Nenhum pedido encontrado com os filtros aplicados'}
+                      {filterSupplierId === "all" && !filterProductName.trim()
+                        ? "Nenhum pedido cadastrado"
+                        : "Nenhum pedido encontrado com os filtros aplicados"}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -711,136 +720,138 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     const pIpi = purchase.ipi || 0;
                     const pFrete = purchase.frete || 0;
                     return (
-                  <TableRow key={purchase.id}>
-                    <TableCell className="font-mono">{purchase.documentNumber}</TableCell>
-                    <TableCell>{new Date(purchase.date).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell>{purchase.supplierName || '-'}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {purchase.items.map((item, idx) => (
-                          <div key={idx} className="text-xs">
-                            {item.productName} - {item.quantity} un. × R$ {item.unitPrice.toFixed(2)}
+                      <TableRow key={purchase.id}>
+                        <TableCell className="font-mono">{purchase.documentNumber}</TableCell>
+                        <TableCell>{new Date(purchase.date).toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell>{purchase.supplierName || "-"}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {purchase.items.map((item, idx) => (
+                              <div key={idx} className="text-xs">
+                                {item.productName} - {item.quantity} un. × R$ {item.unitPrice.toFixed(2)}
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">R$ {subtotal.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      {pDiscount > 0 ? (
-                        <span className="text-destructive font-medium">- R$ {pDiscount.toFixed(2)}</span>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {pIpi > 0 ? (
-                        <span className="text-warning font-medium">+ R$ {pIpi.toFixed(2)}</span>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {pFrete > 0 ? (
-                        <span className="text-warning font-medium">+ R$ {pFrete.toFixed(2)}</span>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-bold">R$ {purchase.totalValue.toFixed(2)}</TableCell>
-                    <TableCell>
-                      {purchase.expectedDeliveryDate 
-                        ? new Date(purchase.expectedDeliveryDate).toLocaleDateString('pt-BR')
-                        : '-'
-                      }
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {purchase.notes || '-'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1 min-w-[180px]">
-                        {(purchaseAttachments[purchase.id] || []).map((fileName) => (
-                          <div key={fileName} className="flex items-center gap-1 text-xs bg-muted/50 rounded px-2 py-1">
-                            <FileText className="h-3 w-3 flex-shrink-0 text-primary" />
-                            <span className="truncate max-w-[100px]" title={fileName}>{fileName}</span>
+                        </TableCell>
+                        <TableCell className="text-right">R$ {subtotal.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          {pDiscount > 0 ? (
+                            <span className="text-destructive font-medium">- R$ {pDiscount.toFixed(2)}</span>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {pIpi > 0 ? <span className="text-warning font-medium">+ R$ {pIpi.toFixed(2)}</span> : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {pFrete > 0 ? (
+                            <span className="text-warning font-medium">+ R$ {pFrete.toFixed(2)}</span>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-bold">R$ {purchase.totalValue.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {purchase.expectedDeliveryDate
+                            ? new Date(purchase.expectedDeliveryDate).toLocaleDateString("pt-BR")
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate">{purchase.notes || "-"}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1 min-w-[180px]">
+                            {(purchaseAttachments[purchase.id] || []).map((fileName) => (
+                              <div
+                                key={fileName}
+                                className="flex items-center gap-1 text-xs bg-muted/50 rounded px-2 py-1"
+                              >
+                                <FileText className="h-3 w-3 flex-shrink-0 text-primary" />
+                                <span className="truncate max-w-[100px]" title={fileName}>
+                                  {fileName}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0"
+                                  onClick={() => handleDownloadAttachment(purchase.id, fileName)}
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                                <ConfirmDialog
+                                  title="Excluir anexo?"
+                                  description={`Excluir "${fileName}"?`}
+                                  confirmText="Excluir"
+                                  onConfirm={() => handleDeleteAttachment(purchase.id, fileName)}
+                                  trigger={
+                                    <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  }
+                                />
+                              </div>
+                            ))}
+                            <div>
+                              <input
+                                type="file"
+                                multiple
+                                className="hidden"
+                                ref={(el) => {
+                                  fileInputRefs.current[purchase.id] = el;
+                                }}
+                                onChange={(e) => {
+                                  if (e.target.files?.length) {
+                                    handleFileUpload(purchase.id, e.target.files);
+                                    e.target.value = "";
+                                  }
+                                }}
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs gap-1"
+                                disabled={uploadingFiles[purchase.id]}
+                                onClick={() => fileInputRefs.current[purchase.id]?.click()}
+                              >
+                                {uploadingFiles[purchase.id] ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Upload className="h-3 w-3" />
+                                )}
+                                Anexar
+                              </Button>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
                             <Button
-                              variant="ghost"
+                              onClick={() => handleEditPurchase(purchase)}
+                              variant="outline"
                               size="sm"
-                              className="h-5 w-5 p-0"
-                              onClick={() => handleDownloadAttachment(purchase.id, fileName)}
+                              className="text-primary hover:text-primary"
                             >
-                              <Download className="h-3 w-3" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <ConfirmDialog
-                              title="Excluir anexo?"
-                              description={`Excluir "${fileName}"?`}
+                              title="Excluir pedido?"
+                              description={`Tem certeza que deseja excluir o pedido ${purchase.documentNumber || ""}? Esta ação não pode ser desfeita.`}
                               confirmText="Excluir"
-                              onConfirm={() => handleDeleteAttachment(purchase.id, fileName)}
+                              onConfirm={async () => {
+                                try {
+                                  await onDeletePurchase(purchase.id);
+                                } catch (error) {
+                                  console.error("Erro ao excluir compra:", error);
+                                }
+                              }}
                               trigger={
-                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive">
-                                  <X className="h-3 w-3" />
+                                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               }
                             />
                           </div>
-                        ))}
-                        <div>
-                          <input
-                            type="file"
-                            multiple
-                            className="hidden"
-                            ref={(el) => { fileInputRefs.current[purchase.id] = el; }}
-                            onChange={(e) => {
-                              if (e.target.files?.length) {
-                                handleFileUpload(purchase.id, e.target.files);
-                                e.target.value = '';
-                              }
-                            }}
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs gap-1"
-                            disabled={uploadingFiles[purchase.id]}
-                            onClick={() => fileInputRefs.current[purchase.id]?.click()}
-                          >
-                            {uploadingFiles[purchase.id] ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Upload className="h-3 w-3" />
-                            )}
-                            Anexar
-                          </Button>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleEditPurchase(purchase)}
-                          variant="outline"
-                          size="sm"
-                          className="text-primary hover:text-primary"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <ConfirmDialog
-                          title="Excluir pedido?"
-                          description={`Tem certeza que deseja excluir o pedido ${purchase.documentNumber || ''}? Esta ação não pode ser desfeita.`}
-                          confirmText="Excluir"
-                          onConfirm={async () => {
-                            try {
-                              await onDeletePurchase(purchase.id);
-                            } catch (error) {
-                              console.error('Erro ao excluir compra:', error);
-                            }
-                          }}
-                          trigger={
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          }
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                        </TableCell>
+                      </TableRow>
                     );
                   })
                 )}
