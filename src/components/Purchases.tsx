@@ -25,6 +25,7 @@ import {
   Check,
   Upload,
   Download,
+  Eye,
   X,
   Loader2,
 } from "lucide-react";
@@ -120,6 +121,15 @@ export default function Purchases({
     } finally {
       setUploadingFiles((prev) => ({ ...prev, [purchaseId]: false }));
     }
+  };
+
+  const handlePreviewAttachment = async (purchaseId: string, fileName: string) => {
+    const { data, error } = await supabase.storage.from("purchase-attachments").createSignedUrl(`${purchaseId}/${fileName}`, 3600);
+    if (error) {
+      toast({ title: "Erro ao visualizar", description: error.message, variant: "destructive" });
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
   };
 
   const handleDownloadAttachment = async (purchaseId: string, fileName: string) => {
@@ -847,6 +857,16 @@ export default function Purchases({
                                   variant="ghost"
                                   size="sm"
                                   className="h-5 w-5 p-0"
+                                  title="Visualizar"
+                                  onClick={() => handlePreviewAttachment(purchase.id, fileName)}
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0"
+                                  title="Baixar"
                                   onClick={() => handleDownloadAttachment(purchase.id, fileName)}
                                 >
                                   <Download className="h-3 w-3" />
