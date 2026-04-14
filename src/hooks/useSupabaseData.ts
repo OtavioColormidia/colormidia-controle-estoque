@@ -773,7 +773,7 @@ export const useSupabaseData = () => {
         status: purchase.status,
         document_number: purchase.documentNumber,
         notes: purchase.notes,
-        expected_delivery_date: purchase.expectedDeliveryDate?.toISOString() || null,
+        expected_delivery_date: purchase.expectedDeliveryDate instanceof Date ? purchase.expectedDeliveryDate.toISOString() : (purchase.expectedDeliveryDate || null),
         updated_by: (await supabase.auth.getUser()).data.user?.id
       })
       .eq('id', purchaseId);
