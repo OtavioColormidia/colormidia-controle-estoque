@@ -27,7 +27,9 @@ import {
   Download,
   X,
   Loader2,
+  Eye,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Purchase, Product, Supplier, PurchaseItem } from "@/types/inventory";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
