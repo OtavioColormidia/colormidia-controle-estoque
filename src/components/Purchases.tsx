@@ -27,7 +27,9 @@ import {
   Download,
   X,
   Loader2,
+  Eye,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Purchase, Product, Supplier, PurchaseItem } from "@/types/inventory";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -41,7 +43,7 @@ interface PurchasesProps {
   purchases: Purchase[];
   products: Product[];
   suppliers: Supplier[];
-  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<void>;
+  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<string | void>;
   onDeletePurchase: (id: string) => Promise<void>;
   onUpdatePurchaseStatus: (id: string, status: Purchase["status"]) => Promise<void>;
   onUpdatePurchase: (id: string, purchase: Omit<Purchase, "id" | "date">) => Promise<void>;
@@ -82,6 +84,10 @@ export default function Purchases({
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFileName, setPreviewFileName] = useState<string>("");
+  const [formFiles, setFormFiles] = useState<File[]>([]);
+  const formFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Load attachments for all purchases
   const loadAttachments = async (purchaseId: string) => {
@@ -144,6 +150,19 @@ export default function Purchases({
     }
     toast({ title: "Anexo excluído" });
     await loadAttachments(purchaseId);
+  };
+
+  const handlePreviewAttachment = async (purchaseId: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("purchase-attachments")
+        .createSignedUrl(`${purchaseId}/${fileName}`, 3600);
+      if (error) throw error;
+      setPreviewUrl(data.signedUrl);
+      setPreviewFileName(fileName);
+    } catch (error: any) {
+      toast({ title: "Erro ao visualizar", description: error.message, variant: "destructive" });
+    }
   };
 
   // Filter active suppliers based on search
@@ -254,6 +273,7 @@ export default function Purchases({
     setIpi("");
     setFrete("");
     setEditingItemIndex(null);
+    setFormFiles([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -283,7 +303,7 @@ export default function Purchases({
           toast({ title: "Pedido atualizado", description: "Pedido de compra atualizado com sucesso" });
           setEditingPurchaseId(null);
         } else {
-          await onAddPurchase({
+          const newId = await onAddPurchase({
             date: new Date(),
             supplierId: formData.supplierId,
             supplierName: formData.supplierName,
@@ -297,6 +317,15 @@ export default function Purchases({
             notes: formData.notes,
             expectedDeliveryDate: formData.expectedDeliveryDate,
           });
+          // Upload form files if any
+          if (newId && formFiles.length > 0) {
+            for (const file of formFiles) {
+              await supabase.storage
+                .from("purchase-attachments")
+                .upload(`${newId}/${file.name}`, file, { upsert: true });
+            }
+            await loadAttachments(newId);
+          }
           toast({ title: "Pedido criado", description: "Pedido de compra criado com sucesso" });
         }
 
@@ -313,6 +342,7 @@ export default function Purchases({
         setIpi("");
         setFrete("");
         setEditingItemIndex(null);
+        setFormFiles([]);
       } catch (error) {
         console.error("Erro ao salvar pedido:", error);
       }
@@ -708,6 +738,50 @@ export default function Purchases({
               </div>
             )}
 
+            {/* Anexar arquivos no formulário */}
+            <div className="border-t pt-4 space-y-2">
+              <Label className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Anexar Arquivos
+              </Label>
+              {formFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1">
+                  <FileText className="h-3 w-3 text-primary" />
+                  <span className="truncate flex-1">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 w-5 p-0 text-destructive"
+                    onClick={() => setFormFiles(formFiles.filter((_, i) => i !== idx))}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+              <input
+                type="file"
+                multiple
+                className="hidden"
+                ref={formFileInputRef}
+                onChange={(e) => {
+                  if (e.target.files?.length) {
+                    setFormFiles([...formFiles, ...Array.from(e.target.files)]);
+                    e.target.value = "";
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full text-xs gap-1"
+                onClick={() => formFileInputRef.current?.click()}
+              >
+                <Upload className="h-3 w-3" />
+                Selecionar Arquivos
+              </Button>
+            </div>
             <Button
               type="submit"
               className="w-full bg-gradient-primary"
@@ -846,6 +920,15 @@ export default function Purchases({
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  className="h-5 w-5 p-0 text-blue-500 hover:text-blue-600"
+                                  onClick={() => handlePreviewAttachment(purchase.id, fileName)}
+                                  title="Visualizar"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   className="h-5 w-5 p-0"
                                   onClick={() => handleDownloadAttachment(purchase.id, fileName)}
                                 >
@@ -935,6 +1018,26 @@ export default function Purchases({
           </ScrollArea>
         </Card>
       </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) { setPreviewUrl(null); setPreviewFileName(""); } }}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              {previewFileName}
+            </DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <iframe
+              src={previewUrl}
+              className="w-full flex-1 rounded border"
+              style={{ height: "calc(80vh - 80px)" }}
+              title={previewFileName}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
