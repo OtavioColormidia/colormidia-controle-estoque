@@ -60,6 +60,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
   const [alertStockCount, setAlertStockCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const loadUserData = async () => {
