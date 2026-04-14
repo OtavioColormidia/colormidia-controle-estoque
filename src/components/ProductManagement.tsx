@@ -21,6 +21,7 @@ import {
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import { Product } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface ProductManagementProps {
   products: Product[];
@@ -159,14 +160,21 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
                     <TableCell>{product.category}</TableCell>
                     <TableCell>{product.currentStock}/{product.minStock}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDeleteProduct(product.id)}
-                        className="text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <ConfirmDialog
+                        title="Excluir produto?"
+                        description={`Tem certeza que deseja excluir "${product.name}"? Esta ação não pode ser desfeita.`}
+                        confirmText="Excluir"
+                        onConfirm={() => onDeleteProduct(product.id)}
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
