@@ -71,7 +71,7 @@ export default function Purchases({
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [itemDiscount, setItemDiscount] = useState("");
-  const [itemDiscountType, setItemDiscountType] = useState<'percent' | 'value'>('value');
+  const [itemDiscountType, setItemDiscountType] = useState<"percent" | "value">("value");
   const [discount, setDiscount] = useState("");
   const [ipi, setIpi] = useState("");
   const [frete, setFrete] = useState("");
@@ -167,7 +167,7 @@ export default function Purchases({
       const subtotal = qty * price;
       const discInput = Number(itemDiscount) || 0;
       let discValue = 0;
-      if (itemDiscountType === 'percent') {
+      if (itemDiscountType === "percent") {
         discValue = subtotal * (discInput / 100);
       } else {
         discValue = discInput;
@@ -196,7 +196,7 @@ export default function Purchases({
       setQuantity("");
       setUnitPrice("");
       setItemDiscount("");
-      setItemDiscountType('value');
+      setItemDiscountType("value");
     }
   };
 
@@ -206,7 +206,7 @@ export default function Purchases({
     setQuantity(item.quantity.toString());
     setUnitPrice(item.unitPrice.toString());
     setItemDiscount((item.discountInput || 0).toString());
-    setItemDiscountType(item.discountType || 'value');
+    setItemDiscountType(item.discountType || "value");
     setEditingItemIndex(index);
   };
 
@@ -215,7 +215,7 @@ export default function Purchases({
     setQuantity("");
     setUnitPrice("");
     setItemDiscount("");
-    setItemDiscountType('value');
+    setItemDiscountType("value");
     setEditingItemIndex(null);
   };
 
@@ -446,7 +446,11 @@ export default function Purchases({
               <Select
                 value={formData.notes}
                 onValueChange={(value) => {
-                  setFormData({ ...formData, notes: value, expectedDeliveryDate: value === 'retirada' ? undefined : formData.expectedDeliveryDate });
+                  setFormData({
+                    ...formData,
+                    notes: value,
+                    expectedDeliveryDate: value === "retirada" ? undefined : formData.expectedDeliveryDate,
+                  });
                 }}
               >
                 <SelectTrigger>
@@ -461,7 +465,7 @@ export default function Purchases({
 
             {formData.notes && (
               <div className="space-y-2">
-                <Label>Previsão de {formData.notes === 'entrega' ? 'Entrega' : 'Retirada'}</Label>
+                <Label>Previsão de {formData.notes === "entrega" ? "Entrega" : "Retirada"}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -545,9 +549,11 @@ export default function Purchases({
                       type="button"
                       className={cn(
                         "px-3 py-2 text-sm font-medium transition-colors",
-                        itemDiscountType === 'value' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                        itemDiscountType === "value"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background text-muted-foreground hover:bg-muted",
                       )}
-                      onClick={() => setItemDiscountType('value')}
+                      onClick={() => setItemDiscountType("value")}
                     >
                       R$
                     </button>
@@ -555,9 +561,11 @@ export default function Purchases({
                       type="button"
                       className={cn(
                         "px-3 py-2 text-sm font-medium transition-colors",
-                        itemDiscountType === 'percent' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                        itemDiscountType === "percent"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background text-muted-foreground hover:bg-muted",
                       )}
-                      onClick={() => setItemDiscountType('percent')}
+                      onClick={() => setItemDiscountType("percent")}
                     >
                       %
                     </button>
@@ -627,7 +635,13 @@ export default function Purchases({
                     </div>
                     {(item.discountValue || 0) > 0 && (
                       <div className="flex justify-between text-xs text-destructive">
-                        <span>Desconto ({item.discountType === 'percent' ? `${item.discountInput}%` : `R$ ${item.discountInput?.toFixed(2)}`})</span>
+                        <span>
+                          Desconto (
+                          {item.discountType === "percent"
+                            ? `${item.discountInput}%`
+                            : `R$ ${item.discountInput?.toFixed(2)}`}
+                          )
+                        </span>
                         <span>- R$ {item.discountValue?.toFixed(2)}</span>
                       </div>
                     )}
@@ -749,7 +763,7 @@ export default function Purchases({
             <Table className="min-w-[1400px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nº Pedido</TableHead>
+                  <TableHead>Nº de OS</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Itens</TableHead>
