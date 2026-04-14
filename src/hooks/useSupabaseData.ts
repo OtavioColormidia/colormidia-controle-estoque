@@ -690,6 +690,7 @@ export const useSupabaseData = () => {
     });
     await loadPurchases();
     broadcastRefresh();
+    return purchaseData?.id;
   };
 
   const deletePurchase = async (purchaseId: string) => {
