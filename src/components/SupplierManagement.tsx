@@ -15,6 +15,7 @@ import {
 import { Plus, Building2, Mail, Phone, Download, Trash2, Search } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { exportToCSV } from '@/lib/export';
 import {
   Tooltip,
@@ -344,17 +345,24 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                         ) : (
                           <span className="text-muted-foreground">Inativo</span>
                         )}
-                        <Button
-                          onClick={() => {
+                        <ConfirmDialog
+                          title="Excluir fornecedor?"
+                          description={`Tem certeza que deseja excluir "${supplier.name}"? Esta ação não pode ser desfeita.`}
+                          confirmText="Excluir"
+                          onConfirm={() => {
                             onDeleteSupplier(supplier.id);
                             toast({ title: 'Fornecedor removido', description: `${supplier.name} foi removido com sucesso` });
                           }}
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                       </div>
                      </TableCell>
                   </TableRow>

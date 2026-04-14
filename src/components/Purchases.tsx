@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,11 +24,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter, ChevronsUpDown, Check } from 'lucide-react';
+import { ShoppingCart, FileText, Clock, CheckCircle, XCircle, Trash2, Plus, CalendarIcon, Pencil, Filter, ChevronsUpDown, Check, Upload, Download, X, Loader2 } from 'lucide-react';
 import { Purchase, Product, Supplier, PurchaseItem } from '@/types/inventory';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 import { toast } from '@/components/ui/use-toast';
 
@@ -64,6 +66,78 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
   const [filterProductName, setFilterProductName] = useState('');
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+  const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Load attachments for all purchases
+  const loadAttachments = async (purchaseId: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('purchase-attachments')
+        .list(purchaseId);
+      if (error) throw error;
+      if (data) {
+        setPurchaseAttachments(prev => ({
+          ...prev,
+          [purchaseId]: data.map(f => f.name),
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar anexos:', error);
+    }
+  };
+
+  // Load attachments on mount and when purchases change
+  useEffect(() => {
+    purchases.forEach(p => loadAttachments(p.id));
+  }, [purchases.length]);
+
+  const handleFileUpload = async (purchaseId: string, files: FileList) => {
+    setUploadingFiles(prev => ({ ...prev, [purchaseId]: true }));
+    try {
+      for (const file of Array.from(files)) {
+        const { error } = await supabase.storage
+          .from('purchase-attachments')
+          .upload(`${purchaseId}/${file.name}`, file, { upsert: true });
+        if (error) throw error;
+      }
+      toast({ title: 'Anexo(s) enviado(s)', description: `${files.length} arquivo(s) enviado(s) com sucesso` });
+      await loadAttachments(purchaseId);
+    } catch (error: any) {
+      toast({ title: 'Erro ao enviar anexo', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, [purchaseId]: false }));
+    }
+  };
+
+  const handleDownloadAttachment = async (purchaseId: string, fileName: string) => {
+    const { data, error } = await supabase.storage
+      .from('purchase-attachments')
+      .download(`${purchaseId}/${fileName}`);
+    if (error) {
+      toast({ title: 'Erro ao baixar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    const url = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteAttachment = async (purchaseId: string, fileName: string) => {
+    const { error } = await supabase.storage
+      .from('purchase-attachments')
+      .remove([`${purchaseId}/${fileName}`]);
+    if (error) {
+      toast({ title: 'Erro ao excluir anexo', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Anexo excluído' });
+    await loadAttachments(purchaseId);
+  };
 
   // Filter active suppliers based on search
   const filteredActiveSuppliers = useMemo(() => {
@@ -231,18 +305,6 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const freteValue = Number(frete) || 0;
   const finalTotal = itemsTotal - discountValue + ipiValue + freteValue;
 
-  const getStatusBadge = (status: Purchase['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Badge className="bg-warning text-warning-foreground"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
-      case 'approved':
-        return <Badge className="bg-primary text-primary-foreground"><CheckCircle className="h-3 w-3 mr-1" />Aprovado</Badge>;
-      case 'delivered':
-        return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Entregue</Badge>;
-      case 'cancelled':
-        return <Badge className="bg-destructive text-destructive-foreground"><XCircle className="h-3 w-3 mr-1" />Cancelado</Badge>;
-    }
-  };
 
   // Filter purchases by supplier and product
   const filteredPurchases = useMemo(() => {
@@ -629,7 +691,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead>Previsão Entrega</TableHead>
                   <TableHead>Observações</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>NF / Pedido</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -688,7 +750,63 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     <TableCell className="max-w-[200px] truncate">
                       {purchase.notes || '-'}
                     </TableCell>
-                    <TableCell>{getStatusBadge(purchase.status)}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1 min-w-[180px]">
+                        {(purchaseAttachments[purchase.id] || []).map((fileName) => (
+                          <div key={fileName} className="flex items-center gap-1 text-xs bg-muted/50 rounded px-2 py-1">
+                            <FileText className="h-3 w-3 flex-shrink-0 text-primary" />
+                            <span className="truncate max-w-[100px]" title={fileName}>{fileName}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0"
+                              onClick={() => handleDownloadAttachment(purchase.id, fileName)}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                            <ConfirmDialog
+                              title="Excluir anexo?"
+                              description={`Excluir "${fileName}"?`}
+                              confirmText="Excluir"
+                              onConfirm={() => handleDeleteAttachment(purchase.id, fileName)}
+                              trigger={
+                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive">
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              }
+                            />
+                          </div>
+                        ))}
+                        <div>
+                          <input
+                            type="file"
+                            multiple
+                            className="hidden"
+                            ref={(el) => { fileInputRefs.current[purchase.id] = el; }}
+                            onChange={(e) => {
+                              if (e.target.files?.length) {
+                                handleFileUpload(purchase.id, e.target.files);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1"
+                            disabled={uploadingFiles[purchase.id]}
+                            onClick={() => fileInputRefs.current[purchase.id]?.click()}
+                          >
+                            {uploadingFiles[purchase.id] ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Upload className="h-3 w-3" />
+                            )}
+                            Anexar
+                          </Button>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button
@@ -699,36 +817,27 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        {purchase.status !== 'delivered' && purchase.status !== 'cancelled' && (
-                          <Button
-                            onClick={async () => {
-                              try {
-                                await onUpdatePurchaseStatus(purchase.id, 'delivered');
-                              } catch (error) {
-                                console.error('Erro ao atualizar status:', error);
-                              }
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="text-success hover:text-success"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          onClick={async () => {
+                        <ConfirmDialog
+                          title="Excluir pedido?"
+                          description={`Tem certeza que deseja excluir o pedido ${purchase.documentNumber || ''}? Esta ação não pode ser desfeita.`}
+                          confirmText="Excluir"
+                          onConfirm={async () => {
                             try {
                               await onDeletePurchase(purchase.id);
                             } catch (error) {
                               console.error('Erro ao excluir compra:', error);
                             }
                           }}
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

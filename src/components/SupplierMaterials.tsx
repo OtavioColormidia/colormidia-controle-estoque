@@ -15,6 +15,7 @@ import {
 import { Package, Plus, Trash2, FileText } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
 import type { SupplierMaterial } from '@/hooks/useSupabaseData';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface SupplierMaterialsProps {
   suppliers: Supplier[];
@@ -194,14 +195,21 @@ export default function SupplierMaterials({
                           >
                             Editar
                           </Button>
-                          <Button
-                            onClick={() => handleDeleteSupplierMaterials(sm.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <ConfirmDialog
+                            title="Excluir materiais?"
+                            description="Tem certeza que deseja excluir esta lista de materiais do fornecedor?"
+                            confirmText="Excluir"
+                            onConfirm={() => handleDeleteSupplierMaterials(sm.id)}
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
