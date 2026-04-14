@@ -426,11 +426,11 @@ export default function Purchases({
             </div>
 
             <div className="space-y-2">
-              <Label>Observações</Label>
+              <Label>Forma de Recebimento</Label>
               <Input
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Observações do pedido"
+                placeholder="Entrega ou Retirada"
               />
             </div>
 
