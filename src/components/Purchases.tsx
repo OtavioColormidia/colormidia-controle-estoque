@@ -162,28 +162,41 @@ export default function Purchases({
 
   const handleAddItem = () => {
     if (productName && quantity && unitPrice) {
+      const qty = Number(quantity);
+      const price = Number(unitPrice);
+      const subtotal = qty * price;
+      const discInput = Number(itemDiscount) || 0;
+      let discValue = 0;
+      if (itemDiscountType === 'percent') {
+        discValue = subtotal * (discInput / 100);
+      } else {
+        discValue = discInput;
+      }
       const newItem: PurchaseItem = {
         productId: "",
         productName: productName,
-        quantity: Number(quantity),
-        unitPrice: Number(unitPrice),
-        totalPrice: Number(quantity) * Number(unitPrice),
+        quantity: qty,
+        unitPrice: price,
+        totalPrice: subtotal - discValue,
+        discountValue: discValue,
+        discountType: itemDiscountType,
+        discountInput: discInput,
       };
 
       if (editingItemIndex !== null) {
-        // Update existing item
         const updatedItems = [...purchaseItems];
         updatedItems[editingItemIndex] = newItem;
         setPurchaseItems(updatedItems);
         setEditingItemIndex(null);
       } else {
-        // Add new item
         setPurchaseItems([...purchaseItems, newItem]);
       }
 
       setProductName("");
       setQuantity("");
       setUnitPrice("");
+      setItemDiscount("");
+      setItemDiscountType('value');
     }
   };
 
