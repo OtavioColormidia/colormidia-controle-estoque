@@ -273,6 +273,7 @@ export default function Purchases({
     setIpi("");
     setFrete("");
     setEditingItemIndex(null);
+    setFormFiles([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
