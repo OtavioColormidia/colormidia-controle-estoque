@@ -260,20 +260,19 @@ export default function Purchases({
     e.preventDefault();
     if (formData.supplierId && purchaseItems.length > 0) {
       const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-      const discountValue = Number(discount) || 0;
+      const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
       const ipiValue = Number(ipi) || 0;
       const freteValue = Number(frete) || 0;
-      const totalValue = itemsTotal - discountValue + ipiValue + freteValue;
+      const totalValue = itemsTotal + ipiValue + freteValue;
 
       try {
         if (editingPurchaseId) {
-          // Update existing purchase
           await onUpdatePurchase(editingPurchaseId, {
             supplierId: formData.supplierId,
             supplierName: formData.supplierName,
             items: purchaseItems,
             totalValue,
-            discount: discountValue,
+            discount: totalDiscount,
             ipi: ipiValue,
             frete: freteValue,
             status: formData.status,
@@ -284,14 +283,13 @@ export default function Purchases({
           toast({ title: "Pedido atualizado", description: "Pedido de compra atualizado com sucesso" });
           setEditingPurchaseId(null);
         } else {
-          // Create new purchase
           await onAddPurchase({
             date: new Date(),
             supplierId: formData.supplierId,
             supplierName: formData.supplierName,
             items: purchaseItems,
             totalValue,
-            discount: discountValue,
+            discount: totalDiscount,
             ipi: ipiValue,
             frete: freteValue,
             status: "pending",
@@ -302,7 +300,6 @@ export default function Purchases({
           toast({ title: "Pedido criado", description: "Pedido de compra criado com sucesso" });
         }
 
-        // Reset form
         setFormData({
           supplierId: "",
           supplierName: "",
@@ -324,10 +321,10 @@ export default function Purchases({
 
   // Calculate totals
   const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const discountValue = Number(discount) || 0;
+  const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
   const ipiValue = Number(ipi) || 0;
   const freteValue = Number(frete) || 0;
-  const finalTotal = itemsTotal - discountValue + ipiValue + freteValue;
+  const finalTotal = itemsTotal + ipiValue + freteValue;
 
   // Filter purchases by supplier and product
   const filteredPurchases = useMemo(() => {
