@@ -205,6 +205,8 @@ export default function Purchases({
     setProductName(item.productName);
     setQuantity(item.quantity.toString());
     setUnitPrice(item.unitPrice.toString());
+    setItemDiscount((item.discountInput || 0).toString());
+    setItemDiscountType(item.discountType || 'value');
     setEditingItemIndex(index);
   };
 
@@ -212,6 +214,8 @@ export default function Purchases({
     setProductName("");
     setQuantity("");
     setUnitPrice("");
+    setItemDiscount("");
+    setItemDiscountType('value');
     setEditingItemIndex(null);
   };
 
