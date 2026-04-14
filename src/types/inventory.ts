@@ -68,6 +68,9 @@ export interface PurchaseItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  discountValue?: number;
+  discountType?: 'percent' | 'value';
+  discountInput?: number;
 }
 
 export type StockStatus = 'critical' | 'warning' | 'normal';
