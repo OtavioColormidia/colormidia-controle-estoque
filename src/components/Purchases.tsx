@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -83,6 +84,8 @@ export default function Purchases({
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFileName, setPreviewFileName] = useState<string>("");
 
   // Load attachments for all purchases
   const loadAttachments = async (purchaseId: string) => {
@@ -129,7 +132,8 @@ export default function Purchases({
       toast({ title: "Erro ao visualizar", description: error.message, variant: "destructive" });
       return;
     }
-    window.open(data.signedUrl, '_blank');
+    setPreviewFileName(fileName);
+    setPreviewUrl(data.signedUrl);
   };
 
   const handleDownloadAttachment = async (purchaseId: string, fileName: string) => {
@@ -955,6 +959,24 @@ export default function Purchases({
           </ScrollArea>
         </Card>
       </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) { setPreviewUrl(null); setPreviewFileName(""); } }}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle className="truncate">{previewFileName}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 px-6 pb-6 min-h-0">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-lg border"
+                title={previewFileName}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
