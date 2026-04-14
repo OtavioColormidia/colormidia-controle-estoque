@@ -1017,6 +1017,26 @@ export default function Purchases({
           </ScrollArea>
         </Card>
       </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) { setPreviewUrl(null); setPreviewFileName(""); } }}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              {previewFileName}
+            </DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <iframe
+              src={previewUrl}
+              className="w-full flex-1 rounded border"
+              style={{ height: "calc(80vh - 80px)" }}
+              title={previewFileName}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
