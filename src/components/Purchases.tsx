@@ -727,6 +727,50 @@ export default function Purchases({
               </div>
             )}
 
+            {/* Anexar arquivos no formulário */}
+            <div className="border-t pt-4 space-y-2">
+              <Label className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Anexar Arquivos
+              </Label>
+              {formFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1">
+                  <FileText className="h-3 w-3 text-primary" />
+                  <span className="truncate flex-1">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 w-5 p-0 text-destructive"
+                    onClick={() => setFormFiles(formFiles.filter((_, i) => i !== idx))}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+              <input
+                type="file"
+                multiple
+                className="hidden"
+                ref={formFileInputRef}
+                onChange={(e) => {
+                  if (e.target.files?.length) {
+                    setFormFiles([...formFiles, ...Array.from(e.target.files)]);
+                    e.target.value = "";
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full text-xs gap-1"
+                onClick={() => formFileInputRef.current?.click()}
+              >
+                <Upload className="h-3 w-3" />
+                Selecionar Arquivos
+              </Button>
+            </div>
             <Button
               type="submit"
               className="w-full bg-gradient-primary"
