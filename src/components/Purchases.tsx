@@ -305,18 +305,6 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
   const freteValue = Number(frete) || 0;
   const finalTotal = itemsTotal - discountValue + ipiValue + freteValue;
 
-  const getStatusBadge = (status: Purchase['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Badge className="bg-warning text-warning-foreground"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
-      case 'approved':
-        return <Badge className="bg-primary text-primary-foreground"><CheckCircle className="h-3 w-3 mr-1" />Aprovado</Badge>;
-      case 'delivered':
-        return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Entregue</Badge>;
-      case 'cancelled':
-        return <Badge className="bg-destructive text-destructive-foreground"><XCircle className="h-3 w-3 mr-1" />Cancelado</Badge>;
-    }
-  };
 
   // Filter purchases by supplier and product
   const filteredPurchases = useMemo(() => {
