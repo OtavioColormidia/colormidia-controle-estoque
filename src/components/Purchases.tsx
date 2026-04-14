@@ -132,7 +132,8 @@ export default function Purchases({
       toast({ title: "Erro ao visualizar", description: error.message, variant: "destructive" });
       return;
     }
-    window.open(data.signedUrl, '_blank');
+    setPreviewFileName(fileName);
+    setPreviewUrl(data.signedUrl);
   };
 
   const handleDownloadAttachment = async (purchaseId: string, fileName: string) => {
