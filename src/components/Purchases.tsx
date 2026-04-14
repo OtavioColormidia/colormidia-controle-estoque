@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -88,10 +88,10 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
     }
   };
 
-  // Load attachments on mount
-  useState(() => {
+  // Load attachments on mount and when purchases change
+  useEffect(() => {
     purchases.forEach(p => loadAttachments(p.id));
-  });
+  }, [purchases.length]);
 
   const handleFileUpload = async (purchaseId: string, files: FileList) => {
     setUploadingFiles(prev => ({ ...prev, [purchaseId]: true }));
