@@ -150,7 +150,7 @@ export default function InventoryControl({ products, movements }: InventoryContr
 
     await exportProfessionalPDF({
       title: 'Relatório de Controle de Estoque',
-      subtitle: selectedCategory !== 'all' ? `Categoria: ${selectedCategory}` : 'Todas as categorias',
+      subtitle: filterStatus !== 'all' ? `Filtro: ${filterStatus === 'critical' ? 'Reposição' : filterStatus === 'warning' ? 'Baixo' : 'Confortável'}` : 'Todos os produtos',
       orientation: 'landscape',
       headers: ['Código', 'Produto', 'Est. Inicial', 'Entradas', 'Saídas', 'Est. Mín.', 'Est. Atual', 'Custo Médio', 'Últ. Compra', 'Status'],
       data: tableData,
