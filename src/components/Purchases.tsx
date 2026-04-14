@@ -531,6 +531,39 @@ export default function Purchases({
                   />
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Desconto"
+                    value={itemDiscount}
+                    onChange={(e) => setItemDiscount(e.target.value)}
+                    className="flex-1"
+                  />
+                  <div className="flex rounded-md border border-input overflow-hidden">
+                    <button
+                      type="button"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium transition-colors",
+                        itemDiscountType === 'value' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                      )}
+                      onClick={() => setItemDiscountType('value')}
+                    >
+                      R$
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium transition-colors",
+                        itemDiscountType === 'percent' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                      )}
+                      onClick={() => setItemDiscountType('percent')}
+                    >
+                      %
+                    </button>
+                  </div>
+                </div>
+
                 <Button
                   type="button"
                   onClick={handleAddItem}
