@@ -119,14 +119,7 @@ export default function InventoryControl({ products, movements }: InventoryContr
     }
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    
-    doc.setFontSize(16);
-    doc.text('Relatório de Controle de Estoque', 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 22);
-    
+  const exportToPDF = async () => {
     const tableData = filteredProducts.map((product) => {
       const movementData = productMovements.get(product.id) || { 
         entries: 0, 
@@ -150,28 +143,35 @@ export default function InventoryControl({ products, movements }: InventoryContr
         status === 'critical' ? 'Reposição' : status === 'warning' ? 'Baixo' : 'Confortável'
       ];
     });
-    
-    autoTable(doc, {
-      startY: 28,
-      head: [['Código', 'Produto', 'Est. Inicial', 'Entradas', 'Saídas', 'Est. Mín.', 'Est. Atual', 'Custo Médio', 'Últ. Compra', 'Status']],
-      body: tableData,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [66, 66, 66] },
+
+    const totalItems = filteredProducts.length;
+    const totalStock = filteredProducts.reduce((sum, p) => sum + p.currentStock, 0);
+    const lowStockItems = filteredProducts.filter(p => getStockStatus(p.currentStock, p.minStock) !== 'normal').length;
+
+    await exportProfessionalPDF({
+      title: 'Relatório de Controle de Estoque',
+      subtitle: selectedCategory !== 'all' ? `Categoria: ${selectedCategory}` : 'Todas as categorias',
+      orientation: 'landscape',
+      headers: ['Código', 'Produto', 'Est. Inicial', 'Entradas', 'Saídas', 'Est. Mín.', 'Est. Atual', 'Custo Médio', 'Últ. Compra', 'Status'],
+      data: tableData,
       columnStyles: {
-        0: { cellWidth: 20 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 15 },
-        3: { cellWidth: 15 },
-        4: { cellWidth: 15 },
-        5: { cellWidth: 15 },
-        6: { cellWidth: 15 },
-        7: { cellWidth: 20 },
-        8: { cellWidth: 20 },
-        9: { cellWidth: 20 }
-      }
+        0: { cellWidth: 22 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 18 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 18 },
+        5: { cellWidth: 18 },
+        6: { cellWidth: 18 },
+        7: { cellWidth: 22 },
+        8: { cellWidth: 22 },
+        9: { cellWidth: 22 }
+      },
+      totals: [
+        { label: 'Total de Produtos', value: totalItems.toString() },
+        { label: 'Estoque Total (unidades)', value: totalStock.toString() },
+        { label: 'Itens em Alerta', value: lowStockItems.toString() },
+      ],
     });
-    
-    doc.save(`estoque_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
