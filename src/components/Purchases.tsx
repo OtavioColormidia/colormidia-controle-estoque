@@ -43,7 +43,7 @@ interface PurchasesProps {
   purchases: Purchase[];
   products: Product[];
   suppliers: Supplier[];
-  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<void>;
+  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<string | void>;
   onDeletePurchase: (id: string) => Promise<void>;
   onUpdatePurchaseStatus: (id: string, status: Purchase["status"]) => Promise<void>;
   onUpdatePurchase: (id: string, purchase: Omit<Purchase, "id" | "date">) => Promise<void>;
