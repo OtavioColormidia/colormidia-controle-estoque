@@ -302,7 +302,7 @@ export default function Purchases({
           toast({ title: "Pedido atualizado", description: "Pedido de compra atualizado com sucesso" });
           setEditingPurchaseId(null);
         } else {
-          await onAddPurchase({
+          const newId = await onAddPurchase({
             date: new Date(),
             supplierId: formData.supplierId,
             supplierName: formData.supplierName,
@@ -316,6 +316,15 @@ export default function Purchases({
             notes: formData.notes,
             expectedDeliveryDate: formData.expectedDeliveryDate,
           });
+          // Upload form files if any
+          if (newId && formFiles.length > 0) {
+            for (const file of formFiles) {
+              await supabase.storage
+                .from("purchase-attachments")
+                .upload(`${newId}/${file.name}`, file, { upsert: true });
+            }
+            await loadAttachments(newId);
+          }
           toast({ title: "Pedido criado", description: "Pedido de compra criado com sucesso" });
         }
 
