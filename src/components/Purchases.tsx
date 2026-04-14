@@ -595,50 +595,50 @@ export default function Purchases({
                   <div
                     key={index}
                     className={cn(
-                      "flex justify-between items-center text-sm p-2 rounded transition-colors",
+                      "text-sm p-2 rounded transition-colors space-y-1",
                       editingItemIndex === index ? "bg-primary/20 ring-1 ring-primary" : "bg-secondary/50",
                     )}
                   >
-                    <span className="truncate flex-1 mr-2">{item.productName}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs whitespace-nowrap">
-                        {item.quantity}x R$ {item.unitPrice.toFixed(2)}
-                      </span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleEditItem(index)}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                        onClick={() => handleRemoveItem(index)}
-                      >
-                        <XCircle className="h-3 w-3" />
-                      </Button>
+                    <div className="flex justify-between items-center">
+                      <span className="truncate flex-1 mr-2">{item.productName}</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs whitespace-nowrap">
+                          {item.quantity}x R$ {item.unitPrice.toFixed(2)}
+                        </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleEditItem(index)}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                          onClick={() => handleRemoveItem(index)}
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    {(item.discountValue || 0) > 0 && (
+                      <div className="flex justify-between text-xs text-destructive">
+                        <span>Desconto ({item.discountType === 'percent' ? `${item.discountInput}%` : `R$ ${item.discountInput?.toFixed(2)}`})</span>
+                        <span>- R$ {item.discountValue?.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="text-xs text-right text-muted-foreground">
+                      Subtotal: R$ {item.totalPrice.toFixed(2)}
                     </div>
                   </div>
                 ))}
 
-                {/* Discount, IPI, Frete Section */}
+                {/* IPI, Frete Section */}
                 <div className="border-t pt-3 mt-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm whitespace-nowrap">Desconto (R$)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={discount}
-                      onChange={(e) => setDiscount(e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-sm whitespace-nowrap">IPI (R$)</Label>
                     <Input
@@ -662,10 +662,10 @@ export default function Purchases({
                     />
                   </div>
 
-                  {discountValue > 0 && (
-                    <div className="flex justify-between items-center text-sm p-2 bg-success/20 rounded text-success-foreground">
-                      <span>DESCONTO</span>
-                      <span>- R$ {discountValue.toFixed(2)}</span>
+                  {totalDiscount > 0 && (
+                    <div className="flex justify-between items-center text-sm p-2 bg-destructive/10 rounded">
+                      <span>DESCONTOS TOTAIS</span>
+                      <span className="text-destructive font-medium">- R$ {totalDiscount.toFixed(2)}</span>
                     </div>
                   )}
                   {ipiValue > 0 && (
@@ -683,9 +683,9 @@ export default function Purchases({
                 </div>
 
                 <div className="border-t pt-2 mt-2 space-y-1">
-                  {(discountValue > 0 || ipiValue > 0 || freteValue > 0) && (
+                  {(totalDiscount > 0 || ipiValue > 0 || freteValue > 0) && (
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Subtotal:</span>
+                      <span>Subtotal dos itens:</span>
                       <span>R$ {itemsTotal.toFixed(2)}</span>
                     </div>
                   )}
