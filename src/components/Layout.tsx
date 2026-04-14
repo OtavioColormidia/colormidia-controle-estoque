@@ -253,6 +253,19 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               )}
             </div>
             
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              onClick={toggleTheme}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-lg transition-all h-9",
+                !sidebarOpen && "justify-center"
+              )}
+            >
+              {theme === 'light' ? <Moon className="h-4 w-4 flex-shrink-0" /> : <Sun className="h-4 w-4 flex-shrink-0" />}
+              {sidebarOpen && <span className="text-sm">{theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}</span>}
+            </Button>
+
             {/* Logout Button */}
             <Button
               variant="ghost"
