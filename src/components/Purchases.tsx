@@ -341,6 +341,7 @@ export default function Purchases({
         setIpi("");
         setFrete("");
         setEditingItemIndex(null);
+        setFormFiles([]);
       } catch (error) {
         console.error("Erro ao salvar pedido:", error);
       }
