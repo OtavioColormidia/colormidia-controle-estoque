@@ -70,6 +70,8 @@ export default function Purchases({
   const [productName, setProductName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
+  const [itemDiscount, setItemDiscount] = useState("");
+  const [itemDiscountType, setItemDiscountType] = useState<'percent' | 'value'>('value');
   const [discount, setDiscount] = useState("");
   const [ipi, setIpi] = useState("");
   const [frete, setFrete] = useState("");
@@ -160,28 +162,41 @@ export default function Purchases({
 
   const handleAddItem = () => {
     if (productName && quantity && unitPrice) {
+      const qty = Number(quantity);
+      const price = Number(unitPrice);
+      const subtotal = qty * price;
+      const discInput = Number(itemDiscount) || 0;
+      let discValue = 0;
+      if (itemDiscountType === 'percent') {
+        discValue = subtotal * (discInput / 100);
+      } else {
+        discValue = discInput;
+      }
       const newItem: PurchaseItem = {
         productId: "",
         productName: productName,
-        quantity: Number(quantity),
-        unitPrice: Number(unitPrice),
-        totalPrice: Number(quantity) * Number(unitPrice),
+        quantity: qty,
+        unitPrice: price,
+        totalPrice: subtotal - discValue,
+        discountValue: discValue,
+        discountType: itemDiscountType,
+        discountInput: discInput,
       };
 
       if (editingItemIndex !== null) {
-        // Update existing item
         const updatedItems = [...purchaseItems];
         updatedItems[editingItemIndex] = newItem;
         setPurchaseItems(updatedItems);
         setEditingItemIndex(null);
       } else {
-        // Add new item
         setPurchaseItems([...purchaseItems, newItem]);
       }
 
       setProductName("");
       setQuantity("");
       setUnitPrice("");
+      setItemDiscount("");
+      setItemDiscountType('value');
     }
   };
 
@@ -190,6 +205,8 @@ export default function Purchases({
     setProductName(item.productName);
     setQuantity(item.quantity.toString());
     setUnitPrice(item.unitPrice.toString());
+    setItemDiscount((item.discountInput || 0).toString());
+    setItemDiscountType(item.discountType || 'value');
     setEditingItemIndex(index);
   };
 
@@ -197,6 +214,8 @@ export default function Purchases({
     setProductName("");
     setQuantity("");
     setUnitPrice("");
+    setItemDiscount("");
+    setItemDiscountType('value');
     setEditingItemIndex(null);
   };
 
@@ -241,20 +260,19 @@ export default function Purchases({
     e.preventDefault();
     if (formData.supplierId && purchaseItems.length > 0) {
       const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-      const discountValue = Number(discount) || 0;
+      const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
       const ipiValue = Number(ipi) || 0;
       const freteValue = Number(frete) || 0;
-      const totalValue = itemsTotal - discountValue + ipiValue + freteValue;
+      const totalValue = itemsTotal + ipiValue + freteValue;
 
       try {
         if (editingPurchaseId) {
-          // Update existing purchase
           await onUpdatePurchase(editingPurchaseId, {
             supplierId: formData.supplierId,
             supplierName: formData.supplierName,
             items: purchaseItems,
             totalValue,
-            discount: discountValue,
+            discount: totalDiscount,
             ipi: ipiValue,
             frete: freteValue,
             status: formData.status,
@@ -265,14 +283,13 @@ export default function Purchases({
           toast({ title: "Pedido atualizado", description: "Pedido de compra atualizado com sucesso" });
           setEditingPurchaseId(null);
         } else {
-          // Create new purchase
           await onAddPurchase({
             date: new Date(),
             supplierId: formData.supplierId,
             supplierName: formData.supplierName,
             items: purchaseItems,
             totalValue,
-            discount: discountValue,
+            discount: totalDiscount,
             ipi: ipiValue,
             frete: freteValue,
             status: "pending",
@@ -283,7 +300,6 @@ export default function Purchases({
           toast({ title: "Pedido criado", description: "Pedido de compra criado com sucesso" });
         }
 
-        // Reset form
         setFormData({
           supplierId: "",
           supplierName: "",
@@ -305,10 +321,10 @@ export default function Purchases({
 
   // Calculate totals
   const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const discountValue = Number(discount) || 0;
+  const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
   const ipiValue = Number(ipi) || 0;
   const freteValue = Number(frete) || 0;
-  const finalTotal = itemsTotal - discountValue + ipiValue + freteValue;
+  const finalTotal = itemsTotal + ipiValue + freteValue;
 
   // Filter purchases by supplier and product
   const filteredPurchases = useMemo(() => {
@@ -515,6 +531,39 @@ export default function Purchases({
                   />
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Desconto"
+                    value={itemDiscount}
+                    onChange={(e) => setItemDiscount(e.target.value)}
+                    className="flex-1"
+                  />
+                  <div className="flex rounded-md border border-input overflow-hidden">
+                    <button
+                      type="button"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium transition-colors",
+                        itemDiscountType === 'value' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                      )}
+                      onClick={() => setItemDiscountType('value')}
+                    >
+                      R$
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium transition-colors",
+                        itemDiscountType === 'percent' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                      )}
+                      onClick={() => setItemDiscountType('percent')}
+                    >
+                      %
+                    </button>
+                  </div>
+                </div>
+
                 <Button
                   type="button"
                   onClick={handleAddItem}
@@ -546,50 +595,50 @@ export default function Purchases({
                   <div
                     key={index}
                     className={cn(
-                      "flex justify-between items-center text-sm p-2 rounded transition-colors",
+                      "text-sm p-2 rounded transition-colors space-y-1",
                       editingItemIndex === index ? "bg-primary/20 ring-1 ring-primary" : "bg-secondary/50",
                     )}
                   >
-                    <span className="truncate flex-1 mr-2">{item.productName}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs whitespace-nowrap">
-                        {item.quantity}x R$ {item.unitPrice.toFixed(2)}
-                      </span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleEditItem(index)}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                        onClick={() => handleRemoveItem(index)}
-                      >
-                        <XCircle className="h-3 w-3" />
-                      </Button>
+                    <div className="flex justify-between items-center">
+                      <span className="truncate flex-1 mr-2">{item.productName}</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs whitespace-nowrap">
+                          {item.quantity}x R$ {item.unitPrice.toFixed(2)}
+                        </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleEditItem(index)}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                          onClick={() => handleRemoveItem(index)}
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    {(item.discountValue || 0) > 0 && (
+                      <div className="flex justify-between text-xs text-destructive">
+                        <span>Desconto ({item.discountType === 'percent' ? `${item.discountInput}%` : `R$ ${item.discountInput?.toFixed(2)}`})</span>
+                        <span>- R$ {item.discountValue?.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="text-xs text-right text-muted-foreground">
+                      Subtotal: R$ {item.totalPrice.toFixed(2)}
                     </div>
                   </div>
                 ))}
 
-                {/* Discount, IPI, Frete Section */}
+                {/* IPI, Frete Section */}
                 <div className="border-t pt-3 mt-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm whitespace-nowrap">Desconto (R$)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={discount}
-                      onChange={(e) => setDiscount(e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-sm whitespace-nowrap">IPI (R$)</Label>
                     <Input
@@ -613,10 +662,10 @@ export default function Purchases({
                     />
                   </div>
 
-                  {discountValue > 0 && (
-                    <div className="flex justify-between items-center text-sm p-2 bg-success/20 rounded text-success-foreground">
-                      <span>DESCONTO</span>
-                      <span>- R$ {discountValue.toFixed(2)}</span>
+                  {totalDiscount > 0 && (
+                    <div className="flex justify-between items-center text-sm p-2 bg-destructive/10 rounded">
+                      <span>DESCONTOS TOTAIS</span>
+                      <span className="text-destructive font-medium">- R$ {totalDiscount.toFixed(2)}</span>
                     </div>
                   )}
                   {ipiValue > 0 && (
@@ -634,9 +683,9 @@ export default function Purchases({
                 </div>
 
                 <div className="border-t pt-2 mt-2 space-y-1">
-                  {(discountValue > 0 || ipiValue > 0 || freteValue > 0) && (
+                  {(totalDiscount > 0 || ipiValue > 0 || freteValue > 0) && (
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Subtotal:</span>
+                      <span>Subtotal dos itens:</span>
                       <span>R$ {itemsTotal.toFixed(2)}</span>
                     </div>
                   )}

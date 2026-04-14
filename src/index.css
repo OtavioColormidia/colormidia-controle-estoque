@@ -101,55 +101,55 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 220 14% 96%;
+    --background: 225 25% 8%;
+    --foreground: 210 40% 96%;
 
-    --card: 222 47% 12%;
-    --card-foreground: 220 14% 96%;
+    --card: 225 25% 13%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 222 47% 12%;
-    --popover-foreground: 220 14% 96%;
+    --popover: 225 25% 15%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 217 91% 55%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 60%;
+    --primary-hover: 217 91% 65%;
 
-    --secondary: 24 95% 53%;
+    --secondary: 24 95% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 222 47% 15%;
-    --muted-foreground: 220 9% 60%;
+    --muted: 225 20% 18%;
+    --muted-foreground: 215 20% 60%;
 
-    --accent: 217 91% 15%;
-    --accent-foreground: 217 91% 70%;
+    --accent: 217 50% 22%;
+    --accent-foreground: 217 91% 75%;
 
-    --success: 152 69% 40%;
+    --success: 152 69% 45%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 38 92% 55%;
     --warning-foreground: 0 0% 100%;
-    --danger: 0 72% 55%;
+    --danger: 0 72% 58%;
     --danger-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 55%;
+    --destructive: 0 72% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 30% 20%;
-    --input: 222 30% 20%;
-    --ring: 217 91% 55%;
+    --border: 225 15% 22%;
+    --input: 225 20% 20%;
+    --ring: 217 91% 60%;
 
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-background: 225 30% 5%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 24 95% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 10%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 222 30% 15%;
-    --sidebar-ring: 217 91% 55%;
+    --sidebar-accent: 225 25% 12%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 225 20% 16%;
+    --sidebar-ring: 217 91% 60%;
 
-    --gradient-login: linear-gradient(135deg, hsl(222 47% 6%) 0%, hsl(217 91% 15%) 50%, hsl(222 47% 8%) 100%);
-    --shadow-card-hover: 0 10px 40px -10px hsl(217 91% 55% / 0.2), 0 4px 6px -2px hsl(0 0% 0% / 0.1);
-    --glass-bg: hsl(222 47% 12% / 0.8);
-    --glass-border: hsl(220 14% 96% / 0.1);
+    --gradient-login: linear-gradient(135deg, hsl(225 30% 5%) 0%, hsl(217 91% 18%) 50%, hsl(225 25% 8%) 100%);
+    --shadow-card-hover: 0 10px 40px -10px hsl(217 91% 60% / 0.25), 0 4px 6px -2px hsl(0 0% 0% / 0.15);
+    --glass-bg: hsl(225 25% 13% / 0.85);
+    --glass-border: hsl(210 40% 96% / 0.08);
   }
 }
 
