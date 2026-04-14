@@ -84,6 +84,8 @@ export default function Purchases({
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFileName, setPreviewFileName] = useState<string>("");
 
   // Load attachments for all purchases
   const loadAttachments = async (purchaseId: string) => {
