@@ -703,7 +703,7 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead>Previsão Entrega</TableHead>
                   <TableHead>Observações</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>NF / Pedido</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -762,7 +762,63 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                     <TableCell className="max-w-[200px] truncate">
                       {purchase.notes || '-'}
                     </TableCell>
-                    <TableCell>{getStatusBadge(purchase.status)}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1 min-w-[180px]">
+                        {(purchaseAttachments[purchase.id] || []).map((fileName) => (
+                          <div key={fileName} className="flex items-center gap-1 text-xs bg-muted/50 rounded px-2 py-1">
+                            <FileText className="h-3 w-3 flex-shrink-0 text-primary" />
+                            <span className="truncate max-w-[100px]" title={fileName}>{fileName}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0"
+                              onClick={() => handleDownloadAttachment(purchase.id, fileName)}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                            <ConfirmDialog
+                              title="Excluir anexo?"
+                              description={`Excluir "${fileName}"?`}
+                              confirmText="Excluir"
+                              onConfirm={() => handleDeleteAttachment(purchase.id, fileName)}
+                              trigger={
+                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive">
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              }
+                            />
+                          </div>
+                        ))}
+                        <div>
+                          <input
+                            type="file"
+                            multiple
+                            className="hidden"
+                            ref={(el) => { fileInputRefs.current[purchase.id] = el; }}
+                            onChange={(e) => {
+                              if (e.target.files?.length) {
+                                handleFileUpload(purchase.id, e.target.files);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1"
+                            disabled={uploadingFiles[purchase.id]}
+                            onClick={() => fileInputRefs.current[purchase.id]?.click()}
+                          >
+                            {uploadingFiles[purchase.id] ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Upload className="h-3 w-3" />
+                            )}
+                            Anexar
+                          </Button>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button
@@ -773,36 +829,27 @@ export default function Purchases({ purchases, products, suppliers, onAddPurchas
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        {purchase.status !== 'delivered' && purchase.status !== 'cancelled' && (
-                          <Button
-                            onClick={async () => {
-                              try {
-                                await onUpdatePurchaseStatus(purchase.id, 'delivered');
-                              } catch (error) {
-                                console.error('Erro ao atualizar status:', error);
-                              }
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="text-success hover:text-success"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          onClick={async () => {
+                        <ConfirmDialog
+                          title="Excluir pedido?"
+                          description={`Tem certeza que deseja excluir o pedido ${purchase.documentNumber || ''}? Esta ação não pode ser desfeita.`}
+                          confirmText="Excluir"
+                          onConfirm={async () => {
                             try {
                               await onDeletePurchase(purchase.id);
                             } catch (error) {
                               console.error('Erro ao excluir compra:', error);
                             }
                           }}
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
