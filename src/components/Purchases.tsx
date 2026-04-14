@@ -427,44 +427,55 @@ export default function Purchases({
 
             <div className="space-y-2">
               <Label>Forma de Recebimento</Label>
-              <Input
+              <Select
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Entrega ou Retirada"
-              />
+                onValueChange={(value) => {
+                  setFormData({ ...formData, notes: value, expectedDeliveryDate: value === 'retirada' ? undefined : formData.expectedDeliveryDate });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a forma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="entrega">Entrega</SelectItem>
+                  <SelectItem value="retirada">Retirada</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Previsão de Entrega</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.expectedDeliveryDate && "text-muted-foreground",
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.expectedDeliveryDate ? (
-                      format(formData.expectedDeliveryDate, "dd/MM/yyyy")
-                    ) : (
-                      <span>Selecione a data</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.expectedDeliveryDate}
-                    onSelect={(date) => setFormData({ ...formData, expectedDeliveryDate: date })}
-                    initialFocus
-                    locale={ptBR}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+            {formData.notes && (
+              <div className="space-y-2">
+                <Label>Previsão de {formData.notes === 'entrega' ? 'Entrega' : 'Retirada'}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !formData.expectedDeliveryDate && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.expectedDeliveryDate ? (
+                        format(formData.expectedDeliveryDate, "dd/MM/yyyy")
+                      ) : (
+                        <span>Selecione a data</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.expectedDeliveryDate}
+                      onSelect={(date) => setFormData({ ...formData, expectedDeliveryDate: date })}
+                      initialFocus
+                      locale={ptBR}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )
 
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-2">
