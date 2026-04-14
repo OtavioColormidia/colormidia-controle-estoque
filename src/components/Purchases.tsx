@@ -475,7 +475,7 @@ export default function Purchases({
                   </PopoverContent>
                 </Popover>
               </div>
-            )
+            )}
 
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-2">
