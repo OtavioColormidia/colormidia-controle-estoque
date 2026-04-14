@@ -865,6 +865,15 @@ export default function Purchases({
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  className="h-5 w-5 p-0 text-blue-500 hover:text-blue-600"
+                                  onClick={() => handlePreviewAttachment(purchase.id, fileName)}
+                                  title="Visualizar"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   className="h-5 w-5 p-0"
                                   onClick={() => handleDownloadAttachment(purchase.id, fileName)}
                                 >
