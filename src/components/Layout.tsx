@@ -13,8 +13,11 @@ import {
   LogOut,
   UserCog,
   AlertTriangle,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import logoColorMedia from '@/assets/logo-colormedia.jpg';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
