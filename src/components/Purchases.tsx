@@ -421,7 +421,7 @@ export default function Purchases({
               <Input
                 value={formData.documentNumber}
                 onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
-                placeholder="OS-2024001"
+                placeholder="OS-86816"
               />
             </div>
 
