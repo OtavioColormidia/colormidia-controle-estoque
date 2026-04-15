@@ -175,39 +175,39 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
           {recentActivities.map((activity) => {
             const attachments = activity.purchaseId ? purchaseAttachments[activity.purchaseId] || [] : [];
             return (
-              <div key={activity.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+              <div key={activity.id} className="p-3 sm:p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="flex items-start gap-3">
+                  <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     activity.type === "entry" ? "bg-success/10 text-success"
                       : activity.type === "exit" ? "bg-warning/10 text-warning"
                         : "bg-primary/10 text-primary"
                   }`}>
-                    {activity.type === "entry" ? <TrendingUp className="h-5 w-5" />
-                      : activity.type === "exit" ? <TrendingDown className="h-5 w-5" />
-                        : <ShoppingCart className="h-5 w-5" />}
+                    {activity.type === "entry" ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                      : activity.type === "exit" ? <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5" />
+                        : <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />}
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">{activity.description}</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-medium text-foreground text-sm sm:text-base truncate">{activity.description}</p>
+                      {activity.value != null && activity.value > 0 && (
+                        <p className="font-semibold text-foreground whitespace-nowrap text-sm sm:text-base">R$ {activity.value.toFixed(2)}</p>
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                       {activity.detail} • {activity.date.toLocaleDateString("pt-BR")}
                     </p>
+                    {attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {attachments.map((fileName) => (
+                          <Button key={fileName} variant="ghost" size="sm" className="h-7 px-2 text-primary hover:text-primary/80 text-xs" title={fileName}
+                            onClick={() => handlePreviewAttachment(activity.purchaseId!, fileName)}>
+                            <Paperclip className="h-3.5 w-3.5 mr-1" />
+                            <span className="max-w-[100px] truncate">{fileName}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  {attachments.length > 0 && (
-                    <div className="flex gap-1">
-                      {attachments.map((fileName) => (
-                        <Button key={fileName} variant="ghost" size="sm" className="h-8 px-2 text-primary hover:text-primary/80" title={fileName}
-                          onClick={() => handlePreviewAttachment(activity.purchaseId!, fileName)}>
-                          <Paperclip className="h-4 w-4 mr-1" />
-                          <span className="text-xs max-w-[80px] truncate">{fileName}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                  {activity.value != null && activity.value > 0 && (
-                    <p className="font-semibold text-foreground whitespace-nowrap">R$ {activity.value.toFixed(2)}</p>
-                  )}
                 </div>
               </div>
             );
@@ -227,23 +227,23 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
             .map((movement) => {
               const productName = movement.productName || products.find((p) => p.id === movement.productId)?.name || "Produto";
               return (
-                <div key={movement.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-warning/10 text-warning">
-                      <PackageMinus className="h-5 w-5" />
+                <div key={movement.id} className="p-3 sm:p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center bg-warning/10 text-warning flex-shrink-0">
+                      <PackageMinus className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">{productName}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-medium text-foreground text-sm sm:text-base truncate">{productName}</p>
+                        {movement.department && (
+                          <p className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">{movement.department}</p>
+                        )}
+                      </div>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                         Saída • {movement.quantity} un. • {new Date(movement.date).toLocaleDateString("pt-BR")}
                         {movement.requestedBy ? ` • ${movement.requestedBy}` : ""}
                       </p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    {movement.department && (
-                      <p className="text-sm text-muted-foreground">{movement.department}</p>
-                    )}
                   </div>
                 </div>
               );
