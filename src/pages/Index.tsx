@@ -126,8 +126,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-      case 'dashboard':
-        return <Dashboard products={products} movements={movements} />;
+        return <Dashboard products={products} movements={movements} purchases={purchases} onTabChange={setActiveTab} />;
       case 'inventory':
         return <InventoryControl products={products} movements={movements} />;
       case 'truss-control':
@@ -198,7 +197,7 @@ const Index = () => {
       case 'users':
         return <UserManagement />;
       default:
-        return <Dashboard products={products} movements={movements} />;
+        return <Dashboard products={products} movements={movements} purchases={purchases} onTabChange={setActiveTab} />;
     }
   };
 
