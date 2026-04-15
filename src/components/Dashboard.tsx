@@ -169,7 +169,7 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
       </div>
 
       {/* Recent Activities */}
-      <Card className="p-6 border shadow-sm">
+      <Card className="p-4 sm:p-6 border shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Atividades Recentes</h3>
         <div className="space-y-3">
           {recentActivities.map((activity) => {
@@ -217,7 +217,7 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
       </Card>
 
       {/* Recent Exit Movements */}
-      <Card className="p-6 border shadow-sm">
+      <Card className="p-4 sm:p-6 border shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Movimentações Recentes</h3>
         <div className="space-y-3">
           {movements
