@@ -216,6 +216,44 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
         </div>
       </Card>
 
+      {/* Recent Exit Movements */}
+      <Card className="p-6 border shadow-sm">
+        <h3 className="text-lg font-semibold mb-4">Movimentações Recentes</h3>
+        <div className="space-y-3">
+          {movements
+            .filter((m) => m.type === "exit")
+            .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+            .slice(0, 8)
+            .map((movement) => {
+              const productName = movement.productName || products.find((p) => p.id === movement.productId)?.name || "Produto";
+              return (
+                <div key={movement.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-warning/10 text-warning">
+                      <PackageMinus className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{productName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Saída • {movement.quantity} un. • {new Date(movement.date).toLocaleDateString("pt-BR")}
+                        {movement.requestedBy ? ` • ${movement.requestedBy}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {movement.department && (
+                      <p className="text-sm text-muted-foreground">{movement.department}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          {movements.filter((m) => m.type === "exit").length === 0 && (
+            <p className="text-muted-foreground">Nenhuma saída de material registrada.</p>
+          )}
+        </div>
+      </Card>
+
       {/* PDF Preview Dialog */}
       <Dialog open={!!previewUrl} onOpenChange={() => { setPreviewUrl(null); setPreviewFileName(""); }}>
         <DialogContent className="max-w-7xl w-[98vw] h-[95vh] flex flex-col">
