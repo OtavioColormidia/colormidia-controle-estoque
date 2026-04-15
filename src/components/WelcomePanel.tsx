@@ -12,9 +12,13 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
+  Paperclip,
+  X,
 } from 'lucide-react';
 import { Product, StockMovement, Purchase, UserRole } from '@/types/inventory';
 import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 
 interface WelcomePanelProps {
   onTabChange: (tab: string) => void;
@@ -43,10 +47,14 @@ interface RecentActivity {
   detail: string;
   date: Date;
   value?: number;
+  purchaseId?: string;
 }
 
 export default function WelcomePanel({ onTabChange, products, movements, purchases }: WelcomePanelProps) {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFileName, setPreviewFileName] = useState<string>('');
 
   useEffect(() => {
     const loadRoles = async () => {
@@ -62,6 +70,38 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
     };
     loadRoles();
   }, []);
+
+  // Load attachments for purchases
+  useEffect(() => {
+    const loadAttachments = async (purchaseId: string) => {
+      try {
+        const { data, error } = await supabase.storage.from("purchase-attachments").list(purchaseId);
+        if (error) throw error;
+        if (data) {
+          setPurchaseAttachments((prev) => ({
+            ...prev,
+            [purchaseId]: data.map((f) => f.name),
+          }));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar anexos:", error);
+      }
+    };
+    purchases.forEach((p) => loadAttachments(p.id));
+  }, [purchases.length]);
+
+  const handlePreviewAttachment = async (purchaseId: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("purchase-attachments")
+        .createSignedUrl(`${purchaseId}/${fileName}`, 3600);
+      if (error) throw error;
+      setPreviewUrl(data.signedUrl);
+      setPreviewFileName(fileName);
+    } catch (error: any) {
+      toast({ title: "Erro ao visualizar", description: error.message, variant: "destructive" });
+    }
+  };
 
   const filteredCards = quickAccessCards.filter(card =>
     card.allowedRoles.some(role => userRoles.includes(role))
@@ -81,9 +121,10 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
       id: p.id,
       type: 'purchase' as const,
       description: p.supplierName || 'Fornecedor não informado',
-      detail: `Pedido de compra • ${p.items?.length || 0} itens • ${p.status === 'pending' ? 'Pendente' : p.status === 'approved' ? 'Aprovado' : p.status === 'delivered' ? 'Entregue' : 'Cancelado'}`,
+      detail: `Pedido de compra • ${p.items?.length || 0} itens`,
       date: new Date(p.date),
       value: p.totalValue,
+      purchaseId: p.id,
     })),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -101,7 +142,7 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
         </p>
       </div>
 
-      {/* Quick Access Cards - Large colorful gradient cards */}
+      {/* Quick Access Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredCards.map((card) => {
           const Icon = card.icon;
@@ -137,48 +178,86 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
       <Card className="p-6 border shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Atividades Recentes</h3>
         <div className="space-y-3">
-          {recentActivities.map((activity) => (
-            <div
-              key={activity.id}
-              className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                  activity.type === 'entry'
-                    ? 'bg-success/10 text-success'
-                    : activity.type === 'exit'
-                    ? 'bg-warning/10 text-warning'
-                    : 'bg-primary/10 text-primary'
-                }`}>
-                  {activity.type === 'entry' ? (
-                    <TrendingUp className="h-5 w-5" />
-                  ) : activity.type === 'exit' ? (
-                    <TrendingDown className="h-5 w-5" />
-                  ) : (
-                    <ShoppingCart className="h-5 w-5" />
+          {recentActivities.map((activity) => {
+            const attachments = activity.purchaseId ? (purchaseAttachments[activity.purchaseId] || []) : [];
+            return (
+              <div
+                key={activity.id}
+                className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                    activity.type === 'entry'
+                      ? 'bg-success/10 text-success'
+                      : activity.type === 'exit'
+                      ? 'bg-warning/10 text-warning'
+                      : 'bg-primary/10 text-primary'
+                  }`}>
+                    {activity.type === 'entry' ? (
+                      <TrendingUp className="h-5 w-5" />
+                    ) : activity.type === 'exit' ? (
+                      <TrendingDown className="h-5 w-5" />
+                    ) : (
+                      <ShoppingCart className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">{activity.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {activity.detail} • {activity.date.toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {attachments.length > 0 && (
+                    <div className="flex gap-1">
+                      {attachments.map((fileName) => (
+                        <Button
+                          key={fileName}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-primary hover:text-primary/80"
+                          title={fileName}
+                          onClick={() => handlePreviewAttachment(activity.purchaseId!, fileName)}
+                        >
+                          <Paperclip className="h-4 w-4 mr-1" />
+                          <span className="text-xs max-w-[80px] truncate">{fileName}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  {activity.value != null && activity.value > 0 && (
+                    <p className="font-semibold text-foreground whitespace-nowrap">
+                      R$ {activity.value.toFixed(2)}
+                    </p>
                   )}
                 </div>
-                <div>
-                  <p className="font-medium text-foreground">{activity.description}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.detail} • {activity.date.toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
               </div>
-              {activity.value != null && activity.value > 0 && (
-                <div className="text-right">
-                  <p className="font-semibold text-foreground">
-                    R$ {activity.value.toFixed(2)}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
           {recentActivities.length === 0 && (
             <p className="text-muted-foreground">Nenhuma atividade recente.</p>
           )}
         </div>
       </Card>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={() => { setPreviewUrl(null); setPreviewFileName(''); }}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="truncate">{previewFileName}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-lg border"
+                title="Visualização do anexo"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
