@@ -846,7 +846,7 @@ export default function Purchases({
                   <TableHead className="text-right">IPI</TableHead>
                   <TableHead className="text-right">Frete</TableHead>
                   <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Previsão Entrega</TableHead>
+                  <TableHead>Previsão de Recebimento</TableHead>
                   <TableHead>Forma de Recebimento</TableHead>
                   <TableHead>NF / Pedido</TableHead>
                   <TableHead>Ações</TableHead>
