@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import Layout from '@/components/Layout';
 import Dashboard from '@/components/Dashboard';
-import WelcomePanel from '@/components/WelcomePanel';
+
 import InventoryControl from '@/components/InventoryControl';
 import TrussControl from '@/components/TrussControl';
 import MaterialEntry from '@/components/MaterialEntry';
@@ -20,7 +20,7 @@ import { Purchase } from '@/types/inventory';
 
 const Index = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('welcome');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -125,8 +125,7 @@ const Index = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'welcome':
-        return <WelcomePanel onTabChange={setActiveTab} products={products} movements={movements} purchases={purchases} />;
+      case 'dashboard':
       case 'dashboard':
         return <Dashboard products={products} movements={movements} />;
       case 'inventory':
