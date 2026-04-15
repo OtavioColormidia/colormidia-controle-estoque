@@ -126,7 +126,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'welcome':
-        return <WelcomePanel onTabChange={setActiveTab} products={products} movements={movements} />;
+        return <WelcomePanel onTabChange={setActiveTab} products={products} movements={movements} purchases={purchases} />;
       case 'dashboard':
         return <Dashboard products={products} movements={movements} />;
       case 'inventory':
