@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import Layout from '@/components/Layout';
 import Dashboard from '@/components/Dashboard';
-import WelcomePanel from '@/components/WelcomePanel';
+
 import InventoryControl from '@/components/InventoryControl';
 import TrussControl from '@/components/TrussControl';
 import MaterialEntry from '@/components/MaterialEntry';
