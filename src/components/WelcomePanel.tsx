@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useCallback } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Package,
   PackagePlus,
@@ -14,11 +14,11 @@ import {
   BarChart3,
   Paperclip,
   X,
-} from 'lucide-react';
-import { Product, StockMovement, Purchase, UserRole } from '@/types/inventory';
-import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from '@/hooks/use-toast';
+} from "lucide-react";
+import { Product, StockMovement, Purchase, UserRole } from "@/types/inventory";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
 
 interface WelcomePanelProps {
   onTabChange: (tab: string) => void;
@@ -28,21 +28,91 @@ interface WelcomePanelProps {
 }
 
 const quickAccessCards = [
-  { id: 'inventory', label: 'Controle de Estoque', description: 'Estoque atual e alertas', icon: Package, gradient: 'from-cyan-500 to-teal-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'truss-control', label: 'Controle de Treliça', description: 'Gerenciar treliças', icon: Package, gradient: 'from-blue-500 to-indigo-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'entries', label: 'Entrada de Material', description: 'Registrar entradas', icon: PackagePlus, gradient: 'from-emerald-500 to-green-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'exits', label: 'Saída de Material', description: 'Registrar saídas', icon: PackageMinus, gradient: 'from-orange-500 to-amber-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'purchases', label: 'Compras', description: 'Pedidos e anexos', icon: ShoppingCart, gradient: 'from-purple-500 to-violet-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'products', label: 'Cadastro de Produtos', description: 'Gerenciar produtos', icon: ClipboardList, gradient: 'from-pink-500 to-rose-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'suppliers', label: 'Cadastro de Fornecedores', description: 'Gerenciar fornecedores', icon: Users, gradient: 'from-sky-500 to-blue-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'supplier-materials', label: 'Fornecedores / Material', description: 'Materiais por fornecedor', icon: Package, gradient: 'from-teal-500 to-cyan-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'dashboard', label: 'Dashboard', description: 'Métricas e gráficos', icon: BarChart3, gradient: 'from-indigo-500 to-purple-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'users', label: 'Usuários', description: 'Gestão de acessos', icon: UserCog, gradient: 'from-slate-500 to-gray-600', allowedRoles: ['admin'] as UserRole[] },
+  {
+    id: "inventory",
+    label: "Controle de Estoque",
+    description: "Estoque atual e alertas",
+    icon: Package,
+    gradient: "from-cyan-500 to-teal-500",
+    allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "truss-control",
+    label: "Controle de Treliça",
+    description: "Gerenciar treliças",
+    icon: Package,
+    gradient: "from-blue-500 to-indigo-500",
+    allowedRoles: ["admin", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "entries",
+    label: "Entrada de Material",
+    description: "Registrar entradas",
+    icon: PackagePlus,
+    gradient: "from-emerald-500 to-green-500",
+    allowedRoles: ["admin", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "exits",
+    label: "Saída de Material",
+    description: "Registrar saídas",
+    icon: PackageMinus,
+    gradient: "from-orange-500 to-amber-500",
+    allowedRoles: ["admin", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "purchases",
+    label: "Compras",
+    description: "Pedidos e anexos",
+    icon: ShoppingCart,
+    gradient: "from-purple-500 to-violet-500",
+    allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "products",
+    label: "Cadastro de Produtos",
+    description: "Gerenciar produtos",
+    icon: ClipboardList,
+    gradient: "from-pink-500 to-rose-500",
+    allowedRoles: ["admin", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "suppliers",
+    label: "Cadastro de Fornecedores",
+    description: "Gerenciar fornecedores",
+    icon: Users,
+    gradient: "from-sky-500 to-blue-500",
+    allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "supplier-materials",
+    label: "Fornecedores / Material",
+    description: "Materiais por fornecedor",
+    icon: Package,
+    gradient: "from-teal-500 to-cyan-500",
+    allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    description: "Métricas e gráficos",
+    icon: BarChart3,
+    gradient: "from-indigo-500 to-purple-500",
+    allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[],
+  },
+  {
+    id: "users",
+    label: "Usuários",
+    description: "Gestão de acessos",
+    icon: UserCog,
+    gradient: "from-slate-500 to-gray-600",
+    allowedRoles: ["admin"] as UserRole[],
+  },
 ];
 
 interface RecentActivity {
   id: string;
-  type: 'entry' | 'exit' | 'purchase';
+  type: "entry" | "exit" | "purchase";
   description: string;
   detail: string;
   date: Date;
@@ -54,18 +124,17 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewFileName, setPreviewFileName] = useState<string>('');
+  const [previewFileName, setPreviewFileName] = useState<string>("");
 
   useEffect(() => {
     const loadRoles = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
       if (data) {
-        setUserRoles(data.map(r => r.role as UserRole));
+        setUserRoles(data.map((r) => r.role as UserRole));
       }
     };
     loadRoles();
@@ -76,7 +145,7 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
     const recentPurchaseIds = purchases
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 8)
-      .map(p => p.id);
+      .map((p) => p.id);
 
     for (const purchaseId of recentPurchaseIds) {
       try {
@@ -115,24 +184,22 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
     }
   };
 
-  const filteredCards = quickAccessCards.filter(card =>
-    card.allowedRoles.some(role => userRoles.includes(role))
-  );
+  const filteredCards = quickAccessCards.filter((card) => card.allowedRoles.some((role) => userRoles.includes(role)));
 
   // Merge movements + purchases into recent activities
   const recentActivities: RecentActivity[] = [
-    ...movements.map(m => ({
+    ...movements.map((m) => ({
       id: m.id,
-      type: m.type as 'entry' | 'exit',
-      description: m.productName || products.find(p => p.id === m.productId)?.name || 'Produto',
-      detail: `${m.type === 'entry' ? 'Entrada' : 'Saída'} • ${m.quantity} un.`,
+      type: m.type as "entry" | "exit",
+      description: m.productName || products.find((p) => p.id === m.productId)?.name || "Produto",
+      detail: `${m.type === "entry" ? "Entrada" : "Saída"} • ${m.quantity} un.`,
       date: new Date(m.createdAt || m.date),
       value: m.totalValue,
     })),
-    ...purchases.map(p => ({
+    ...purchases.map((p) => ({
       id: p.id,
-      type: 'purchase' as const,
-      description: p.supplierName || 'Fornecedor não informado',
+      type: "purchase" as const,
+      description: p.supplierName || "Fornecedor não informado",
       detail: `Pedido de compra • ${p.items?.length || 0} itens`,
       date: new Date(p.date),
       value: p.totalValue,
@@ -146,12 +213,8 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="animate-fade-in">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-          Atalhos Rápidos
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          Acesse rapidamente as áreas do sistema
-        </p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Atalhos Rápidos</h2>
+        <p className="text-muted-foreground mt-1">Acesse rapidamente as áreas do sistema</p>
       </div>
 
       {/* Quick Access Cards */}
@@ -191,23 +254,25 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
         <h3 className="text-lg font-semibold mb-4">Atividades Recentes</h3>
         <div className="space-y-3">
           {recentActivities.map((activity) => {
-            const attachments = activity.purchaseId ? (purchaseAttachments[activity.purchaseId] || []) : [];
+            const attachments = activity.purchaseId ? purchaseAttachments[activity.purchaseId] || [] : [];
             return (
               <div
                 key={activity.id}
                 className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                    activity.type === 'entry'
-                      ? 'bg-success/10 text-success'
-                      : activity.type === 'exit'
-                      ? 'bg-warning/10 text-warning'
-                      : 'bg-primary/10 text-primary'
-                  }`}>
-                    {activity.type === 'entry' ? (
+                  <div
+                    className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                      activity.type === "entry"
+                        ? "bg-success/10 text-success"
+                        : activity.type === "exit"
+                          ? "bg-warning/10 text-warning"
+                          : "bg-primary/10 text-primary"
+                    }`}
+                  >
+                    {activity.type === "entry" ? (
                       <TrendingUp className="h-5 w-5" />
-                    ) : activity.type === 'exit' ? (
+                    ) : activity.type === "exit" ? (
                       <TrendingDown className="h-5 w-5" />
                     ) : (
                       <ShoppingCart className="h-5 w-5" />
@@ -216,7 +281,7 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
                   <div>
                     <p className="font-medium text-foreground">{activity.description}</p>
                     <p className="text-sm text-muted-foreground">
-                      {activity.detail} • {activity.date.toLocaleDateString('pt-BR')}
+                      {activity.detail} • {activity.date.toLocaleDateString("pt-BR")}
                     </p>
                   </div>
                 </div>
@@ -239,33 +304,31 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
                     </div>
                   )}
                   {activity.value != null && activity.value > 0 && (
-                    <p className="font-semibold text-foreground whitespace-nowrap">
-                      R$ {activity.value.toFixed(2)}
-                    </p>
+                    <p className="font-semibold text-foreground whitespace-nowrap">R$ {activity.value.toFixed(2)}</p>
                   )}
                 </div>
               </div>
             );
           })}
-          {recentActivities.length === 0 && (
-            <p className="text-muted-foreground">Nenhuma atividade recente.</p>
-          )}
+          {recentActivities.length === 0 && <p className="text-muted-foreground">Nenhuma atividade recente.</p>}
         </div>
       </Card>
 
       {/* PDF Preview Dialog */}
-      <Dialog open={!!previewUrl} onOpenChange={() => { setPreviewUrl(null); setPreviewFileName(''); }}>
-        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col">
+      <Dialog
+        open={!!previewUrl}
+        onOpenChange={() => {
+          setPreviewUrl(null);
+          setPreviewFileName("");
+        }}
+      >
+        <DialogContent className="max-w-7xl w-[98vw] h-[95vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="truncate">{previewFileName}</DialogTitle>
           </DialogHeader>
           <div className="flex-1 min-h-0">
             {previewUrl && (
-              <iframe
-                src={previewUrl}
-                className="w-full h-full rounded-lg border"
-                title="Visualização do anexo"
-              />
+              <iframe src={previewUrl} className="w-full h-full rounded-lg border" title="Visualização do anexo" />
             )}
           </div>
         </DialogContent>
