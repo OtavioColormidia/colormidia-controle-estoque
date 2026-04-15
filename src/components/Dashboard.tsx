@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Package,
-  PackagePlus,
+  PackageMinus,
   PackageMinus,
   ShoppingCart,
   Users,
