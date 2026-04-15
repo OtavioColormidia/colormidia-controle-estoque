@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,10 +9,19 @@ import {
   Download,
   ArrowUpRight,
   ArrowDownRight,
+  LayoutDashboard,
+  PackagePlus,
+  PackageMinus,
+  ShoppingCart,
+  Users,
+  ClipboardList,
+  UserCog,
+  ChevronRight,
 } from 'lucide-react';
-import { Product, StockMovement } from '@/types/inventory';
+import { Product, StockMovement, UserRole } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
 import { exportAllData } from '@/lib/export';
+import { supabase } from '@/integrations/supabase/client';
 import {
   BarChart,
   Bar,
@@ -29,9 +39,42 @@ import {
 interface DashboardProps {
   products: Product[];
   movements: StockMovement[];
+  onTabChange?: (tab: string) => void;
 }
 
-export default function Dashboard({ products, movements }: DashboardProps) {
+const quickAccessCards = [
+  { id: 'inventory', label: 'Controle de Estoque', description: 'Estoque atual e alertas', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'truss-control', label: 'Controle de Treliça', description: 'Gerenciar treliças', icon: Package, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'entries', label: 'Entrada de Material', description: 'Registrar entradas', icon: PackagePlus, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'exits', label: 'Saída de Material', description: 'Registrar saídas', icon: PackageMinus, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'purchases', label: 'Compras', description: 'Pedidos e anexos', icon: ShoppingCart, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'products', label: 'Cadastro de Produtos', description: 'Gerenciar produtos', icon: ClipboardList, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'suppliers', label: 'Cadastro de Fornecedores', description: 'Gerenciar fornecedores', icon: Users, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'supplier-materials', label: 'Fornecedores / Material', description: 'Materiais por fornecedor', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'users', label: 'Usuários', description: 'Gestão de acessos', icon: UserCog, allowedRoles: ['admin'] as UserRole[] },
+];
+
+export default function Dashboard({ products, movements, onTabChange }: DashboardProps) {
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+
+  useEffect(() => {
+    const loadRoles = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      if (data) {
+        setUserRoles(data.map(r => r.role as UserRole));
+      }
+    };
+    loadRoles();
+  }, []);
+
+  const filteredCards = quickAccessCards.filter(card =>
+    card.allowedRoles.some(role => userRoles.includes(role))
+  );
 
   // Calculate metrics
   const totalProducts = products.length;
@@ -50,7 +93,6 @@ export default function Dashboard({ products, movements }: DashboardProps) {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
     
-    // Ensure we're working with local Brazil time
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
     const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
     
@@ -76,17 +118,16 @@ export default function Dashboard({ products, movements }: DashboardProps) {
     return acc;
   }, {} as Record<string, { name: string; quantidade: number; valor: number }>);
 
-
   return (
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="animate-fade-in">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-            Dashboard
+            Painel de Controle
           </h2>
           <p className="text-muted-foreground mt-1">
-            Visão geral do controle de estoque
+            Acesso rápido às áreas do sistema
           </p>
         </div>
         <Button 
@@ -98,6 +139,36 @@ export default function Dashboard({ products, movements }: DashboardProps) {
           Exportar Dados
         </Button>
       </div>
+
+      {/* Quick Access Cards */}
+      {onTabChange && filteredCards.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up">
+          {filteredCards.map((card, index) => {
+            const Icon = card.icon;
+            return (
+              <Card
+                key={card.id}
+                className="p-4 cursor-pointer border hover:border-primary/40 hover:shadow-lg transition-all duration-200 group"
+                style={{ animationDelay: `${index * 0.05}s` }}
+                onClick={() => onTabChange(card.id)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-foreground leading-tight">{card.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{card.description}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
@@ -142,83 +213,32 @@ export default function Dashboard({ products, movements }: DashboardProps) {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-        {/* Movement Chart */}
         <Card className="p-6 border-0 shadow-card animate-slide-up" style={{ animationDelay: '0.3s' }}>
           <h3 className="text-lg font-semibold mb-6">Movimentações da Semana</h3>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={movementsByDay} barGap={8}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis 
-                dataKey="day" 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: 'var(--radius)',
-                  boxShadow: 'var(--shadow-lg)',
-                }}
-              />
-              <Legend 
-                wrapperStyle={{ paddingTop: '20px' }}
-              />
-              <Bar 
-                dataKey="entradas" 
-                fill="hsl(var(--success))" 
-                name="Entradas" 
-                radius={[4, 4, 0, 0]}
-              />
-              <Bar 
-                dataKey="saidas" 
-                fill="hsl(var(--warning))" 
-                name="Saídas" 
-                radius={[4, 4, 0, 0]}
-              />
+              <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)' }} />
+              <Legend wrapperStyle={{ paddingTop: '20px' }} />
+              <Bar dataKey="entradas" fill="hsl(var(--success))" name="Entradas" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="saidas" fill="hsl(var(--warning))" name="Saídas" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
 
-        {/* Stock Status Pie Chart */}
         <Card className="p-6 border-0 shadow-card animate-slide-up" style={{ animationDelay: '0.4s' }}>
           <h3 className="text-lg font-semibold mb-6">Status do Estoque</h3>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
-              <Pie
-                data={stockStatusData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={4}
-                dataKey="value"
-              >
+              <Pie data={stockStatusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value">
                 {stockStatusData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: 'var(--radius)',
-                  boxShadow: 'var(--shadow-lg)',
-                }}
-                formatter={(value, name) => [`${value} itens`, name]}
-              />
-              <Legend 
-                verticalAlign="bottom"
-                formatter={(value) => <span className="text-sm text-foreground">{value}</span>}
-              />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)' }} formatter={(value, name) => [`${value} itens`, name]} />
+              <Legend verticalAlign="bottom" formatter={(value) => <span className="text-sm text-foreground">{value}</span>} />
             </PieChart>
           </ResponsiveContainer>
         </Card>
@@ -230,43 +250,17 @@ export default function Dashboard({ products, movements }: DashboardProps) {
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={Object.values(categoryData)} layout="vertical" barSize={20}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={true} vertical={false} />
-            <XAxis 
-              type="number" 
-              stroke="hsl(var(--muted-foreground))" 
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis 
-              type="category" 
-              dataKey="name" 
-              stroke="hsl(var(--muted-foreground))" 
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              width={100}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: 'var(--radius)',
-                boxShadow: 'var(--shadow-lg)',
-              }}
-            />
-            <Bar 
-              dataKey="quantidade" 
-              fill="hsl(var(--primary))" 
-              name="Quantidade" 
-              radius={[0, 4, 4, 0]}
-            />
+            <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} width={100} />
+            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)' }} />
+            <Bar dataKey="quantidade" fill="hsl(var(--primary))" name="Quantidade" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
       {/* Recent Movements */}
       <Card className="p-6 border-0 shadow-card animate-slide-up" style={{ animationDelay: '0.6s' }}>
-        <h3 className="text-lg font-semibold mb-6">Movimentações Recentes</h3>
+        <h3 className="text-lg font-semibold mb-6">Atividades Recentes</h3>
         <div className="space-y-3">
           {movements
             .slice()
@@ -285,7 +279,6 @@ export default function Dashboard({ products, movements }: DashboardProps) {
               <div
                 key={movement.id}
                 className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
-                style={{ animationDelay: `${0.7 + index * 0.1}s` }}
               >
                 <div className="flex items-center gap-4">
                   <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${

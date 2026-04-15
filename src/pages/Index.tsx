@@ -125,7 +125,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard products={products} movements={movements} />;
+        return <Dashboard products={products} movements={movements} onTabChange={setActiveTab} />;
       case 'inventory':
         return <InventoryControl products={products} movements={movements} />;
       case 'truss-control':
