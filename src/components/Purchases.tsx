@@ -479,7 +479,7 @@ export default function Purchases({
                   setFormData({
                     ...formData,
                     notes: value,
-                    expectedDeliveryDate: value === "retirada" ? undefined : formData.expectedDeliveryDate,
+                    expectedDeliveryDate: value === "RETIRADA" ? undefined : formData.expectedDeliveryDate,
                   });
                 }}
               >
@@ -487,15 +487,15 @@ export default function Purchases({
                   <SelectValue placeholder="Selecione a forma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="entrega">Entrega</SelectItem>
-                  <SelectItem value="retirada">Retirada</SelectItem>
+                  <SelectItem value="ENTREGA">Entrega</SelectItem>
+                  <SelectItem value="RETIRADA">Retirada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {formData.notes && (
               <div className="space-y-2">
-                <Label>Previsão de {formData.notes === "entrega" ? "Entrega" : "Retirada"}</Label>
+                <Label>Previsão de {formData.notes === "ENTREGA" ? "Entrega" : "Retirada"}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
