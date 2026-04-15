@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -71,24 +71,36 @@ export default function WelcomePanel({ onTabChange, products, movements, purchas
     loadRoles();
   }, []);
 
-  // Load attachments for purchases
-  useEffect(() => {
-    const loadAttachments = async (purchaseId: string) => {
+  // Load attachments for purchases (with periodic refresh for real-time feel)
+  const loadAllAttachments = useCallback(async () => {
+    const recentPurchaseIds = purchases
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 8)
+      .map(p => p.id);
+
+    for (const purchaseId of recentPurchaseIds) {
       try {
         const { data, error } = await supabase.storage.from("purchase-attachments").list(purchaseId);
         if (error) throw error;
         if (data) {
-          setPurchaseAttachments((prev) => ({
-            ...prev,
-            [purchaseId]: data.map((f) => f.name),
-          }));
+          setPurchaseAttachments((prev) => {
+            const newNames = data.map((f) => f.name);
+            const oldNames = prev[purchaseId] || [];
+            if (JSON.stringify(oldNames) === JSON.stringify(newNames)) return prev;
+            return { ...prev, [purchaseId]: newNames };
+          });
         }
       } catch (error) {
         console.error("Erro ao carregar anexos:", error);
       }
-    };
-    purchases.forEach((p) => loadAttachments(p.id));
-  }, [purchases.length]);
+    }
+  }, [purchases]);
+
+  useEffect(() => {
+    loadAllAttachments();
+    const interval = setInterval(loadAllAttachments, 15000); // refresh every 15s
+    return () => clearInterval(interval);
+  }, [loadAllAttachments]);
 
   const handlePreviewAttachment = async (purchaseId: string, fileName: string) => {
     try {
