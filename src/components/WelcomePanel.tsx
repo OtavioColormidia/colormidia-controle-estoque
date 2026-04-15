@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   Package,
   PackagePlus,
@@ -8,32 +9,43 @@ import {
   Users,
   ClipboardList,
   UserCog,
-  ChevronRight,
   TrendingUp,
   TrendingDown,
+  BarChart3,
 } from 'lucide-react';
-import { Product, StockMovement, UserRole } from '@/types/inventory';
+import { Product, StockMovement, Purchase, UserRole } from '@/types/inventory';
 import { supabase } from '@/integrations/supabase/client';
 
 interface WelcomePanelProps {
   onTabChange: (tab: string) => void;
   products: Product[];
   movements: StockMovement[];
+  purchases: Purchase[];
 }
 
 const quickAccessCards = [
-  { id: 'inventory', label: 'Controle de Estoque', description: 'Estoque atual e alertas', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'truss-control', label: 'Controle de Treliça', description: 'Gerenciar treliças', icon: Package, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'entries', label: 'Entrada de Material', description: 'Registrar entradas', icon: PackagePlus, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'exits', label: 'Saída de Material', description: 'Registrar saídas', icon: PackageMinus, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'purchases', label: 'Compras', description: 'Pedidos e anexos', icon: ShoppingCart, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'products', label: 'Cadastro de Produtos', description: 'Gerenciar produtos', icon: ClipboardList, allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
-  { id: 'suppliers', label: 'Cadastro de Fornecedores', description: 'Gerenciar fornecedores', icon: Users, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'supplier-materials', label: 'Fornecedores / Material', description: 'Materiais por fornecedor', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
-  { id: 'users', label: 'Usuários', description: 'Gestão de acessos', icon: UserCog, allowedRoles: ['admin'] as UserRole[] },
+  { id: 'inventory', label: 'Controle de Estoque', description: 'Estoque atual e alertas', icon: Package, gradient: 'from-cyan-500 to-teal-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'truss-control', label: 'Controle de Treliça', description: 'Gerenciar treliças', icon: Package, gradient: 'from-blue-500 to-indigo-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'entries', label: 'Entrada de Material', description: 'Registrar entradas', icon: PackagePlus, gradient: 'from-emerald-500 to-green-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'exits', label: 'Saída de Material', description: 'Registrar saídas', icon: PackageMinus, gradient: 'from-orange-500 to-amber-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'purchases', label: 'Compras', description: 'Pedidos e anexos', icon: ShoppingCart, gradient: 'from-purple-500 to-violet-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'products', label: 'Cadastro de Produtos', description: 'Gerenciar produtos', icon: ClipboardList, gradient: 'from-pink-500 to-rose-500', allowedRoles: ['admin', 'almoxarife'] as UserRole[] },
+  { id: 'suppliers', label: 'Cadastro de Fornecedores', description: 'Gerenciar fornecedores', icon: Users, gradient: 'from-sky-500 to-blue-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'supplier-materials', label: 'Fornecedores / Material', description: 'Materiais por fornecedor', icon: Package, gradient: 'from-teal-500 to-cyan-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'dashboard', label: 'Dashboard', description: 'Métricas e gráficos', icon: BarChart3, gradient: 'from-indigo-500 to-purple-500', allowedRoles: ['admin', 'compras', 'almoxarife'] as UserRole[] },
+  { id: 'users', label: 'Usuários', description: 'Gestão de acessos', icon: UserCog, gradient: 'from-slate-500 to-gray-600', allowedRoles: ['admin'] as UserRole[] },
 ];
 
-export default function WelcomePanel({ onTabChange, products, movements }: WelcomePanelProps) {
+interface RecentActivity {
+  id: string;
+  type: 'entry' | 'exit' | 'purchase';
+  description: string;
+  detail: string;
+  date: Date;
+  value?: number;
+}
+
+export default function WelcomePanel({ onTabChange, products, movements, purchases }: WelcomePanelProps) {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
 
   useEffect(() => {
@@ -55,98 +67,114 @@ export default function WelcomePanel({ onTabChange, products, movements }: Welco
     card.allowedRoles.some(role => userRoles.includes(role))
   );
 
-  const recentMovements = movements
-    .slice()
-    .sort((a, b) => {
-      const ta = (a as any).createdAt ? new Date(a.createdAt as Date).getTime() : new Date(a.date).getTime();
-      const tb = (b as any).createdAt ? new Date(b.createdAt as Date).getTime() : new Date(b.date).getTime();
-      return tb - ta;
-    })
-    .slice(0, 5);
+  // Merge movements + purchases into recent activities
+  const recentActivities: RecentActivity[] = [
+    ...movements.map(m => ({
+      id: m.id,
+      type: m.type as 'entry' | 'exit',
+      description: m.productName || products.find(p => p.id === m.productId)?.name || 'Produto',
+      detail: `${m.type === 'entry' ? 'Entrada' : 'Saída'} • ${m.quantity} un.`,
+      date: new Date(m.createdAt || m.date),
+      value: m.totalValue,
+    })),
+    ...purchases.map(p => ({
+      id: p.id,
+      type: 'purchase' as const,
+      description: p.supplierName || 'Fornecedor não informado',
+      detail: `Pedido de compra • ${p.items?.length || 0} itens • ${p.status === 'pending' ? 'Pendente' : p.status === 'approved' ? 'Aprovado' : p.status === 'delivered' ? 'Entregue' : 'Cancelado'}`,
+      date: new Date(p.date),
+      value: p.totalValue,
+    })),
+  ]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 8);
 
   return (
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="animate-fade-in">
         <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-          Painel de Controle
+          Atalhos Rápidos
         </h2>
         <p className="text-muted-foreground mt-1">
           Acesse rapidamente as áreas do sistema
         </p>
       </div>
 
-      {/* Quick Access Cards */}
-      <Card className="p-6 border shadow-sm">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {filteredCards.map((card, index) => {
-            const Icon = card.icon;
-            return (
-              <div
-                key={card.id}
-                className="flex items-center gap-3 p-4 rounded-xl border bg-background hover:bg-muted/50 hover:border-primary/30 cursor-pointer transition-all duration-200 group"
-                onClick={() => onTabChange(card.id)}
-              >
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Icon className="h-5 w-5 text-primary" />
+      {/* Quick Access Cards - Large colorful gradient cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filteredCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={card.id}
+              className={`relative rounded-2xl bg-gradient-to-br ${card.gradient} p-6 text-white cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group min-h-[160px] flex flex-col justify-between`}
+              onClick={() => onTabChange(card.id)}
+            >
+              <div>
+                <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
+                  <Icon className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-foreground leading-tight truncate">{card.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{card.description}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                <h3 className="text-xl font-bold leading-tight">{card.label}</h3>
+                <p className="text-sm text-white/80 mt-1">{card.description}</p>
               </div>
-            );
-          })}
-        </div>
-      </Card>
+              <Button
+                variant="secondary"
+                className="mt-4 w-full bg-black/25 hover:bg-black/40 text-white border-0 font-semibold"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTabChange(card.id);
+                }}
+              >
+                Acessar
+              </Button>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Recent Activities */}
       <Card className="p-6 border shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Atividades Recentes</h3>
         <div className="space-y-3">
-          {recentMovements.map((movement) => {
-            const productName = movement.productName ||
-              products.find(p => p.id === movement.productId)?.name ||
-              'Produto não identificado';
-
-            return (
-              <div
-                key={movement.id}
-                className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                    movement.type === 'entry'
-                      ? 'bg-success/10 text-success'
-                      : 'bg-warning/10 text-warning'
-                  }`}>
-                    {movement.type === 'entry' ? (
-                      <TrendingUp className="h-5 w-5" />
-                    ) : (
-                      <TrendingDown className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{productName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {movement.type === 'entry' ? 'Entrada' : 'Saída'} • {' '}
-                      {new Date(movement.date).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-foreground">{movement.quantity} un.</p>
-                  {movement.totalValue && (
-                    <p className="text-sm text-muted-foreground">
-                      R$ {movement.totalValue.toFixed(2)}
-                    </p>
+          {recentActivities.map((activity) => (
+            <div
+              key={activity.id}
+              className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                  activity.type === 'entry'
+                    ? 'bg-success/10 text-success'
+                    : activity.type === 'exit'
+                    ? 'bg-warning/10 text-warning'
+                    : 'bg-primary/10 text-primary'
+                }`}>
+                  {activity.type === 'entry' ? (
+                    <TrendingUp className="h-5 w-5" />
+                  ) : activity.type === 'exit' ? (
+                    <TrendingDown className="h-5 w-5" />
+                  ) : (
+                    <ShoppingCart className="h-5 w-5" />
                   )}
                 </div>
+                <div>
+                  <p className="font-medium text-foreground">{activity.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {activity.detail} • {activity.date.toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
               </div>
-            );
-          })}
-          {movements.length === 0 && (
+              {activity.value != null && activity.value > 0 && (
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">
+                    R$ {activity.value.toFixed(2)}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+          {recentActivities.length === 0 && (
             <p className="text-muted-foreground">Nenhuma atividade recente.</p>
           )}
         </div>
