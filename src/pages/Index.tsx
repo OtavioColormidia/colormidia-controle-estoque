@@ -20,7 +20,7 @@ import { Purchase } from '@/types/inventory';
 
 const Index = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('welcome');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
