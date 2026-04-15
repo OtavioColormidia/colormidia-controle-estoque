@@ -140,25 +140,25 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
       </div>
 
       {/* Quick Access Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
         {filteredCards.map((card) => {
           const Icon = card.icon;
           return (
             <div
               key={card.id}
-              className={`relative rounded-2xl bg-gradient-to-br ${card.gradient} p-6 text-white cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group min-h-[160px] flex flex-col justify-between`}
+              className={`relative rounded-xl sm:rounded-2xl bg-gradient-to-br ${card.gradient} p-4 sm:p-6 text-white cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group min-h-[120px] sm:min-h-[160px] flex flex-col justify-between`}
               onClick={() => onTabChange(card.id)}
             >
               <div>
-                <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
-                  <Icon className="h-6 w-6 text-white" />
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 sm:mb-4">
+                  <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold leading-tight">{card.label}</h3>
-                <p className="text-sm text-white/80 mt-1">{card.description}</p>
+                <h3 className="text-sm sm:text-xl font-bold leading-tight">{card.label}</h3>
+                <p className="text-xs sm:text-sm text-white/80 mt-0.5 sm:mt-1 hidden sm:block">{card.description}</p>
               </div>
               <Button
                 variant="secondary"
-                className="mt-4 w-full bg-black/25 hover:bg-black/40 text-white border-0 font-semibold"
+                className="mt-2 sm:mt-4 w-full bg-black/25 hover:bg-black/40 text-white border-0 font-semibold text-xs sm:text-sm h-8 sm:h-9"
                 onClick={(e) => { e.stopPropagation(); onTabChange(card.id); }}
               >
                 Acessar
