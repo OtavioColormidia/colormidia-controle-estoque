@@ -662,6 +662,21 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
           )}
         </CardContent>
       </Card>
+
+      <PurchaseOrderDialog
+        open={orderDialogOpen}
+        onOpenChange={(open) => {
+          setOrderDialogOpen(open);
+          if (!open) setActiveResponse(null);
+        }}
+        suppliers={suppliers}
+        initialMaterials={activeResponse ? getMaterialsText(activeResponse) : ""}
+        requesterName={activeResponse ? getRequesterName(activeResponse) : ""}
+        onAddPurchase={onAddPurchase}
+        onCreated={async () => {
+          if (activeResponse) await markOrdered(activeResponse, true);
+        }}
+      />
     </div>
   );
 }
