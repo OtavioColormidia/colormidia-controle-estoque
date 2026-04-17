@@ -196,7 +196,7 @@ const Index = () => {
           />
         );
       case 'form-responses':
-        return <FormResponses />;
+        return <FormResponses suppliers={suppliers} onAddPurchase={addPurchase} />;
       case 'users':
         return <UserManagement />;
       default:
