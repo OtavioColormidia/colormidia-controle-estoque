@@ -1,109 +1,55 @@
 
-O usuário quer seguir com a Opção 3 (webhook do Apps Script para Supabase). Ele também perguntou onde fica o editor de scripts — isso fica no Google Sheets (não no Forms), em **Extensões → Apps Script**, exatamente na aba que ele mostrou na print ("Extensões" está visível no menu superior).
 
-Vou apresentar plano completo de implementação + instruções passo-a-passo de onde acessar o editor.
+## Plano: Importar histórico de respostas do Google Sheets
 
-## Plano: Aba "Requisição de Materiais" via Webhook
+### Estratégia
 
-### Onde acessar o editor de scripts (na sua planilha)
+Criar uma função **dentro do mesmo Apps Script** que você já configurou, que lê todas as linhas da planilha e envia uma por uma para a mesma Edge Function `receive-form-response`. Como a Edge Function já está pronta e validando o secret, não precisa mexer em nada do lado do Lovable.
 
-Na print que você enviou, você já está na planilha certa ("Requisição de Materiais (respostas)"). Para abrir o editor:
+### Por que dentro do Apps Script?
 
-1. Na barra de menus superior, clique em **Extensões**
-2. No submenu, clique em **Apps Script**
-3. Vai abrir uma nova aba com o editor de código do Google
-4. Lá vou te passar o código pronto pra colar
+- Já tem acesso autorizado à planilha (não precisa baixar CSV)
+- Já tem o secret configurado lá
+- Roda uma vez só, manualmente, e pronto
+- Mantém o mesmo formato de dados das respostas novas (consistência total)
 
-### O que vou implementar
+### Código que vou te entregar
 
-**1. Banco de dados (migration)**
-Criar tabela `form_responses`:
-- `id` (uuid, PK)
-- `form_name` (text) — identifica qual formulário (ex: "requisicao-materiais")
-- `submitted_at` (timestamptz) — data da resposta
-- `data` (jsonb) — todas as respostas em formato livre (Tipo, Solicitante, O.S., Materiais, Quantidade, etc.)
-- `sheet_row` (int, opcional) — linha na planilha original
-- `created_at` (timestamptz, default now())
-- RLS: leitura para usuários autorizados (admin, compras, almoxarife); insert apenas via service role (edge function)
-- Habilitar Realtime + REPLICA IDENTITY FULL
+Uma função extra `importarHistorico()` que você cola **abaixo** da `onFormSubmit` no mesmo arquivo. Ela vai:
 
-**2. Edge Function `receive-form-response`**
-- Pública (sem JWT), valida header `x-webhook-secret`
-- Recebe POST com `{ form_name, submitted_at, data, sheet_row? }`
-- Insere na tabela usando service role
-- Retorna 200 ou erro detalhado
-- Secret `FORM_WEBHOOK_SECRET` (vou pedir pra você gerar e cadastrar)
+1. Ler todas as linhas da planilha (da linha 2 até a última)
+2. Pegar os cabeçalhos da linha 1
+3. Pra cada linha, montar o mesmo payload `{ form_name, submitted_at, data, sheet_row }`
+4. Enviar via POST pra Edge Function (uma por uma, com pequena pausa pra não sobrecarregar)
+5. Logar quantas foram importadas com sucesso e quantas falharam
+6. Usar a coluna "Carimbo de data/hora" como `submitted_at` (preservando data/hora original)
 
-**3. Sidebar (`Layout.tsx`)**
-- Novo item: "Requisição de Materiais" (ícone `ClipboardList` ou `FileText`)
-- Permissões: admin, compras, almoxarife
-- Grupo: novo grupo "formularios" (ou junto de "movimentacao")
+### Proteção contra duplicatas
 
-**4. Componente `FormResponses.tsx`**
-- Lista todas as respostas em tabela responsiva
-- Colunas dinâmicas baseadas nas chaves do `data` (Carimbo, Tipo, Solicitante, O.S., Materiais, Quantidade, etc.)
-- Campo de busca (filtra por qualquer texto)
-- Filtro por "Tipo" (Estoque / Material Especial) com dropdown
-- Filtro por "Solicitante" com dropdown
-- Realtime: ouve `INSERT` na tabela `form_responses` e atualiza a lista instantaneamente
-- Mobile: cards empilhados em vez de tabela
-- Contador de respostas no topo
-- Botão pra exportar CSV (opcional, posso adicionar depois)
+Vou adicionar no plano uma **migration leve** no Supabase: índice único em `(form_name, sheet_row)` quando `sheet_row` não for nulo. Assim:
+- Se você rodar a importação 2x por engano, não duplica
+- Se uma resposta nova chegar via trigger e você importar de novo, não duplica
+- A Edge Function vai precisar de um pequeno ajuste pra retornar 200 (em vez de 500) quando o erro for "duplicate key", tratando como "já existe, tudo certo"
 
-**5. Roteamento (`Index.tsx`)**
-- Novo case `'form-responses'` renderizando o componente
+### Como você vai rodar
 
-### O código do Apps Script que você vai colar
+1. Cola o código da função `importarHistorico` no editor
+2. No topo do editor, seleciona `importarHistorico` no dropdown de funções
+3. Clica em **Executar** (botão de play)
+4. Autoriza (pode pedir de novo)
+5. Aguarda ~30 segundos a 2 minutos (depende de quantas linhas tem)
+6. Vê o log: "Importadas X de Y respostas"
+7. Atualiza a aba no site → todas as respostas históricas aparecem
 
-Depois de aprovar este plano e eu criar a infraestrutura, vou te entregar algo assim (já com a URL preenchida):
+### Ordem de execução
 
-```javascript
-function onFormSubmit(e) {
-  const SECRET = 'COLOCAR_SEU_SECRET_AQUI';
-  const URL = 'https://xmaeixjvbpgwkhipaxys.supabase.co/functions/v1/receive-form-response';
-  
-  const headers = e.values; // array com valores na ordem das colunas
-  const sheet = e.range.getSheet();
-  const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  
-  const data = {};
-  headerRow.forEach((col, i) => { if (col) data[col] = headers[i]; });
-  
-  UrlFetchApp.fetch(URL, {
-    method: 'post',
-    contentType: 'application/json',
-    headers: { 'x-webhook-secret': SECRET },
-    payload: JSON.stringify({
-      form_name: 'requisicao-materiais',
-      submitted_at: new Date().toISOString(),
-      data: data,
-      sheet_row: e.range.getRow()
-    }),
-    muteHttpExceptions: true
-  });
-}
-```
+1. Migration no Supabase: índice único `(form_name, sheet_row)` + ajuste pequeno na Edge Function pra tratar duplicatas como sucesso
+2. Te entrego o código completo do `importarHistorico` pra colar no Apps Script
+3. Você roda manualmente
+4. Confere o resultado no site
+5. (Se quiser depois) remove a função `importarHistorico` do Apps Script — ela só serve uma vez
 
-E depois você configura o trigger:
-- No editor: ícone de relógio (Triggers) → Adicionar acionador
-- Função: `onFormSubmit`
-- Evento: "Da planilha" → "Ao enviar formulário"
-- Salvar e autorizar
+### Observação importante
 
-### Importação das respostas existentes
+A coluna "Carimbo de data/hora" do Google vem em formato brasileiro (ex: `15/04/2026 14:30:22`). Vou tratar isso no script pra converter corretamente pra ISO 8601 antes de enviar. Se não tratar, viraria string solta no JSON e perderia a ordenação por data.
 
-Você já tem várias respostas históricas (vi 14+ na print). Tenho duas opções:
-- **(A)** Começar do zero — só novas respostas a partir de agora aparecem
-- **(B)** Importar o histórico — você baixa a planilha como CSV e eu crio um script de importação que sobe tudo de uma vez
-
-Vou assumir **(B)** no plano, mas se preferir (A), me avise.
-
-### Ordem de execução depois da aprovação
-
-1. Criar tabela + RLS + realtime (migration)
-2. Pedir você cadastrar o secret `FORM_WEBHOOK_SECRET` (qualquer string aleatória forte)
-3. Criar a edge function
-4. Criar a aba e o componente
-5. Te entregar o código exato do Apps Script já com a URL
-6. (Opcional B) Importar histórico via CSV
-7. Testar juntos enviando uma resposta de teste no formulário
