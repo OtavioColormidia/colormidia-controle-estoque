@@ -699,6 +699,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         }}
         suppliers={suppliers}
         initialMaterials={activeResponse ? getMaterialsText(activeResponse) : ""}
+        initialDocumentNumber={activeResponse ? getOsNumber(activeResponse) : ""}
         requesterName={activeResponse ? getRequesterName(activeResponse) : ""}
         onAddPurchase={onAddPurchase}
         onCreated={async () => {
