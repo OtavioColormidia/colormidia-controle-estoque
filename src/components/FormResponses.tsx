@@ -106,7 +106,7 @@ const isMaterialsKey = (k: string) => {
   );
 };
 
-export default function FormResponses() {
+export default function FormResponses({ suppliers, onAddPurchase }: FormResponsesProps) {
   const { toast } = useToast();
   const [responses, setResponses] = useState<FormResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +118,8 @@ export default function FormResponses() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [profilesById, setProfilesById] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [activeResponse, setActiveResponse] = useState<FormResponse | null>(null);
 
   const loadResponses = async () => {
     setLoading(true);
