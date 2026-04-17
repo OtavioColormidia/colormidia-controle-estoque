@@ -220,8 +220,8 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
                 const isPendingAlert = item.id === 'form-responses' && pendingRequestsCount > 0;
                 const showBadge = isStockAlert || isPendingAlert;
                 const badgeValue = isPendingAlert ? pendingRequestsCount : alertStockCount;
-                const badgeVariant: 'warning' | 'destructive' = isPendingAlert ? 'destructive' : 'warning';
-                const dotClass = isPendingAlert ? 'bg-destructive' : 'bg-warning';
+                const badgeVariant: 'warning' = 'warning';
+                const dotClass = 'bg-warning';
                 
                 return (
                   <li key={item.id}>
