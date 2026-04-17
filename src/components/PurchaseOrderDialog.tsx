@@ -54,6 +54,7 @@ interface PurchaseOrderDialogProps {
   onOpenChange: (open: boolean) => void;
   suppliers: Supplier[];
   initialMaterials?: string;
+  initialDocumentNumber?: string;
   requesterName?: string;
   onAddPurchase: (
     purchase: Omit<Purchase, "id">
