@@ -85,6 +85,17 @@ Deno.serve(async (req) => {
       .single();
 
     if (error) {
+      // Treat duplicate-key as success (idempotent imports)
+      if (error.code === "23505") {
+        console.log("Duplicate ignored:", { form_name, sheet_row });
+        return new Response(
+          JSON.stringify({ success: true, duplicate: true }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
       console.error("Insert error:", error);
       return new Response(
         JSON.stringify({ error: error.message }),
