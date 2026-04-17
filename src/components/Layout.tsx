@@ -216,7 +216,12 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               {menuItems.map((item, index) => {
                 const Icon = item.icon;
                 const showSeparator = index > 0 && menuItems[index - 1]?.group !== item.group;
-                const showBadge = item.id === 'inventory' && alertStockCount > 0;
+                const isStockAlert = item.id === 'inventory' && alertStockCount > 0;
+                const isPendingAlert = item.id === 'form-responses' && pendingRequestsCount > 0;
+                const showBadge = isStockAlert || isPendingAlert;
+                const badgeValue = isPendingAlert ? pendingRequestsCount : alertStockCount;
+                const badgeVariant: 'warning' | 'destructive' = isPendingAlert ? 'destructive' : 'warning';
+                const dotClass = isPendingAlert ? 'bg-destructive' : 'bg-warning';
                 
                 return (
                   <li key={item.id}>
@@ -245,14 +250,14 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
                       )}
                       {showBadge && sidebarOpen && (
                         <Badge 
-                          variant="warning" 
+                          variant={badgeVariant}
                           className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle"
                         >
-                          {alertStockCount}
+                          {badgeValue}
                         </Badge>
                       )}
                       {showBadge && !sidebarOpen && (
-                        <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse" />
+                        <span className={cn("absolute top-1 right-1 h-2 w-2 rounded-full animate-pulse", dotClass)} />
                       )}
                     </button>
                   </li>
