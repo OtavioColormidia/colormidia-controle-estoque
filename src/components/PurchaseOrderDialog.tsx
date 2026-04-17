@@ -134,7 +134,7 @@ export default function PurchaseOrderDialog({
       setItems(parseMaterialsToItems(initialMaterials || ""));
       setSupplierId("");
       setSupplierName("");
-      setDocumentNumber("");
+      setDocumentNumber(initialDocumentNumber || "");
       setReceiveMode("");
       setExpectedDeliveryDate(undefined);
       setProductName("");
