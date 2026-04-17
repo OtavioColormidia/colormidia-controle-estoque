@@ -60,6 +60,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [displayName, setDisplayName] = useState<string>('');
   const [alertStockCount, setAlertStockCount] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
@@ -100,9 +101,36 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
         const alertStock = products.filter(p => p.current_stock <= p.min_stock * 1.5).length;
         setAlertStockCount(alertStock);
       }
+
+      // Load pending form requests count
+      const { count } = await supabase
+        .from('form_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('ordered', false);
+      setPendingRequestsCount(count ?? 0);
     };
 
     loadUserData();
+
+    // Realtime subscription for pending count
+    const channel = supabase
+      .channel('layout-form-responses-count')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'form_responses' },
+        async () => {
+          const { count } = await supabase
+            .from('form_responses')
+            .select('*', { count: 'exact', head: true })
+            .eq('ordered', false);
+          setPendingRequestsCount(count ?? 0);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -188,7 +216,12 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
               {menuItems.map((item, index) => {
                 const Icon = item.icon;
                 const showSeparator = index > 0 && menuItems[index - 1]?.group !== item.group;
-                const showBadge = item.id === 'inventory' && alertStockCount > 0;
+                const isStockAlert = item.id === 'inventory' && alertStockCount > 0;
+                const isPendingAlert = item.id === 'form-responses' && pendingRequestsCount > 0;
+                const showBadge = isStockAlert || isPendingAlert;
+                const badgeValue = isPendingAlert ? pendingRequestsCount : alertStockCount;
+                const badgeVariant: 'warning' | 'destructive' = isPendingAlert ? 'destructive' : 'warning';
+                const dotClass = isPendingAlert ? 'bg-destructive' : 'bg-warning';
                 
                 return (
                   <li key={item.id}>
@@ -217,14 +250,14 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
                       )}
                       {showBadge && sidebarOpen && (
                         <Badge 
-                          variant="warning" 
+                          variant={badgeVariant}
                           className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle"
                         >
-                          {alertStockCount}
+                          {badgeValue}
                         </Badge>
                       )}
                       {showBadge && !sidebarOpen && (
-                        <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse" />
+                        <span className={cn("absolute top-1 right-1 h-2 w-2 rounded-full animate-pulse", dotClass)} />
                       )}
                     </button>
                   </li>
