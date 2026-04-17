@@ -101,9 +101,36 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
         const alertStock = products.filter(p => p.current_stock <= p.min_stock * 1.5).length;
         setAlertStockCount(alertStock);
       }
+
+      // Load pending form requests count
+      const { count } = await supabase
+        .from('form_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('ordered', false);
+      setPendingRequestsCount(count ?? 0);
     };
 
     loadUserData();
+
+    // Realtime subscription for pending count
+    const channel = supabase
+      .channel('layout-form-responses-count')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'form_responses' },
+        async () => {
+          const { count } = await supabase
+            .from('form_responses')
+            .select('*', { count: 'exact', head: true })
+            .eq('ordered', false);
+          setPendingRequestsCount(count ?? 0);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleLogout = async () => {
