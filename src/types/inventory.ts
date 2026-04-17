@@ -60,6 +60,8 @@ export interface Purchase {
   documentNumber?: string;
   notes?: string;
   expectedDeliveryDate?: Date;
+  createdBy?: string;
+  createdByName?: string;
 }
 
 export interface PurchaseItem {
