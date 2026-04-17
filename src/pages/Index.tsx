@@ -14,6 +14,7 @@ import SupplierManagement from '@/components/SupplierManagement';
 import Purchases from '@/components/Purchases';
 import SupplierMaterials from '@/components/SupplierMaterials';
 import UserManagement from '@/components/UserManagement';
+import FormResponses from '@/components/FormResponses';
 import { Loader2 } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { Purchase } from '@/types/inventory';
@@ -194,6 +195,8 @@ const Index = () => {
             onDeleteSupplierMaterial={deleteSupplierMaterial}
           />
         );
+      case 'form-responses':
+        return <FormResponses />;
       case 'users':
         return <UserManagement />;
       default:

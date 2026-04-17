@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Sun,
   Moon,
+  FileText,
 } from 'lucide-react';
 import logoColorMedia from '@/assets/logo-colormedia.jpg';
 import { useTheme } from '@/hooks/useTheme';
@@ -50,6 +51,7 @@ const allMenuItems: MenuItem[] = [
   { id: 'products', label: 'Cadastro de Produtos', icon: ClipboardList, allowedRoles: ['admin', 'almoxarife'], group: 'cadastros' },
   { id: 'suppliers', label: 'Cadastro de Fornecedores', icon: Users, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'cadastros' },
   { id: 'supplier-materials', label: 'Fornecedores / Material', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'cadastros' },
+  { id: 'form-responses', label: 'Requisição de Materiais', icon: FileText, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'formularios' },
   { id: 'users', label: 'Usuários', icon: UserCog, allowedRoles: ['admin'], group: 'admin' },
 ];
 

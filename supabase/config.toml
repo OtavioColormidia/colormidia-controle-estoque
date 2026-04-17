@@ -1,1 +1,4 @@
 project_id = "xmaeixjvbpgwkhipaxys"
+
+[functions.receive-form-response]
+verify_jwt = false
