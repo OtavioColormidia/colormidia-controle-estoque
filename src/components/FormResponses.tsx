@@ -326,6 +326,34 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
     return formatValue(r.data?.[requesterKey]);
   };
 
+  // Heuristic to find the OS / order number inside the response data
+  const getOsNumber = (r: FormResponse): string => {
+    const data = r.data ?? {};
+    const osKey = Object.keys(data).find((k) => {
+      const lower = k.toLowerCase().trim();
+      return (
+        lower === "o.s." ||
+        lower === "o.s" ||
+        lower === "os" ||
+        lower.startsWith("o.s.") ||
+        lower.startsWith("o.s ") ||
+        lower.startsWith("os ") ||
+        lower.startsWith("os n") ||
+        lower.startsWith("o.s n") ||
+        lower.includes("nº de os") ||
+        lower.includes("n° de os") ||
+        lower.includes("numero de os") ||
+        lower.includes("número de os") ||
+        lower.includes("ordem de servi") ||
+        lower.includes("nº os") ||
+        lower.includes("n° os")
+      );
+    });
+    if (!osKey) return "";
+    const raw = formatValue(data[osKey]);
+    return raw === "—" ? "" : raw;
+  };
+
   const handleOpenOrderDialog = (r: FormResponse) => {
     setActiveResponse(r);
     setOrderDialogOpen(true);
@@ -671,6 +699,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         }}
         suppliers={suppliers}
         initialMaterials={activeResponse ? getMaterialsText(activeResponse) : ""}
+        initialDocumentNumber={activeResponse ? getOsNumber(activeResponse) : ""}
         requesterName={activeResponse ? getRequesterName(activeResponse) : ""}
         onAddPurchase={onAddPurchase}
         onCreated={async () => {

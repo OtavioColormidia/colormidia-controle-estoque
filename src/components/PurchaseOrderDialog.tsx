@@ -54,6 +54,7 @@ interface PurchaseOrderDialogProps {
   onOpenChange: (open: boolean) => void;
   suppliers: Supplier[];
   initialMaterials?: string;
+  initialDocumentNumber?: string;
   requesterName?: string;
   onAddPurchase: (
     purchase: Omit<Purchase, "id">
@@ -98,6 +99,7 @@ export default function PurchaseOrderDialog({
   onOpenChange,
   suppliers,
   initialMaterials,
+  initialDocumentNumber,
   requesterName,
   onAddPurchase,
   onCreated,
@@ -132,7 +134,7 @@ export default function PurchaseOrderDialog({
       setItems(parseMaterialsToItems(initialMaterials || ""));
       setSupplierId("");
       setSupplierName("");
-      setDocumentNumber("");
+      setDocumentNumber(initialDocumentNumber || "");
       setReceiveMode("");
       setExpectedDeliveryDate(undefined);
       setProductName("");
