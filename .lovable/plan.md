@@ -1,37 +1,54 @@
 
 
-O usuário quer:
-1. Apagar todas as respostas que já foram importadas pra tabela `form_responses`
-2. Não rodar mais o `importarHistorico` — só manter o trigger automático (`onFormSubmit`) pras respostas novas
+O usuário quer importar **apenas algumas colunas** específicas da planilha (as visíveis na print: Carimbo de data/hora, Tipo, Solicitante, O.S. nº, Materiais, Quantidade, Produção em), e **ignorar** as colunas extras que existem na planilha mas não são respostas do formulário (Valor, Observações, Status, Comprador, Entrega Prevista).
 
-Razão: a planilha tem várias abas com dados de anos antigos (até 2022) e o script importou tudo, o que não é desejado.
+Essas colunas extras provavelmente foram adicionadas manualmente na planilha pelo time de compras pra controle interno — não fazem parte do Google Form.
 
 ## Plano
 
-### 1. Limpar a tabela `form_responses`
-Executar um `DELETE` simples removendo todas as linhas da tabela. Como a tabela só guarda respostas de formulário (não tem FKs apontando pra ela), é seguro apagar tudo. Vou usar a ferramenta de insert/delete (não migration, pois é operação de dados, não de schema).
+### Opção escolhida: filtrar no Apps Script (na origem)
 
-```sql
-DELETE FROM public.form_responses;
+Filtrar **antes** de enviar pra Edge Function é melhor que filtrar no banco/frontend porque:
+- Não polui o banco com dados que não interessam
+- Reduz tráfego de rede
+- Mantém a Edge Function genérica (não precisa saber de regras específicas dessa planilha)
+
+### Como fazer: lista branca de colunas
+
+Vou ajustar a função `onFormSubmit` no Apps Script pra incluir uma constante `COLUNAS_PERMITIDAS` com os nomes exatos dos cabeçalhos que devem ser enviados. Qualquer coluna fora dessa lista é descartada antes do `data` ser montado.
+
+```javascript
+const COLUNAS_PERMITIDAS = [
+  'Carimbo de data/hora',
+  'Tipo',
+  'Solicitante',
+  'O.S. nº',
+  'Materiais',
+  'Quantidade',
+  'Produção em'
+];
 ```
 
-### 2. Instruir o usuário a remover (ou não rodar mais) a função `importarHistorico` no Apps Script
-A função `onFormSubmit` continua ativa via trigger e vai capturar respostas novas automaticamente. A função `importarHistorico` pode:
-- Ser apagada do editor (recomendado, pra evitar execução acidental no futuro), OU
-- Ser deixada lá sem rodar (já que precisa ser executada manualmente — não tem trigger)
+### Vantagens dessa abordagem
 
-### 3. (Opcional, mas recomendado) Limitar o trigger a uma aba específica
-Se a planilha tem várias abas e o trigger `onFormSubmit` está conectado à planilha inteira, ele já filtra automaticamente porque o evento `Ao enviar formulário` só dispara quando uma resposta de formulário chega — e isso só acontece na aba vinculada ao Form. Então não precisa mexer.
+1. **Fácil de manter**: se amanhã o formulário ganhar uma pergunta nova, basta adicionar o nome dela na lista
+2. **À prova de mudança de ordem**: filtra por nome do cabeçalho, não por índice de coluna — se alguém mover colunas na planilha, continua funcionando
+3. **Tolerante a colunas extras**: o time de compras pode adicionar quantas colunas de controle interno quiser na planilha sem afetar o que vai pro site
 
-Mas vale confirmar com o usuário: o trigger atual está vinculado ao Google Form correto? Se sim, só respostas novas desse form vão chegar.
+### Cuidado importante
 
-### Não precisa de mudança no código do projeto
-O componente `FormResponses.tsx`, a edge function e o índice único continuam todos funcionando. A única ação no banco é o DELETE.
+Os nomes na lista precisam ser **idênticos** aos cabeçalhos da linha 1 da planilha (incluindo acentos, maiúsculas/minúsculas, espaços e pontuação). Por exemplo, se na planilha está `O.S. nº` (com º minúsculo), tem que ser exatamente assim na lista.
 
-### Ordem de execução
+### Não precisa mexer em nada do Lovable
 
-1. Executar `DELETE FROM public.form_responses` via insert tool
-2. Confirmar pro usuário que a tabela está vazia
-3. Instruir ele a apagar a função `importarHistorico` do Apps Script (ou só não rodar mais)
-4. Confirmar que o trigger `onFormSubmit` continua ativo pra respostas novas
+- Edge Function: continua igual (recebe qualquer estrutura em `data`)
+- Tabela `form_responses`: campo `data` é JSONB, aceita qualquer formato
+- Componente `FormResponses.tsx`: já renderiza dinamicamente as chaves do JSON, então só vai mostrar o que vier
+
+### Entregáveis
+
+Vou te entregar **o código completo atualizado da `onFormSubmit`** com o filtro embutido, prontinho pra você substituir o que está no Apps Script. Junto com instruções claras de:
+1. Como confirmar os nomes exatos dos cabeçalhos da sua planilha
+2. Onde colar o código
+3. Como testar
 
