@@ -48,10 +48,10 @@ const allMenuItems: MenuItem[] = [
   { id: 'entries', label: 'Entrada de Material', icon: PackagePlus, allowedRoles: ['admin', 'almoxarife'], group: 'movimentacao' },
   { id: 'exits', label: 'Saída de Material', icon: PackageMinus, allowedRoles: ['admin', 'almoxarife'], group: 'movimentacao' },
   { id: 'purchases', label: 'Compras', icon: ShoppingCart, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'compras' },
+  { id: 'form-responses', label: 'Requisição de Materiais', icon: FileText, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'compras' },
   { id: 'products', label: 'Cadastro de Produtos', icon: ClipboardList, allowedRoles: ['admin', 'almoxarife'], group: 'cadastros' },
   { id: 'suppliers', label: 'Cadastro de Fornecedores', icon: Users, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'cadastros' },
   { id: 'supplier-materials', label: 'Fornecedores / Material', icon: Package, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'cadastros' },
-  { id: 'form-responses', label: 'Requisição de Materiais', icon: FileText, allowedRoles: ['admin', 'compras', 'almoxarife'], group: 'formularios' },
   { id: 'users', label: 'Usuários', icon: UserCog, allowedRoles: ['admin'], group: 'admin' },
 ];
 
