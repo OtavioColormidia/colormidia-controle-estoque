@@ -41,6 +41,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import PurchaseOrderDialog from "@/components/PurchaseOrderDialog";
+import { Purchase, Supplier } from "@/types/inventory";
+
+interface FormResponsesProps {
+  suppliers: Supplier[];
+  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<string | void>;
+}
 
 interface FormResponse {
   id: string;
