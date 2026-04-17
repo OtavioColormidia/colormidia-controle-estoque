@@ -108,8 +108,21 @@ const isMaterialsKey = (k: string) => {
 
 export default function FormResponses({ suppliers, onAddPurchase }: FormResponsesProps) {
   const { toast } = useToast();
-  const [responses, setResponses] = useState<FormResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [responses, setResponses] = useState<FormResponse[]>(() => {
+    try {
+      const cached = sessionStorage.getItem("form_responses_cache");
+      return cached ? (JSON.parse(cached) as FormResponse[]) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !sessionStorage.getItem("form_responses_cache");
+    } catch {
+      return true;
+    }
+  });
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [requesterFilter, setRequesterFilter] = useState<string>("all");
