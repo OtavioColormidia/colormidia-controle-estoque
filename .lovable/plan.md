@@ -1,54 +1,59 @@
 
 
-O usuário quer importar **apenas algumas colunas** específicas da planilha (as visíveis na print: Carimbo de data/hora, Tipo, Solicitante, O.S. nº, Materiais, Quantidade, Produção em), e **ignorar** as colunas extras que existem na planilha mas não são respostas do formulário (Valor, Observações, Status, Comprador, Entrega Prevista).
+## Análise dos dois problemas
 
-Essas colunas extras provavelmente foram adicionadas manualmente na planilha pelo time de compras pra controle interno — não fazem parte do Google Form.
+### Problema 1: Resposta nova não chegou no site
 
-## Plano
+A linha 147 da planilha mostra a resposta de teste (Otavio, 17/04/2026 09:42:45), mas não apareceu na aba Requisição de Materiais do site. Isso indica que o webhook não foi disparado ou falhou. Causas possíveis:
 
-### Opção escolhida: filtrar no Apps Script (na origem)
+1. **Trigger `onFormSubmit` não está ativo** — sem trigger, a função não roda quando uma resposta chega
+2. **Erro no código do Apps Script** — ex: `WEBHOOK_SECRET` ainda com valor placeholder `'SEU_SECRET_AQUI'`, ou erro de sintaxe
+3. **Edge function rejeitou** — ex: secret inválido, payload malformado
+4. **Índice único bloqueou** — a tabela tem constraint único em `(form_name, sheet_row)`. Se a linha 147 já existia antes (de uma importação anterior) e foi deletada, pode haver conflito? Não — DELETE remove o registro, então não bloqueia nova inserção.
 
-Filtrar **antes** de enviar pra Edge Function é melhor que filtrar no banco/frontend porque:
-- Não polui o banco com dados que não interessam
-- Reduz tráfego de rede
-- Mantém a Edge Function genérica (não precisa saber de regras específicas dessa planilha)
+Vou checar logs da edge function pra ver se ela foi chamada e o que aconteceu.
 
-### Como fazer: lista branca de colunas
+### Problema 2: Ordem invertida (mais antigas no topo)
 
-Vou ajustar a função `onFormSubmit` no Apps Script pra incluir uma constante `COLUNAS_PERMITIDAS` com os nomes exatos dos cabeçalhos que devem ser enviados. Qualquer coluna fora dessa lista é descartada antes do `data` ser montado.
+Olhando o `FormResponses.tsx` linha 75-82, a query já ordena `submitted_at DESC` (mais recentes primeiro). Então o problema NÃO está no fetch inicial.
 
-```javascript
-const COLUNAS_PERMITIDAS = [
-  'Carimbo de data/hora',
-  'Tipo',
-  'Solicitante',
-  'O.S. nº',
-  'Materiais',
-  'Quantidade',
-  'Produção em'
-];
-```
+Suspeita: ao receber resposta nova via realtime (linha 110), o código faz `setResponses((prev) => [payload.new, ...prev])` — adiciona no topo. Isso está certo.
 
-### Vantagens dessa abordagem
+**Mas** — quando o `importarHistorico` rodou anteriormente, ele importou linhas 1, 2, 3... 146 em ordem cronológica crescente. O campo `submitted_at` recebeu o "Carimbo de data/hora" de cada linha. Se as datas estiverem corretas (2022, 2023, 2024...), o `ORDER BY submitted_at DESC` deveria mostrar 2026 primeiro, depois 2025, etc.
 
-1. **Fácil de manter**: se amanhã o formulário ganhar uma pergunta nova, basta adicionar o nome dela na lista
-2. **À prova de mudança de ordem**: filtra por nome do cabeçalho, não por índice de coluna — se alguém mover colunas na planilha, continua funcionando
-3. **Tolerante a colunas extras**: o time de compras pode adicionar quantas colunas de controle interno quiser na planilha sem afetar o que vai pro site
+Possibilidade: se o `submitted_at` foi salvo como string (não como timestamp ISO), ou se o "Carimbo de data/hora" da planilha veio em formato brasileiro `dd/mm/yyyy hh:mm:ss` e foi salvo como string solta, a ordenação fica alfabética (`01/...` antes de `12/...`) — explicando por que parece "ao contrário".
 
-### Cuidado importante
+Vou consultar o banco pra confirmar como o `submitted_at` está armazenado.
 
-Os nomes na lista precisam ser **idênticos** aos cabeçalhos da linha 1 da planilha (incluindo acentos, maiúsculas/minúsculas, espaços e pontuação). Por exemplo, se na planilha está `O.S. nº` (com º minúsculo), tem que ser exatamente assim na lista.
+## Plano de investigação e correção
 
-### Não precisa mexer em nada do Lovable
+### Passo 1: Diagnóstico (vou fazer agora antes de propor solução final)
+- Consultar `form_responses` no banco pra ver formato de `submitted_at` das respostas atuais
+- Checar logs da edge function `receive-form-response` pra ver se a resposta de teste do Otavio chegou
+- Verificar como o componente exibe a ordem
 
-- Edge Function: continua igual (recebe qualquer estrutura em `data`)
-- Tabela `form_responses`: campo `data` é JSONB, aceita qualquer formato
-- Componente `FormResponses.tsx`: já renderiza dinamicamente as chaves do JSON, então só vai mostrar o que vier
+### Passo 2: Corrigir Problema 1 (resposta não chega)
 
-### Entregáveis
+Dependendo do que os logs mostrarem:
+- **Se a edge function NÃO foi chamada**: trigger desativado ou erro no Apps Script. Vou pedir pra você abrir o menu Acionadores (⏰) e mandar print, e também ver as Execuções (menu de relógio com histórico) pra ver se houve erro.
+- **Se foi chamada e falhou**: corrigir o erro específico (provavelmente secret errado).
+- **Se foi chamada e sucesso, mas não aparece**: problema de realtime/filtro no frontend.
 
-Vou te entregar **o código completo atualizado da `onFormSubmit`** com o filtro embutido, prontinho pra você substituir o que está no Apps Script. Junto com instruções claras de:
-1. Como confirmar os nomes exatos dos cabeçalhos da sua planilha
-2. Onde colar o código
-3. Como testar
+### Passo 3: Corrigir Problema 2 (ordem)
+
+Se o `submitted_at` está como string brasileira:
+- **Causa**: o Apps Script atual usa `submittedAt = data['Carimbo de data/hora']`, mas como esse campo está dentro do `data` filtrado, ele guarda o valor já convertido pra ISO (porque o loop converte `Date` → ISO antes). Então deveria estar OK pras respostas novas.
+- Mas as respostas antigas importadas pelo `importarHistorico` (que você rodou antes) podem ter sido salvas com formato diferente.
+
+Como você apagou tudo (DELETE FROM form_responses) e estamos começando do zero, esse problema só existirá se a resposta nova foi salva errada. Vou confirmar consultando o banco.
+
+### Solução provável (a confirmar após diagnóstico)
+
+1. **Corrigir Apps Script**: garantir que `submitted_at` enviado pra edge function é sempre ISO 8601 válido (não string brasileira)
+2. **Corrigir frontend (defensivo)**: adicionar parsing tolerante a formato brasileiro no sort, caso já exista dado ruim
+3. **Reativar/verificar trigger** se necessário
+
+### O que vou pedir ao aprovar
+
+Consulta SQL ao banco + leitura de logs da edge function pra diagnóstico preciso, depois aplico a correção exata. Não vou chutar — o diagnóstico vai dizer se é problema de trigger, secret, formato de data, ou frontend.
 
