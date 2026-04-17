@@ -99,6 +99,7 @@ export default function PurchaseOrderDialog({
   onOpenChange,
   suppliers,
   initialMaterials,
+  initialDocumentNumber,
   requesterName,
   onAddPurchase,
   onCreated,
