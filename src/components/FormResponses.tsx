@@ -135,12 +135,11 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const [activeResponse, setActiveResponse] = useState<FormResponse | null>(null);
 
   const loadResponses = async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from("form_responses")
-      .select("*")
+      .select("id, form_name, submitted_at, data, sheet_row, created_at, ordered, ordered_by, ordered_at")
       .order("submitted_at", { ascending: false })
-      .limit(1000);
+      .limit(200);
 
     if (error) {
       toast({
@@ -149,7 +148,13 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         variant: "destructive",
       });
     } else {
-      setResponses((data ?? []) as FormResponse[]);
+      const list = (data ?? []) as FormResponse[];
+      setResponses(list);
+      try {
+        sessionStorage.setItem("form_responses_cache", JSON.stringify(list));
+      } catch {
+        // ignore quota errors
+      }
     }
     setLoading(false);
   };
