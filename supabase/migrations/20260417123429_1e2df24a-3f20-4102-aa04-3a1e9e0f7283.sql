@@ -1,0 +1,1 @@
+DELETE FROM public.form_responses;
