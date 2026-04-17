@@ -140,6 +140,7 @@ export const useSupabaseData = () => {
       .select(`
         *,
         supplier:suppliers(name),
+        creator:profiles!purchases_created_by_fkey(display_name, email),
         purchase_items(
           *,
           product:products(name)
@@ -149,7 +150,7 @@ export const useSupabaseData = () => {
     
     if (error) throw error;
     
-    const formattedPurchases: Purchase[] = data?.map(p => ({
+    const formattedPurchases: Purchase[] = data?.map((p: any) => ({
       id: p.id,
       date: new Date(p.date),
       supplierId: p.supplier_id,
@@ -168,7 +169,9 @@ export const useSupabaseData = () => {
       status: p.status as 'pending' | 'approved' | 'delivered' | 'cancelled',
       documentNumber: p.document_number || undefined,
       notes: p.notes || undefined,
-      expectedDeliveryDate: p.expected_delivery_date ? new Date(p.expected_delivery_date) : undefined
+      expectedDeliveryDate: p.expected_delivery_date ? new Date(p.expected_delivery_date) : undefined,
+      createdBy: p.created_by || undefined,
+      createdByName: p.creator?.display_name || p.creator?.email || undefined,
     })) || [];
     
     setPurchases(formattedPurchases);

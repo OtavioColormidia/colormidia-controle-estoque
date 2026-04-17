@@ -122,7 +122,7 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
       id: p.id,
       type: "purchase" as const,
       description: p.supplierName || "Fornecedor não informado",
-      detail: `Pedido de compra • ${p.items?.length || 0} itens`,
+      detail: `Pedido de compra • ${p.items?.length || 0} itens${p.createdByName ? ` • por ${p.createdByName}` : ""}`,
       date: new Date(p.date),
       value: p.totalValue,
       purchaseId: p.id,
