@@ -60,6 +60,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [displayName, setDisplayName] = useState<string>('');
   const [alertStockCount, setAlertStockCount] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
