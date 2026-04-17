@@ -41,6 +41,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import PurchaseOrderDialog from "@/components/PurchaseOrderDialog";
+import { Purchase, Supplier } from "@/types/inventory";
+
+interface FormResponsesProps {
+  suppliers: Supplier[];
+  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<string | void>;
+}
 
 interface FormResponse {
   id: string;
@@ -99,7 +106,7 @@ const isMaterialsKey = (k: string) => {
   );
 };
 
-export default function FormResponses() {
+export default function FormResponses({ suppliers, onAddPurchase }: FormResponsesProps) {
   const { toast } = useToast();
   const [responses, setResponses] = useState<FormResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +118,8 @@ export default function FormResponses() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [profilesById, setProfilesById] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [activeResponse, setActiveResponse] = useState<FormResponse | null>(null);
 
   const loadResponses = async () => {
     setLoading(true);
@@ -276,10 +285,9 @@ export default function FormResponses() {
     }
   };
 
-  const handleToggleOrdered = async (r: FormResponse) => {
+  const markOrdered = async (r: FormResponse, newOrdered: boolean) => {
     if (!currentUserId) return;
     setUpdatingId(r.id);
-    const newOrdered = !r.ordered;
     const { error } = await supabase
       .from("form_responses")
       .update({
@@ -302,6 +310,27 @@ export default function FormResponses() {
     }
   };
 
+  // Heuristic to find the materials text inside the response data
+  const getMaterialsText = (r: FormResponse): string => {
+    const data = r.data ?? {};
+    const matKey = Object.keys(data).find((k) => isMaterialsKey(k));
+    if (matKey) return formatValue(data[matKey]);
+    return Object.entries(data)
+      .filter(([k]) => !isHiddenKey(k))
+      .map(([k, v]) => `${k}: ${formatValue(v)}`)
+      .join("\n");
+  };
+
+  const getRequesterName = (r: FormResponse): string => {
+    if (!requesterKey) return "";
+    return formatValue(r.data?.[requesterKey]);
+  };
+
+  const handleOpenOrderDialog = (r: FormResponse) => {
+    setActiveResponse(r);
+    setOrderDialogOpen(true);
+  };
+
   const renderStatusCell = (r: FormResponse) => {
     if (r.ordered) {
       const who = r.ordered_by ? profilesById[r.ordered_by] || "Usuário" : "—";
@@ -319,7 +348,7 @@ export default function FormResponses() {
             variant="ghost"
             size="sm"
             className="h-7 w-fit px-2 text-xs"
-            onClick={() => handleToggleOrdered(r)}
+            onClick={() => markOrdered(r, false)}
             disabled={updatingId === r.id}
           >
             <Undo2 className="h-3 w-3 mr-1" />
@@ -333,7 +362,7 @@ export default function FormResponses() {
         variant="outline"
         size="sm"
         className="h-8 gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
-        onClick={() => handleToggleOrdered(r)}
+        onClick={() => handleOpenOrderDialog(r)}
         disabled={updatingId === r.id}
       >
         {updatingId === r.id ? (
@@ -633,6 +662,21 @@ export default function FormResponses() {
           )}
         </CardContent>
       </Card>
+
+      <PurchaseOrderDialog
+        open={orderDialogOpen}
+        onOpenChange={(open) => {
+          setOrderDialogOpen(open);
+          if (!open) setActiveResponse(null);
+        }}
+        suppliers={suppliers}
+        initialMaterials={activeResponse ? getMaterialsText(activeResponse) : ""}
+        requesterName={activeResponse ? getRequesterName(activeResponse) : ""}
+        onAddPurchase={onAddPurchase}
+        onCreated={async () => {
+          if (activeResponse) await markOrdered(activeResponse, true);
+        }}
+      />
     </div>
   );
 }
