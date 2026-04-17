@@ -20,7 +20,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Search, RefreshCw, Trash2, Loader2 } from "lucide-react";
+import {
+  ClipboardList,
+  Search,
+  RefreshCw,
+  Trash2,
+  Loader2,
+  CheckCircle2,
+  Undo2,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +40,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 interface FormResponse {
   id: string;
@@ -40,6 +49,9 @@ interface FormResponse {
   data: Record<string, any>;
   sheet_row: number | null;
   created_at: string;
+  ordered: boolean;
+  ordered_by: string | null;
+  ordered_at: string | null;
 }
 
 const formatDate = (iso: string) => {
@@ -62,6 +74,31 @@ const formatValue = (v: any): string => {
   return String(v);
 };
 
+// Keys to hide from the JSON data (already shown elsewhere or duplicated)
+const HIDDEN_KEY_PATTERNS = [
+  "carimbo de data",
+  "carimbo data",
+  "timestamp",
+];
+
+const isHiddenKey = (k: string) => {
+  const lower = k.toLowerCase().trim();
+  return HIDDEN_KEY_PATTERNS.some((p) => lower.includes(p));
+};
+
+// Heuristic: identify the materials column to render without truncation
+const isMaterialsKey = (k: string) => {
+  const lower = k.toLowerCase();
+  return (
+    lower.includes("material") ||
+    lower.includes("materiais") ||
+    lower.includes("descri") ||
+    lower.includes("pedido") ||
+    lower.includes("itens") ||
+    lower.includes("item")
+  );
+};
+
 export default function FormResponses() {
   const { toast } = useToast();
   const [responses, setResponses] = useState<FormResponse[]>([]);
@@ -69,7 +106,11 @@ export default function FormResponses() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [requesterFilter, setRequesterFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [profilesById, setProfilesById] = useState<Record<string, string>>({});
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const loadResponses = async () => {
     setLoading(true);
@@ -91,12 +132,26 @@ export default function FormResponses() {
     setLoading(false);
   };
 
+  const loadProfiles = async () => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, email");
+    if (data) {
+      const map: Record<string, string> = {};
+      data.forEach((p: any) => {
+        map[p.user_id] = p.display_name || p.email || "Usuário";
+      });
+      setProfilesById(map);
+    }
+  };
+
   useEffect(() => {
     loadResponses();
+    loadProfiles();
 
-    // Check admin
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
+      setCurrentUserId(user.id);
       const { data } = await supabase
         .from("user_roles")
         .select("role")
@@ -104,7 +159,6 @@ export default function FormResponses() {
       setIsAdmin((data ?? []).some((r) => r.role === "admin"));
     });
 
-    // Realtime subscription
     const channel = supabase
       .channel("form-responses-changes")
       .on(
@@ -117,6 +171,14 @@ export default function FormResponses() {
               title: "Nova resposta recebida",
               description: "Uma nova requisição chegou agora.",
             });
+          } else if (payload.eventType === "UPDATE") {
+            setResponses((prev) =>
+              prev.map((r) =>
+                r.id === (payload.new as FormResponse).id
+                  ? (payload.new as FormResponse)
+                  : r
+              )
+            );
           } else if (payload.eventType === "DELETE") {
             setResponses((prev) =>
               prev.filter((r) => r.id !== (payload.old as any).id)
@@ -132,16 +194,17 @@ export default function FormResponses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Discover all column keys across responses
+  // Discover all column keys across responses, excluding hidden ones
   const allKeys = useMemo(() => {
     const keys = new Set<string>();
     responses.forEach((r) => {
-      Object.keys(r.data ?? {}).forEach((k) => keys.add(k));
+      Object.keys(r.data ?? {}).forEach((k) => {
+        if (!isHiddenKey(k)) keys.add(k);
+      });
     });
     return Array.from(keys);
   }, [responses]);
 
-  // Try to identify "Tipo" and "Solicitante" columns (case-insensitive)
   const findKey = (needle: string) =>
     allKeys.find((k) => k.toLowerCase().includes(needle.toLowerCase()));
 
@@ -171,6 +234,8 @@ export default function FormResponses() {
 
   const filtered = useMemo(() => {
     return responses.filter((r) => {
+      if (statusFilter === "pending" && r.ordered) return false;
+      if (statusFilter === "done" && !r.ordered) return false;
       if (typeKey && typeFilter !== "all") {
         if (String(r.data?.[typeKey] ?? "") !== typeFilter) return false;
       }
@@ -185,7 +250,15 @@ export default function FormResponses() {
       }
       return true;
     });
-  }, [responses, search, typeFilter, requesterFilter, typeKey, requesterKey]);
+  }, [
+    responses,
+    search,
+    typeFilter,
+    requesterFilter,
+    statusFilter,
+    typeKey,
+    requesterKey,
+  ]);
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase
@@ -201,6 +274,76 @@ export default function FormResponses() {
     } else {
       toast({ title: "Resposta excluída" });
     }
+  };
+
+  const handleToggleOrdered = async (r: FormResponse) => {
+    if (!currentUserId) return;
+    setUpdatingId(r.id);
+    const newOrdered = !r.ordered;
+    const { error } = await supabase
+      .from("form_responses")
+      .update({
+        ordered: newOrdered,
+        ordered_by: newOrdered ? currentUserId : null,
+        ordered_at: newOrdered ? new Date().toISOString() : null,
+      })
+      .eq("id", r.id);
+    setUpdatingId(null);
+    if (error) {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: newOrdered ? "Marcado como pedido feito" : "Marcação removida",
+      });
+    }
+  };
+
+  const renderStatusCell = (r: FormResponse) => {
+    if (r.ordered) {
+      const who = r.ordered_by ? profilesById[r.ordered_by] || "Usuário" : "—";
+      const when = r.ordered_at ? formatDate(r.ordered_at) : "";
+      return (
+        <div className="flex flex-col gap-1.5">
+          <Badge variant="success" className="w-fit gap-1">
+            <CheckCircle2 className="h-3 w-3" />
+            Pedido feito
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            por {who} · {when}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-fit px-2 text-xs"
+            onClick={() => handleToggleOrdered(r)}
+            disabled={updatingId === r.id}
+          >
+            <Undo2 className="h-3 w-3 mr-1" />
+            Desmarcar
+          </Button>
+        </div>
+      );
+    }
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
+        onClick={() => handleToggleOrdered(r)}
+        disabled={updatingId === r.id}
+      >
+        {updatingId === r.id ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <CheckCircle2 className="h-3.5 w-3.5" />
+        )}
+        Marcar pedido feito
+      </Button>
+    );
   };
 
   return (
@@ -254,9 +397,19 @@ export default function FormResponses() {
                 className="pl-9"
               />
             </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="pending">Pendentes</SelectItem>
+                <SelectItem value="done">Pedido feito</SelectItem>
+              </SelectContent>
+            </Select>
             {typeKey && typeOptions.length > 0 && (
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -274,7 +427,7 @@ export default function FormResponses() {
                 value={requesterFilter}
                 onValueChange={setRequesterFilter}
               >
-                <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Solicitante" />
                 </SelectTrigger>
                 <SelectContent>
@@ -316,24 +469,56 @@ export default function FormResponses() {
                           {k}
                         </TableHead>
                       ))}
+                      <TableHead className="whitespace-nowrap">
+                        Status
+                      </TableHead>
                       {isAdmin && <TableHead className="w-12"></TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filtered.map((r) => (
-                      <TableRow key={r.id}>
-                        <TableCell className="whitespace-nowrap text-xs">
+                      <TableRow
+                        key={r.id}
+                        className={cn(
+                          r.ordered &&
+                            "bg-success/5 hover:bg-success/10 [&>td]:opacity-80"
+                        )}
+                      >
+                        <TableCell className="whitespace-nowrap text-xs align-top">
                           {formatDate(r.submitted_at)}
                         </TableCell>
-                        {allKeys.map((k) => (
-                          <TableCell key={k} className="text-sm max-w-xs">
-                            <div className="truncate" title={formatValue(r.data?.[k])}>
-                              {formatValue(r.data?.[k])}
-                            </div>
-                          </TableCell>
-                        ))}
+                        {allKeys.map((k) => {
+                          const isMat = isMaterialsKey(k);
+                          return (
+                            <TableCell
+                              key={k}
+                              className={cn(
+                                "text-sm align-top",
+                                isMat
+                                  ? "min-w-[260px] max-w-[420px] whitespace-pre-wrap break-words"
+                                  : "max-w-xs"
+                              )}
+                            >
+                              {isMat ? (
+                                <div className="whitespace-pre-wrap break-words">
+                                  {formatValue(r.data?.[k])}
+                                </div>
+                              ) : (
+                                <div
+                                  className="whitespace-pre-wrap break-words"
+                                  title={formatValue(r.data?.[k])}
+                                >
+                                  {formatValue(r.data?.[k])}
+                                </div>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                        <TableCell className="align-top">
+                          {renderStatusCell(r)}
+                        </TableCell>
                         {isAdmin && (
-                          <TableCell>
+                          <TableCell className="align-top">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button
@@ -376,7 +561,13 @@ export default function FormResponses() {
               {/* Mobile Cards */}
               <div className="md:hidden space-y-3">
                 {filtered.map((r) => (
-                  <Card key={r.id} className="overflow-hidden">
+                  <Card
+                    key={r.id}
+                    className={cn(
+                      "overflow-hidden",
+                      r.ordered && "bg-success/5 border-success/30"
+                    )}
+                  >
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground">
@@ -424,12 +615,15 @@ export default function FormResponses() {
                               <span className="text-xs font-medium text-muted-foreground">
                                 {k}:
                               </span>{" "}
-                              <span className="break-words">
+                              <span className="break-words whitespace-pre-wrap">
                                 {formatValue(val)}
                               </span>
                             </div>
                           );
                         })}
+                      </div>
+                      <div className="pt-2 border-t">
+                        {renderStatusCell(r)}
                       </div>
                     </CardContent>
                   </Card>
