@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      form_responses: {
+        Row: {
+          created_at: string
+          data: Json
+          form_name: string
+          id: string
+          sheet_row: number | null
+          submitted_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          form_name: string
+          id?: string
+          sheet_row?: number | null
+          submitted_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          form_name?: string
+          id?: string
+          sheet_row?: number | null
+          submitted_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string
