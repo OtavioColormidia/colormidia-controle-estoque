@@ -223,6 +223,7 @@ export default function PurchaseOrderDialog({
     if (!supplierId || items.length === 0) return;
     setSubmitting(true);
     try {
+      const trimmedDoc = documentNumber.trim();
       const newId = await onAddPurchase({
         date: new Date(),
         supplierId,
@@ -233,7 +234,7 @@ export default function PurchaseOrderDialog({
         ipi: ipiValue,
         frete: freteValue,
         status: "pending",
-        documentNumber,
+        documentNumber: trimmedDoc || undefined,
         notes: receiveMode,
         expectedDeliveryDate,
       });
