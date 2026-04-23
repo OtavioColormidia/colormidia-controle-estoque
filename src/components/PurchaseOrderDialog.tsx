@@ -1,34 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
 import {
   CalendarIcon,
@@ -56,9 +33,7 @@ interface PurchaseOrderDialogProps {
   initialMaterials?: string;
   initialDocumentNumber?: string;
   requesterName?: string;
-  onAddPurchase: (
-    purchase: Omit<Purchase, "id">
-  ) => Promise<string | void>;
+  onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<string | void>;
   onCreated?: () => void | Promise<void>;
 }
 
@@ -108,17 +83,13 @@ export default function PurchaseOrderDialog({
   const [supplierName, setSupplierName] = useState("");
   const [documentNumber, setDocumentNumber] = useState("");
   const [receiveMode, setReceiveMode] = useState<string>("");
-  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<
-    Date | undefined
-  >();
+  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | undefined>();
   const [items, setItems] = useState<PurchaseItem[]>([]);
   const [productName, setProductName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [itemDiscount, setItemDiscount] = useState("");
-  const [itemDiscountType, setItemDiscountType] = useState<
-    "percent" | "value"
-  >("value");
+  const [itemDiscountType, setItemDiscountType] = useState<"percent" | "value">("value");
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [ipi, setIpi] = useState("");
   const [frete, setFrete] = useState("");
@@ -157,9 +128,7 @@ export default function PurchaseOrderDialog({
       if (!supplierSearch.trim()) return true;
       const q = supplierSearch.toLowerCase();
       return (
-        s.name.toLowerCase().includes(q) ||
-        s.tradeName?.toLowerCase().includes(q) ||
-        s.code.toLowerCase().includes(q)
+        s.name.toLowerCase().includes(q) || s.tradeName?.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
       );
     });
   }, [suppliers, supplierSearch]);
@@ -170,8 +139,7 @@ export default function PurchaseOrderDialog({
     const price = Number(unitPrice) || 0;
     const subtotal = qty * price;
     const discInput = Number(itemDiscount) || 0;
-    const discValue =
-      itemDiscountType === "percent" ? subtotal * (discInput / 100) : discInput;
+    const discValue = itemDiscountType === "percent" ? subtotal * (discInput / 100) : discInput;
     const newItem: PurchaseItem = {
       productId: "",
       productName,
@@ -212,10 +180,7 @@ export default function PurchaseOrderDialog({
   };
 
   const itemsTotal = items.reduce((s, i) => s + i.totalPrice, 0);
-  const totalDiscount = items.reduce(
-    (s, i) => s + (i.discountValue || 0),
-    0
-  );
+  const totalDiscount = items.reduce((s, i) => s + (i.discountValue || 0), 0);
   const ipiValue = Number(ipi) || 0;
   const freteValue = Number(frete) || 0;
   const finalTotal = itemsTotal + ipiValue + freteValue;
@@ -242,9 +207,7 @@ export default function PurchaseOrderDialog({
       });
       if (newId && formFiles.length > 0) {
         for (const file of formFiles) {
-          await supabase.storage
-            .from("purchase-attachments")
-            .upload(`${newId}/${file.name}`, file, { upsert: true });
+          await supabase.storage.from("purchase-attachments").upload(`${newId}/${file.name}`, file, { upsert: true });
         }
       }
       toast({
@@ -266,7 +229,7 @@ export default function PurchaseOrderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
@@ -292,9 +255,7 @@ export default function PurchaseOrderDialog({
                   className="w-full justify-between font-normal"
                 >
                   <span className="truncate">
-                    {supplierId
-                      ? suppliers.find((s) => s.id === supplierId)?.name
-                      : "Selecione um fornecedor"}
+                    {supplierId ? suppliers.find((s) => s.id === supplierId)?.name : "Selecione um fornecedor"}
                   </span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -321,19 +282,12 @@ export default function PurchaseOrderDialog({
                           }}
                         >
                           <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              supplierId === supplier.id
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
+                            className={cn("mr-2 h-4 w-4", supplierId === supplier.id ? "opacity-100" : "opacity-0")}
                           />
                           <div className="flex flex-col">
                             <span>{supplier.name}</span>
                             {supplier.tradeName && (
-                              <span className="text-xs text-muted-foreground">
-                                {supplier.tradeName}
-                              </span>
+                              <span className="text-xs text-muted-foreground">{supplier.tradeName}</span>
                             )}
                           </div>
                         </CommandItem>
@@ -347,11 +301,7 @@ export default function PurchaseOrderDialog({
 
           <div className="space-y-2">
             <Label>Nº de OS</Label>
-            <Input
-              value={documentNumber}
-              onChange={(e) => setDocumentNumber(e.target.value)}
-              placeholder="OS-86816"
-            />
+            <Input value={documentNumber} onChange={(e) => setDocumentNumber(e.target.value)} placeholder="OS-86816" />
           </div>
 
           <div className="space-y-2">
@@ -375,9 +325,7 @@ export default function PurchaseOrderDialog({
 
           {receiveMode && (
             <div className="space-y-2">
-              <Label>
-                Previsão de {receiveMode === "ENTREGA" ? "Entrega" : "Retirada"}
-              </Label>
+              <Label>Previsão de {receiveMode === "ENTREGA" ? "Entrega" : "Retirada"}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -385,15 +333,11 @@ export default function PurchaseOrderDialog({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !expectedDeliveryDate && "text-muted-foreground"
+                      !expectedDeliveryDate && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {expectedDeliveryDate ? (
-                      format(expectedDeliveryDate, "dd/MM/yyyy")
-                    ) : (
-                      <span>Selecione a data</span>
-                    )}
+                    {expectedDeliveryDate ? format(expectedDeliveryDate, "dd/MM/yyyy") : <span>Selecione a data</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -469,7 +413,7 @@ export default function PurchaseOrderDialog({
                       "px-3 py-2 text-sm font-medium transition-colors",
                       itemDiscountType === "value"
                         ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted"
+                        : "bg-background text-muted-foreground hover:bg-muted",
                     )}
                     onClick={() => setItemDiscountType("value")}
                   >
@@ -481,7 +425,7 @@ export default function PurchaseOrderDialog({
                       "px-3 py-2 text-sm font-medium transition-colors",
                       itemDiscountType === "percent"
                         ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted"
+                        : "bg-background text-muted-foreground hover:bg-muted",
                     )}
                     onClick={() => setItemDiscountType("percent")}
                   >
@@ -495,8 +439,7 @@ export default function PurchaseOrderDialog({
                 variant="outline"
                 className={cn(
                   "w-full",
-                  editingItemIndex !== null &&
-                    "bg-primary/10 border-primary text-primary hover:bg-primary/20"
+                  editingItemIndex !== null && "bg-primary/10 border-primary text-primary hover:bg-primary/20",
                 )}
               >
                 {editingItemIndex !== null ? (
@@ -522,15 +465,11 @@ export default function PurchaseOrderDialog({
                   key={index}
                   className={cn(
                     "text-sm p-2 rounded transition-colors space-y-1",
-                    editingItemIndex === index
-                      ? "bg-primary/20 ring-1 ring-primary"
-                      : "bg-secondary/50"
+                    editingItemIndex === index ? "bg-primary/20 ring-1 ring-primary" : "bg-secondary/50",
                   )}
                 >
                   <div className="flex justify-between items-center gap-2">
-                    <span className="flex-1 break-words">
-                      {item.productName}
-                    </span>
+                    <span className="flex-1 break-words">{item.productName}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs whitespace-nowrap">
                         {item.quantity}x R$ {item.unitPrice.toFixed(2)}
@@ -586,9 +525,7 @@ export default function PurchaseOrderDialog({
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Label className="text-sm whitespace-nowrap">
-                    Frete (R$)
-                  </Label>
+                  <Label className="text-sm whitespace-nowrap">Frete (R$)</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -602,9 +539,7 @@ export default function PurchaseOrderDialog({
                 {totalDiscount > 0 && (
                   <div className="flex justify-between items-center text-sm p-2 bg-destructive/10 rounded">
                     <span>DESCONTOS TOTAIS</span>
-                    <span className="text-destructive font-medium">
-                      - R$ {totalDiscount.toFixed(2)}
-                    </span>
+                    <span className="text-destructive font-medium">- R$ {totalDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 {ipiValue > 0 && (
@@ -628,9 +563,7 @@ export default function PurchaseOrderDialog({
                     <span>R$ {itemsTotal.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="font-bold text-right text-lg">
-                  Total: R$ {finalTotal.toFixed(2)}
-                </div>
+                <div className="font-bold text-right text-lg">Total: R$ {finalTotal.toFixed(2)}</div>
               </div>
             </div>
           )}
@@ -641,10 +574,7 @@ export default function PurchaseOrderDialog({
               Anexar Arquivos
             </Label>
             {formFiles.map((file, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1"
-              >
+              <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1">
                 <FileText className="h-3 w-3 text-primary" />
                 <span className="truncate flex-1">{file.name}</span>
                 <Button
@@ -652,9 +582,7 @@ export default function PurchaseOrderDialog({
                   variant="ghost"
                   size="sm"
                   className="h-5 w-5 p-0 text-destructive"
-                  onClick={() =>
-                    setFormFiles(formFiles.filter((_, i) => i !== idx))
-                  }
+                  onClick={() => setFormFiles(formFiles.filter((_, i) => i !== idx))}
                 >
                   <X className="h-3 w-3" />
                 </Button>
