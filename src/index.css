@@ -305,6 +305,91 @@ All colors MUST be HSL.
   }
 }
 
+/* ===== Login screen effects ===== */
+@layer utilities {
+  .animate-float-slow {
+    animation: floatBlob 18s ease-in-out infinite;
+  }
+  .animate-float-slower {
+    animation: floatBlob 26s ease-in-out infinite reverse;
+  }
+  .animate-float-medium {
+    animation: floatBlob 14s ease-in-out infinite;
+  }
+  .animate-logo-glow {
+    animation: logoGlow 3.5s ease-in-out infinite;
+  }
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradientShift 6s ease infinite;
+  }
+  .animate-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .animate-shine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      hsl(0 0% 100% / 0.25),
+      transparent
+    );
+    transform: skewX(-25deg);
+    animation: shine 3.5s ease-in-out infinite;
+  }
+
+  /* Subtle grid background for the auth page */
+  .auth-grid {
+    background-image:
+      linear-gradient(hsl(217 91% 60% / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(217 91% 60% / 0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+}
+
+@keyframes floatBlob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -40px) scale(1.08);
+  }
+  66% {
+    transform: translate(-25px, 25px) scale(0.95);
+  }
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0 hsl(217 91% 60% / 0.4),
+      0 20px 40px -10px hsl(217 91% 50% / 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 12px hsl(217 91% 60% / 0),
+      0 20px 50px -8px hsl(24 95% 55% / 0.5);
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes shine {
+  0% { left: -75%; }
+  60%, 100% { left: 125%; }
+}
+
 /* Mobile responsiveness improvements */
 @media (max-width: 640px) {
   .container {
