@@ -31,9 +31,10 @@ interface SupplierManagementProps {
   suppliers: Supplier[];
   onAddSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<void>;
   onDeleteSupplier: (id: string) => void;
+  onUpdateSupplierLogo?: (supplierId: string, logoUrl: string | null) => Promise<void>;
 }
 
-export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteSupplier }: SupplierManagementProps) {
+export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteSupplier, onUpdateSupplierLogo }: SupplierManagementProps) {
   // Gerar próximo código automaticamente
   const getNextSupplierCode = () => {
     const existingCodes = suppliers.map(s => {
