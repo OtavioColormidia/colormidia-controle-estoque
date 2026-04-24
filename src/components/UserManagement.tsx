@@ -425,6 +425,7 @@ export default function UserManagement() {
           </Table>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }
