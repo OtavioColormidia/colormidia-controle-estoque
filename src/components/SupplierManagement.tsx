@@ -383,6 +383,7 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16">Logo</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Razão Social</TableHead>
                   <TableHead>Nome Fantasia</TableHead>
@@ -394,13 +395,22 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
               <TableBody>
                 {filteredSuppliers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       {searchQuery ? 'Nenhum fornecedor encontrado' : 'Nenhum fornecedor cadastrado'}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
+                    <TableCell>
+                      <div className="h-10 w-10 rounded-md border bg-muted/40 flex items-center justify-center overflow-hidden">
+                        {supplier.logoUrl ? (
+                          <img src={supplier.logoUrl} alt={supplier.name} className="h-full w-full object-contain" />
+                        ) : (
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-mono">{supplier.code}</TableCell>
                     <TableCell>{supplier.name}</TableCell>
                     <TableCell>{supplier.tradeName || '-'}</TableCell>
