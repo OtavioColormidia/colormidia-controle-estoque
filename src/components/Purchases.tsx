@@ -291,7 +291,33 @@ export default function Purchases({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.supplierId && purchaseItems.length > 0) {
+
+    const headerCheck = purchaseHeaderSchema.safeParse({
+      supplierId: formData.supplierId,
+      supplierName: formData.supplierName,
+      documentNumber: formData.documentNumber,
+      notes: formData.notes,
+    });
+
+    if (!headerCheck.success) {
+      toast({
+        title: 'Não foi possível salvar',
+        description: firstError(headerCheck) ?? 'Verifique o cabeçalho do pedido.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (purchaseItems.length === 0) {
+      toast({
+        title: 'Adicione pelo menos um item',
+        description: 'Um pedido de compra precisa ter ao menos um item.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    {
       const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
       const ipiValue = Number(ipi) || 0;
