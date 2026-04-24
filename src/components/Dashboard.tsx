@@ -15,7 +15,7 @@ import {
   Paperclip,
   Building2,
 } from "lucide-react";
-import { Product, StockMovement, Purchase, UserRole } from "@/types/inventory";
+import { Product, StockMovement, Purchase, Supplier, UserRole } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
@@ -24,6 +24,7 @@ interface DashboardProps {
   products: Product[];
   movements: StockMovement[];
   purchases: Purchase[];
+  suppliers?: Supplier[];
   onTabChange: (tab: string) => void;
 }
 
