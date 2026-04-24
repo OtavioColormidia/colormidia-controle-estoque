@@ -164,6 +164,7 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
         state: '', 
         zipCode: '', 
         active: true,
+        logoUrl: '',
       });
     } catch (error) {
       console.error('Erro ao cadastrar fornecedor:', error);
