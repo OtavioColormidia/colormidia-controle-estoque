@@ -92,26 +92,31 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-login p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-secondary/5 rounded-full blur-3xl" />
+      {/* Animated background orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-primary/30 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-3xl animate-float-slower" />
+        <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-primary/15 rounded-full blur-3xl animate-float-medium" />
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 auth-grid opacity-60" />
+        {/* Vignette */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/40" />
       </div>
 
       <div className="relative z-10 w-full max-w-md animate-fade-in">
         {/* Logo and branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-card shadow-2xl mb-4 overflow-hidden">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card shadow-2xl mb-4 overflow-hidden animate-logo-glow ring-1 ring-primary/30">
             <img 
               src={logoColorMedia} 
               alt="ColorMídia" 
               className="w-full h-full object-cover"
             />
           </div>
-          <h1 className="text-2xl font-bold text-primary-foreground mb-1">
+          <h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-primary-foreground via-primary-foreground/90 to-secondary bg-clip-text text-transparent animate-gradient-x">
             ColorMídia
           </h1>
-          <p className="text-primary-foreground/70 text-sm">
+          <p className="text-primary-foreground/70 text-sm tracking-wide">
             Sistema de Controle de Estoque
           </p>
         </div>
@@ -183,7 +188,7 @@ export default function Auth() {
                   )}
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-all shadow-lg hover:shadow-xl font-medium" 
+                    className="w-full h-11 bg-gradient-primary hover:opacity-95 transition-all shadow-lg hover:shadow-glow font-medium animate-shine" 
                     disabled={loading}
                   >
                     {loading ? (
@@ -253,7 +258,7 @@ export default function Auth() {
                   )}
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-all shadow-lg hover:shadow-xl font-medium" 
+                    className="w-full h-11 bg-gradient-primary hover:opacity-95 transition-all shadow-lg hover:shadow-glow font-medium animate-shine" 
                     disabled={loading}
                   >
                     {loading ? (
