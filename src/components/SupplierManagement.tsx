@@ -57,10 +57,44 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
     state: '',
     zipCode: '',
     active: true,
+    logoUrl: '',
   });
   
   const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem (PNG, JPG, SVG, WEBP).', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Imagem muito grande', description: 'Tamanho máximo: 2MB.', variant: 'destructive' });
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('supplier-logos')
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('supplier-logos').getPublicUrl(path);
+      setFormData(prev => ({ ...prev, logoUrl: data.publicUrl }));
+      toast({ title: 'Logo carregada', description: 'A imagem foi enviada com sucesso.' });
+    } catch (err: any) {
+      toast({ title: 'Erro no upload', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsUploadingLogo(false);
+      e.target.value = '';
+    }
+  };
 
   const formatCNPJ = (value: string) => {
     // Remove todos os caracteres não numéricos
