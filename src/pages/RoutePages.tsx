@@ -1,0 +1,160 @@
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import Dashboard from '@/components/Dashboard';
+import InventoryControl from '@/components/InventoryControl';
+import TrussControl from '@/components/TrussControl';
+import MaterialEntry from '@/components/MaterialEntry';
+import MaterialExit from '@/components/MaterialExit';
+import ProductManagement from '@/components/ProductManagement';
+import SupplierManagement from '@/components/SupplierManagement';
+import Purchases from '@/components/Purchases';
+import SupplierMaterials from '@/components/SupplierMaterials';
+import UserManagement from '@/components/UserManagement';
+import FormResponses from '@/components/FormResponses';
+
+const tabToRoute: Record<string, string> = {
+  dashboard: '/dashboard',
+  inventory: '/estoque',
+  'truss-control': '/trelica',
+  entries: '/entradas',
+  exits: '/saidas',
+  purchases: '/compras',
+  'form-responses': '/requisicoes',
+  products: '/produtos',
+  suppliers: '/fornecedores',
+  'supplier-materials': '/fornecedores-materiais',
+  users: '/usuarios',
+};
+
+function withLoader<T>(loading: boolean, content: T) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  return content as React.ReactNode;
+}
+
+export function DashboardPage() {
+  const navigate = useNavigate();
+  const { products, movements, purchases, loading } = useSupabaseData();
+  return withLoader(
+    loading,
+    <Dashboard
+      products={products}
+      movements={movements}
+      purchases={purchases}
+      onTabChange={(tab) => navigate(tabToRoute[tab] ?? '/dashboard')}
+    />,
+  );
+}
+
+export function InventoryPage() {
+  const { products, movements, loading } = useSupabaseData();
+  return withLoader(loading, <InventoryControl products={products} movements={movements} />);
+}
+
+export function TrussPage() {
+  const {
+    trusses,
+    trussMovements,
+    addTruss,
+    deleteTruss,
+    addTrussMovement,
+    markAsReturned,
+    loading,
+  } = useSupabaseData();
+  return withLoader(
+    loading,
+    <TrussControl
+      trusses={trusses}
+      trussMovements={trussMovements}
+      addTruss={addTruss}
+      deleteTruss={deleteTruss}
+      addTrussMovement={addTrussMovement}
+      markAsReturned={markAsReturned}
+    />,
+  );
+}
+
+export function EntriesPage() {
+  const { products, suppliers, movements, addMovement, loading } = useSupabaseData();
+  return withLoader(
+    loading,
+    <MaterialEntry products={products} suppliers={suppliers} movements={movements} onAddMovement={addMovement} />,
+  );
+}
+
+export function ExitsPage() {
+  const { products, movements, addMovement, loading } = useSupabaseData();
+  return withLoader(
+    loading,
+    <MaterialExit products={products} movements={movements} onAddMovement={addMovement} />,
+  );
+}
+
+export function ProductsPage() {
+  const { products, addProduct, deleteProduct, loading } = useSupabaseData();
+  return withLoader(
+    loading,
+    <ProductManagement products={products} onAddProduct={addProduct} onDeleteProduct={deleteProduct} />,
+  );
+}
+
+export function SuppliersPage() {
+  const { suppliers, addSupplier, deleteSupplier, loading } = useSupabaseData();
+  return withLoader(
+    loading,
+    <SupplierManagement suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />,
+  );
+}
+
+export function PurchasesPage() {
+  const {
+    purchases,
+    products,
+    suppliers,
+    addPurchase,
+    deletePurchase,
+    updatePurchaseStatus,
+    updatePurchase,
+    loading,
+  } = useSupabaseData();
+  return withLoader(
+    loading,
+    <Purchases
+      purchases={purchases}
+      products={products}
+      suppliers={suppliers}
+      onAddPurchase={addPurchase}
+      onDeletePurchase={deletePurchase}
+      onUpdatePurchaseStatus={updatePurchaseStatus}
+      onUpdatePurchase={updatePurchase}
+    />,
+  );
+}
+
+export function SupplierMaterialsPage() {
+  const { suppliers, supplierMaterials, addSupplierMaterial, deleteSupplierMaterial, loading } = useSupabaseData();
+  return withLoader(
+    loading,
+    <SupplierMaterials
+      suppliers={suppliers}
+      supplierMaterials={supplierMaterials}
+      onAddSupplierMaterial={addSupplierMaterial}
+      onDeleteSupplierMaterial={deleteSupplierMaterial}
+    />,
+  );
+}
+
+export function FormResponsesPage() {
+  const { suppliers, addPurchase, loading } = useSupabaseData();
+  return withLoader(loading, <FormResponses suppliers={suppliers} onAddPurchase={addPurchase} />);
+}
+
+export function UsersPage() {
+  return <UserManagement />;
+}
