@@ -313,6 +313,52 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
               <Label>Email</Label>
               <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
             </div>
+            <div className="space-y-2">
+              <Label>Logo da empresa</Label>
+              <div className="flex items-center gap-3">
+                <div className="h-16 w-16 rounded-lg border bg-muted/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {formData.logoUrl ? (
+                    <img src={formData.logoUrl} alt="Logo" className="h-full w-full object-contain" />
+                  ) : (
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 flex gap-2">
+                  <label className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                      disabled={isUploadingLogo}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full pointer-events-none"
+                      disabled={isUploadingLogo}
+                      asChild
+                    >
+                      <span>
+                        <Upload className="h-4 w-4 mr-2" />
+                        {isUploadingLogo ? 'Enviando...' : formData.logoUrl ? 'Trocar logo' : 'Enviar logo'}
+                      </span>
+                    </Button>
+                  </label>
+                  {formData.logoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setFormData({ ...formData, logoUrl: '' })}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">PNG, JPG, SVG ou WEBP. Máx 2MB.</p>
+            </div>
             <Button type="submit" className="w-full bg-gradient-primary">
               <Building2 className="h-4 w-4 mr-2" />
               Cadastrar Fornecedor
