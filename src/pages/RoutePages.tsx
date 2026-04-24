@@ -1,4 +1,3 @@
-import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
@@ -12,6 +11,7 @@ import Purchases from '@/components/Purchases';
 import SupplierMaterials from '@/components/SupplierMaterials';
 import UserManagement from '@/components/UserManagement';
 import FormResponses from '@/components/FormResponses';
+import { useSupabaseDataContext } from '@/contexts/SupabaseDataContext';
 
 const tabToRoute: Record<string, string> = {
   dashboard: '/dashboard',
@@ -27,48 +27,39 @@ const tabToRoute: Record<string, string> = {
   users: '/usuarios',
 };
 
-function withLoader<T>(loading: boolean, content: T) {
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  return content as React.ReactNode;
+function Pending() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 }
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { products, movements, purchases, loading } = useSupabaseData();
-  return withLoader(
-    loading,
+  const { products, movements, purchases, loading } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return (
     <Dashboard
       products={products}
       movements={movements}
       purchases={purchases}
       onTabChange={(tab) => navigate(tabToRoute[tab] ?? '/dashboard')}
-    />,
+    />
   );
 }
 
 export function InventoryPage() {
-  const { products, movements, loading } = useSupabaseData();
-  return withLoader(loading, <InventoryControl products={products} movements={movements} />);
+  const { products, movements, loading } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return <InventoryControl products={products} movements={movements} />;
 }
 
 export function TrussPage() {
-  const {
-    trusses,
-    trussMovements,
-    addTruss,
-    deleteTruss,
-    addTrussMovement,
-    markAsReturned,
-    loading,
-  } = useSupabaseData();
-  return withLoader(
-    loading,
+  const { trusses, trussMovements, addTruss, deleteTruss, addTrussMovement, markAsReturned, loading } =
+    useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return (
     <TrussControl
       trusses={trusses}
       trussMovements={trussMovements}
@@ -76,40 +67,32 @@ export function TrussPage() {
       deleteTruss={deleteTruss}
       addTrussMovement={addTrussMovement}
       markAsReturned={markAsReturned}
-    />,
+    />
   );
 }
 
 export function EntriesPage() {
-  const { products, suppliers, movements, addMovement, loading } = useSupabaseData();
-  return withLoader(
-    loading,
-    <MaterialEntry products={products} suppliers={suppliers} movements={movements} onAddMovement={addMovement} />,
-  );
+  const { products, suppliers, movements, addMovement, loading } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return <MaterialEntry products={products} suppliers={suppliers} movements={movements} onAddMovement={addMovement} />;
 }
 
 export function ExitsPage() {
-  const { products, movements, addMovement, loading } = useSupabaseData();
-  return withLoader(
-    loading,
-    <MaterialExit products={products} movements={movements} onAddMovement={addMovement} />,
-  );
+  const { products, movements, addMovement, loading } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return <MaterialExit products={products} movements={movements} onAddMovement={addMovement} />;
 }
 
 export function ProductsPage() {
-  const { products, addProduct, deleteProduct, loading } = useSupabaseData();
-  return withLoader(
-    loading,
-    <ProductManagement products={products} onAddProduct={addProduct} onDeleteProduct={deleteProduct} />,
-  );
+  const { products, addProduct, deleteProduct, loading } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return <ProductManagement products={products} onAddProduct={addProduct} onDeleteProduct={deleteProduct} />;
 }
 
 export function SuppliersPage() {
-  const { suppliers, addSupplier, deleteSupplier, loading } = useSupabaseData();
-  return withLoader(
-    loading,
-    <SupplierManagement suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />,
-  );
+  const { suppliers, addSupplier, deleteSupplier, loading } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return <SupplierManagement suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />;
 }
 
 export function PurchasesPage() {
@@ -122,9 +105,9 @@ export function PurchasesPage() {
     updatePurchaseStatus,
     updatePurchase,
     loading,
-  } = useSupabaseData();
-  return withLoader(
-    loading,
+  } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return (
     <Purchases
       purchases={purchases}
       products={products}
@@ -133,26 +116,28 @@ export function PurchasesPage() {
       onDeletePurchase={deletePurchase}
       onUpdatePurchaseStatus={updatePurchaseStatus}
       onUpdatePurchase={updatePurchase}
-    />,
+    />
   );
 }
 
 export function SupplierMaterialsPage() {
-  const { suppliers, supplierMaterials, addSupplierMaterial, deleteSupplierMaterial, loading } = useSupabaseData();
-  return withLoader(
-    loading,
+  const { suppliers, supplierMaterials, addSupplierMaterial, deleteSupplierMaterial, loading } =
+    useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return (
     <SupplierMaterials
       suppliers={suppliers}
       supplierMaterials={supplierMaterials}
       onAddSupplierMaterial={addSupplierMaterial}
       onDeleteSupplierMaterial={deleteSupplierMaterial}
-    />,
+    />
   );
 }
 
 export function FormResponsesPage() {
-  const { suppliers, addPurchase, loading } = useSupabaseData();
-  return withLoader(loading, <FormResponses suppliers={suppliers} onAddPurchase={addPurchase} />);
+  const { suppliers, addPurchase, loading } = useSupabaseDataContext();
+  if (loading) return <Pending />;
+  return <FormResponses suppliers={suppliers} onAddPurchase={addPurchase} />;
 }
 
 export function UsersPage() {

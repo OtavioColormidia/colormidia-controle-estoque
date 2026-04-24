@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
 import { supabase } from '@/integrations/supabase/client';
+import { SupabaseDataProvider } from '@/contexts/SupabaseDataContext';
 import type { User } from '@supabase/supabase-js';
 
 export default function AppLayout() {
@@ -62,16 +63,18 @@ export default function AppLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <SidebarInset className="flex flex-col min-w-0">
-          <AppHeader />
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
-            <Outlet />
-          </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <SupabaseDataProvider>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-background">
+          <AppSidebar />
+          <SidebarInset className="flex flex-col min-w-0">
+            <AppHeader />
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+              <Outlet />
+            </main>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </SupabaseDataProvider>
   );
 }
