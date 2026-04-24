@@ -94,7 +94,8 @@ export const useSupabaseData = () => {
       city: s.city || '',
       state: s.state || '',
       zipCode: s.zip_code || '',
-      active: s.active
+      active: s.active,
+      logoUrl: s.logo_url || ''
     })) || [];
     
     setSuppliers(formattedSuppliers);
