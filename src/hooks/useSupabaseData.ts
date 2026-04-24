@@ -522,6 +522,7 @@ export const useSupabaseData = () => {
         state: supplier.state,
         zip_code: supplier.zipCode,
         active: supplier.active,
+        logo_url: supplier.logoUrl || null,
         created_by: (await supabase.auth.getUser()).data.user?.id,
         updated_by: (await supabase.auth.getUser()).data.user?.id
       })
