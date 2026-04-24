@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Building2, Mail, Phone, Download, Trash2, Search, Users } from 'lucide-react';
+import { Plus, Building2, Mail, Phone, Download, Trash2, Search, Users, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
