@@ -13,6 +13,7 @@ import {
   TrendingDown,
   BarChart3,
   Paperclip,
+  Building2,
 } from "lucide-react";
 import { Product, StockMovement, Purchase, UserRole } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
