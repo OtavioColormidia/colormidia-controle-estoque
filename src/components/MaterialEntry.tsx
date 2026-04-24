@@ -19,7 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Calendar, Package, Save, Plus, Download } from 'lucide-react';
+import { Calendar, Package, Save, Plus, Download, ArrowDownToLine } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
 import { Product, Supplier, StockMovement } from '@/types/inventory';
 import { toast } from '@/hooks/use-toast';
 
@@ -104,12 +105,12 @@ export default function MaterialEntry({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Entrada de Material</h2>
-        <p className="text-muted-foreground mt-1">
-          Registre a entrada de materiais no estoque
-        </p>
-      </div>
+      <PageHeader
+        title="Entrada de Material"
+        description="Registre a entrada de materiais no estoque"
+        icon={ArrowDownToLine}
+        tone="success"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Entry Form */}

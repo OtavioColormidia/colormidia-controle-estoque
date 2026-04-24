@@ -18,7 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Boxes } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
 import { Product } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -78,10 +79,12 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Cadastro de Produtos</h2>
-        <p className="text-muted-foreground mt-1">Gerencie os produtos do almoxarifado</p>
-      </div>
+      <PageHeader
+        title="Cadastro de Produtos"
+        description="Gerencie os produtos do almoxarifado"
+        icon={Boxes}
+        tone="primary"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">
