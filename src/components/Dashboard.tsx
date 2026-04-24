@@ -186,15 +186,25 @@ export default function Dashboard({ products, movements, purchases, suppliers = 
             return (
               <div key={activity.id} className="p-3 sm:p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="flex items-start gap-3">
-                  <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    activity.type === "entry" ? "bg-success/10 text-success"
-                      : activity.type === "exit" ? "bg-warning/10 text-warning"
-                        : "bg-primary/10 text-primary"
-                  }`}>
-                    {activity.type === "entry" ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
-                      : activity.type === "exit" ? <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5" />
-                        : <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  </div>
+                  {activity.type === "purchase" && activity.supplierLogo ? (
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-background border overflow-hidden">
+                      <img
+                        src={activity.supplierLogo}
+                        alt={activity.description}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      activity.type === "entry" ? "bg-success/10 text-success"
+                        : activity.type === "exit" ? "bg-warning/10 text-warning"
+                          : "bg-primary/10 text-primary"
+                    }`}>
+                      {activity.type === "entry" ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                        : activity.type === "exit" ? <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5" />
+                          : <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-medium text-foreground text-sm sm:text-base truncate">{activity.description}</p>
