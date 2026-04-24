@@ -48,9 +48,10 @@ interface RecentActivity {
   date: Date;
   value?: number;
   purchaseId?: string;
+  supplierLogo?: string;
 }
 
-export default function Dashboard({ products, movements, purchases, onTabChange }: DashboardProps) {
+export default function Dashboard({ products, movements, purchases, suppliers = [], onTabChange }: DashboardProps) {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
