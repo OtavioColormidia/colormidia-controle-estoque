@@ -15,7 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Package, ArrowDownToLine, ArrowUpFromLine, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Package, ArrowDownToLine, ArrowUpFromLine, CheckCircle, Construction } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
 import { Truss, TrussMovement } from '@/hooks/useSupabaseData';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -154,7 +155,12 @@ const TrussControl = ({ trusses, trussMovements, addTruss, deleteTruss, addTruss
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Controle de Treliças</h1>
+      <PageHeader
+        title="Controle de Treliças"
+        description="Cadastro, retiradas e devoluções de treliças"
+        icon={Construction}
+        tone="warning"
+      />
 
       <Tabs defaultValue="register" className="w-full">
         <TabsList className="grid w-full grid-cols-3">

@@ -11,7 +11,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, AlertTriangle, CheckCircle, FileDown } from 'lucide-react';
+import { Search, Filter, AlertTriangle, CheckCircle, FileDown, Warehouse } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
 import { exportProfessionalPDF } from '@/lib/pdfExport';
 import { Product, StockMovement } from '@/types/inventory';
 import { getStockStatus } from '@/lib/data';
@@ -176,18 +177,18 @@ export default function InventoryControl({ products, movements }: InventoryContr
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Controle de Estoque</h2>
-          <p className="text-muted-foreground mt-1">
-            Visualize e gerencie o estoque do almoxarifado
-          </p>
-        </div>
-        <Button onClick={exportToPDF} className="bg-gradient-primary">
-          <FileDown className="h-4 w-4 mr-2" />
-          Exportar PDF
-        </Button>
-      </div>
+      <PageHeader
+        title="Controle de Estoque"
+        description="Visualize e gerencie o estoque do almoxarifado"
+        icon={Warehouse}
+        tone="primary"
+        actions={
+          <Button onClick={exportToPDF} className="bg-gradient-primary gap-2">
+            <FileDown className="h-4 w-4" />
+            Exportar PDF
+          </Button>
+        }
+      />
 
       <Card className="p-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">

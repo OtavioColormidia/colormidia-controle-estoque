@@ -12,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Package, Plus, Trash2, FileText } from 'lucide-react';
+import { Package, Plus, Trash2, FileText, Layers } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
 import { Supplier } from '@/types/inventory';
 import type { SupplierMaterial } from '@/hooks/useSupabaseData';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -75,10 +76,12 @@ export default function SupplierMaterials({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Fornecedores / Material</h2>
-        <p className="text-muted-foreground mt-1">Gerencie os materiais fornecidos por cada fornecedor</p>
-      </div>
+      <PageHeader
+        title="Fornecedores / Material"
+        description="Gerencie os materiais fornecidos por cada fornecedor"
+        icon={Layers}
+        tone="muted"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">

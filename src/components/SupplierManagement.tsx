@@ -12,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Building2, Mail, Phone, Download, Trash2, Search } from 'lucide-react';
+import { Plus, Building2, Mail, Phone, Download, Trash2, Search, Users } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
 import { Supplier } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -203,10 +204,18 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Cadastro de Fornecedores</h2>
-        <p className="text-muted-foreground mt-1">Gerencie os fornecedores do almoxarifado</p>
-      </div>
+      <PageHeader
+        title="Cadastro de Fornecedores"
+        description="Gerencie os fornecedores do almoxarifado"
+        icon={Users}
+        tone="accent"
+        actions={
+          <Button variant="outline" onClick={handleExport} className="gap-2">
+            <Download className="h-4 w-4" />
+            Exportar CSV
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">
