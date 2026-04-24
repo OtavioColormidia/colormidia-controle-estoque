@@ -92,7 +92,7 @@ export type PurchaseItemInput = z.infer<typeof purchaseItemSchema>;
 /**
  * Returns first validation error message from a Zod safeParse result, or null.
  */
-export function firstError(result: z.SafeParseReturnType<unknown, unknown>): string | null {
+export function firstError(result: z.ZodSafeParseResult<unknown>): string | null {
   if (result.success) return null;
   return result.error.issues[0]?.message ?? 'Dados inválidos';
 }
