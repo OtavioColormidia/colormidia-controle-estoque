@@ -36,53 +36,63 @@ interface NavItem {
   url: string;
   icon: React.ComponentType<{ className?: string }>;
   roles: UserRole[];
+  /** Tailwind classes that paint the icon container in the sidebar */
+  iconClass: string;
 }
 
 interface NavSection {
   label: string;
+  /** Accent color used in the section label dot */
+  accent: string;
   items: NavItem[];
 }
 
 const sections: NavSection[] = [
   {
     label: 'Principal',
+    accent: 'hsl(217 91% 60%)',
     items: [
-      { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'compras', 'almoxarife', 'visualizador'] },
+      { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'compras', 'almoxarife', 'visualizador'], iconClass: 'bg-blue-500/15 text-blue-300 group-hover:bg-blue-500/25 group-hover:text-blue-200' },
     ],
   },
   {
     label: 'Estoque',
+    accent: 'hsl(152 69% 45%)',
     items: [
-      { title: 'Controle de Estoque', url: '/estoque', icon: Boxes, roles: ['admin', 'compras', 'almoxarife'] },
-      { title: 'Controle de Treliça', url: '/trelica', icon: LayoutGrid, roles: ['admin', 'almoxarife'] },
+      { title: 'Controle de Estoque', url: '/estoque', icon: Boxes, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-emerald-500/15 text-emerald-300 group-hover:bg-emerald-500/25 group-hover:text-emerald-200' },
+      { title: 'Controle de Treliça', url: '/trelica', icon: LayoutGrid, roles: ['admin', 'almoxarife'], iconClass: 'bg-cyan-500/15 text-cyan-300 group-hover:bg-cyan-500/25 group-hover:text-cyan-200' },
     ],
   },
   {
     label: 'Movimentações',
+    accent: 'hsl(24 95% 55%)',
     items: [
-      { title: 'Entrada de Material', url: '/entradas', icon: PackagePlus, roles: ['admin', 'almoxarife'] },
-      { title: 'Saída de Material', url: '/saidas', icon: PackageMinus, roles: ['admin', 'almoxarife'] },
+      { title: 'Entrada de Material', url: '/entradas', icon: PackagePlus, roles: ['admin', 'almoxarife'], iconClass: 'bg-green-500/15 text-green-300 group-hover:bg-green-500/25 group-hover:text-green-200' },
+      { title: 'Saída de Material', url: '/saidas', icon: PackageMinus, roles: ['admin', 'almoxarife'], iconClass: 'bg-orange-500/15 text-orange-300 group-hover:bg-orange-500/25 group-hover:text-orange-200' },
     ],
   },
   {
     label: 'Compras',
+    accent: 'hsl(280 80% 65%)',
     items: [
-      { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'] },
-      { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'] },
+      { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-purple-500/15 text-purple-300 group-hover:bg-purple-500/25 group-hover:text-purple-200' },
+      { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-pink-500/15 text-pink-300 group-hover:bg-pink-500/25 group-hover:text-pink-200' },
     ],
   },
   {
     label: 'Cadastros',
+    accent: 'hsl(190 90% 55%)',
     items: [
-      { title: 'Produtos', url: '/produtos', icon: Tag, roles: ['admin', 'almoxarife'] },
-      { title: 'Fornecedores', url: '/fornecedores', icon: Building2, roles: ['admin', 'compras', 'almoxarife'] },
-      { title: 'Fornecedores / Material', url: '/fornecedores-materiais', icon: Truck, roles: ['admin', 'compras', 'almoxarife'] },
+      { title: 'Produtos', url: '/produtos', icon: Tag, roles: ['admin', 'almoxarife'], iconClass: 'bg-sky-500/15 text-sky-300 group-hover:bg-sky-500/25 group-hover:text-sky-200' },
+      { title: 'Fornecedores', url: '/fornecedores', icon: Building2, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-teal-500/15 text-teal-300 group-hover:bg-teal-500/25 group-hover:text-teal-200' },
+      { title: 'Fornecedores / Material', url: '/fornecedores-materiais', icon: Truck, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-indigo-500/15 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:text-indigo-200' },
     ],
   },
   {
     label: 'Administração',
+    accent: 'hsl(0 72% 58%)',
     items: [
-      { title: 'Usuários', url: '/usuarios', icon: UserCog, roles: ['admin'] },
+      { title: 'Usuários', url: '/usuarios', icon: UserCog, roles: ['admin'], iconClass: 'bg-rose-500/15 text-rose-300 group-hover:bg-rose-500/25 group-hover:text-rose-200' },
     ],
   },
 ];
@@ -150,30 +160,45 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r-0">
+      {/* Sidebar with gradient background + decorative orbs */}
+      <div className="absolute inset-0 sidebar-gradient pointer-events-none" />
+      <div className="sidebar-orb h-40 w-40 -top-10 -left-10 bg-primary/40" />
+      <div className="sidebar-orb h-48 w-48 bottom-20 -right-16 bg-secondary/30" />
+
+      <SidebarHeader className="relative border-b border-sidebar-border/50 backdrop-blur-sm">
         <div className="flex items-center gap-3 px-2 py-2">
-          <div className="h-9 w-9 rounded-lg overflow-hidden flex-shrink-0 ring-2 ring-sidebar-primary/30 shadow-md">
-            <img src={logoColorMedia} alt="ColorMídia" className="h-full w-full object-cover" />
+          <div className="sidebar-logo-ring h-10 w-10 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
+            <img src={logoColorMedia} alt="ColorMídia" className="h-full w-full object-cover rounded-[10px]" />
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-semibold text-sidebar-foreground truncate">ColorMídia</h1>
-              <p className="text-[10px] text-sidebar-foreground/60 truncate">Controle de Estoque</p>
+              <h1 className="text-sm font-bold text-sidebar-foreground truncate tracking-tight">
+                Color<span className="bg-gradient-to-r from-secondary to-orange-300 bg-clip-text text-transparent">Mídia</span>
+              </h1>
+              <p className="text-[10px] text-sidebar-foreground/50 truncate uppercase tracking-wider">Controle de Estoque</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="relative">
         {sections.map((section) => {
           const visible = section.items.filter((i) => hasAccess(i.roles));
           if (!visible.length) return null;
           return (
-            <SidebarGroup key={section.label}>
-              {!collapsed && <SidebarGroupLabel>{section.label}</SidebarGroupLabel>}
+            <SidebarGroup key={section.label} className="px-2">
+              {!collapsed && (
+                <SidebarGroupLabel className="sidebar-label-fancy px-2">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full shadow-[0_0_8px_currentColor]"
+                    style={{ backgroundColor: section.accent, color: section.accent }}
+                  />
+                  {section.label}
+                </SidebarGroupLabel>
+              )}
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className="gap-1">
                   {visible.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.url);
@@ -184,20 +209,38 @@ export function AppSidebar() {
 
                     return (
                       <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                          <NavLink to={item.url} className="relative">
-                            <Icon className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{item.title}</span>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={item.title}
+                          className={cn(
+                            'group nav-hover-sweep relative h-10 rounded-lg transition-all duration-300',
+                            'hover:bg-sidebar-accent/60 hover:translate-x-0.5',
+                            active && 'bg-sidebar-accent/80 shadow-md font-medium'
+                          )}
+                        >
+                          <NavLink to={item.url} className="relative flex items-center gap-3">
+                            {active && <span className="nav-active-indicator" />}
+                            <span
+                              className={cn(
+                                'flex h-7 w-7 items-center justify-center rounded-md transition-all duration-300 flex-shrink-0',
+                                item.iconClass,
+                                active && 'scale-110 shadow-sm'
+                              )}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            <span className="truncate text-sm">{item.title}</span>
                             {showBadge && !collapsed && (
                               <Badge
                                 variant="warning"
-                                className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle"
+                                className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle shadow-[0_0_10px_hsl(var(--warning)/0.5)]"
                               >
                                 {badgeValue}
                               </Badge>
                             )}
                             {showBadge && collapsed && (
-                              <span className={cn('absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse')} />
+                              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse shadow-[0_0_8px_hsl(var(--warning))]" />
                             )}
                           </NavLink>
                         </SidebarMenuButton>
