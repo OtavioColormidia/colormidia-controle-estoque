@@ -17,11 +17,11 @@ export const productSchema = z.object({
   description: z.string().trim().max(500, 'Descrição muito longa').optional().or(z.literal('')),
   category: z.string().trim().min(1, 'Selecione uma categoria'),
   minStock: z
-    .number({ invalid_type_error: 'Estoque mínimo inválido' })
+    .number({ message: 'Estoque mínimo inválido' })
     .int('Use um número inteiro')
     .min(0, 'Estoque mínimo não pode ser negativo'),
   currentStock: z
-    .number({ invalid_type_error: 'Estoque atual inválido' })
+    .number({ message: 'Estoque atual inválido' })
     .int('Use um número inteiro')
     .min(0, 'Estoque atual não pode ser negativo'),
 });
@@ -78,10 +78,10 @@ export const purchaseItemSchema = z.object({
     .min(1, 'Informe o nome do produto')
     .max(200, 'Nome do produto muito longo'),
   quantity: z
-    .number({ invalid_type_error: 'Quantidade inválida' })
+    .number({ message: 'Quantidade inválida' })
     .positive('Quantidade deve ser maior que zero'),
   unitPrice: z
-    .number({ invalid_type_error: 'Preço unitário inválido' })
+    .number({ message: 'Preço unitário inválido' })
     .min(0, 'Preço não pode ser negativo'),
 });
 export type PurchaseItemInput = z.infer<typeof purchaseItemSchema>;
@@ -90,9 +90,9 @@ export type PurchaseItemInput = z.infer<typeof purchaseItemSchema>;
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 /**
- * Returns first validation error message from a Zod result, or null.
+ * Returns first validation error message from a Zod safeParse result, or null.
  */
-export function firstError<T>(result: z.SafeParseReturnType<T, T>): string | null {
+export function firstError(result: z.SafeParseReturnType<unknown, unknown>): string | null {
   if (result.success) return null;
   return result.error.issues[0]?.message ?? 'Dados inválidos';
 }
