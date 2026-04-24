@@ -121,15 +121,21 @@ export default function Dashboard({ products, movements, purchases, suppliers = 
       date: new Date(m.createdAt || m.date),
       value: m.totalValue,
     })),
-    ...purchases.map((p) => ({
-      id: p.id,
-      type: "purchase" as const,
-      description: p.supplierName || "Fornecedor não informado",
-      detail: `Pedido de compra • ${p.items?.length || 0} itens${p.createdByName ? ` • por ${p.createdByName}` : ""}`,
-      date: new Date(p.date),
-      value: p.totalValue,
-      purchaseId: p.id,
-    })),
+    ...purchases.map((p) => {
+      const supplier = suppliers.find(
+        (s) => s.id === p.supplierId || s.name === p.supplierName
+      );
+      return {
+        id: p.id,
+        type: "purchase" as const,
+        description: p.supplierName || "Fornecedor não informado",
+        detail: `Pedido de compra • ${p.items?.length || 0} itens${p.createdByName ? ` • por ${p.createdByName}` : ""}`,
+        date: new Date(p.date),
+        value: p.totalValue,
+        purchaseId: p.id,
+        supplierLogo: supplier?.logoUrl,
+      };
+    }),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 8);
