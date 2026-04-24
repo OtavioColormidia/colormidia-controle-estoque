@@ -457,11 +457,46 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                   filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell>
-                      <div className="h-10 w-10 rounded-md border bg-muted/40 flex items-center justify-center overflow-hidden">
-                        {supplier.logoUrl ? (
-                          <img src={supplier.logoUrl} alt={supplier.name} className="h-full w-full object-contain" />
-                        ) : (
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center gap-1">
+                        <label
+                          className={`group relative h-10 w-10 rounded-md border bg-muted/40 flex items-center justify-center overflow-hidden ${onUpdateSupplierLogo ? 'cursor-pointer hover:border-primary' : ''}`}
+                          title={onUpdateSupplierLogo ? (supplier.logoUrl ? 'Trocar logo' : 'Adicionar logo') : undefined}
+                        >
+                          {supplier.logoUrl ? (
+                            <img src={supplier.logoUrl} alt={supplier.name} className="h-full w-full object-contain" />
+                          ) : (
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          {onUpdateSupplierLogo && (
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              {editingLogoId === supplier.id ? (
+                                <span className="text-[10px] text-white font-medium">...</span>
+                              ) : (
+                                <Upload className="h-4 w-4 text-white" />
+                              )}
+                            </div>
+                          )}
+                          {onUpdateSupplierLogo && (
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={editingLogoId === supplier.id}
+                              onChange={(e) => handleEditExistingLogo(supplier, e)}
+                            />
+                          )}
+                        </label>
+                        {onUpdateSupplierLogo && supplier.logoUrl && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={editingLogoId === supplier.id}
+                            onClick={() => handleRemoveExistingLogo(supplier)}
+                            title="Remover logo"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>
