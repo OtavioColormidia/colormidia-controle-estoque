@@ -19,9 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Calendar, Package, Save, Minus, User, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Package, Save, Minus, User, Plus, Trash2, PackageMinus } from 'lucide-react';
 import { Product, StockMovement } from '@/types/inventory';
 import { toast } from '@/hooks/use-toast';
+import PageHeader from '@/components/shared/PageHeader';
 
 interface ExitItem {
   productId: string;
@@ -188,12 +189,12 @@ export default function MaterialExit({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Saída de Material</h2>
-        <p className="text-muted-foreground mt-1">
-          Registre a saída de materiais do estoque
-        </p>
-      </div>
+      <PageHeader
+        icon={PackageMinus}
+        title="Saída de Material"
+        description="Registre a saída de materiais do estoque"
+        iconAccent="warning"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Exit Form */}

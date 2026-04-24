@@ -36,6 +36,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import PageHeader from "@/components/shared/PageHeader";
 
 import { toast } from "@/components/ui/use-toast";
 
@@ -371,10 +372,12 @@ export default function Purchases({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Compras</h2>
-        <p className="text-muted-foreground mt-1">Gerencie as compras com fornecedores</p>
-      </div>
+      <PageHeader
+        icon={ShoppingCart}
+        title="Compras"
+        description="Gerencie as compras com fornecedores"
+        iconAccent="primary"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">

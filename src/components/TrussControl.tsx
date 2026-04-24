@@ -19,6 +19,7 @@ import { Plus, Trash2, Package, ArrowDownToLine, ArrowUpFromLine, CheckCircle } 
 import { Truss, TrussMovement } from '@/hooks/useSupabaseData';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import PageHeader from '@/components/shared/PageHeader';
 
 interface TrussControlProps {
   trusses: Truss[];
@@ -154,7 +155,11 @@ const TrussControl = ({ trusses, trussMovements, addTruss, deleteTruss, addTruss
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Controle de Treliças</h1>
+      <PageHeader
+        icon={Package}
+        title="Controle de Treliças"
+        description="Cadastre, retire e acompanhe a movimentação das treliças"
+      />
 
       <Tabs defaultValue="register" className="w-full">
         <TabsList className="grid w-full grid-cols-3">

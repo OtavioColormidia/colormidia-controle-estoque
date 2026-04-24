@@ -30,6 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Loader2, UserCog, CheckCircle, XCircle } from 'lucide-react';
 import type { UserRole } from '@/types/inventory';
+import PageHeader from '@/components/shared/PageHeader';
 
 interface UserData {
   id: string;
@@ -300,12 +301,17 @@ export default function UserManagement() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Gerenciamento de Usuários</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
+    <div className="space-y-6">
+      <PageHeader
+        icon={UserCog}
+        title="Gerenciamento de Usuários"
+        description="Autorize, edite cargos e remova usuários do sistema"
+        iconAccent="primary"
+      />
+
+      <Card>
+        <CardContent className="pt-6">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -418,8 +424,9 @@ export default function UserManagement() {
               ))}
             </TableBody>
           </Table>
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
