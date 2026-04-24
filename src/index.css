@@ -179,19 +179,19 @@ All colors MUST be HSL.
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--foreground) / 0.75);
+    background: hsl(var(--muted-foreground) / 0.4);
     border-radius: 9999px;
     transition: background 0.2s;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--foreground) / 0.9);
+    background: hsl(var(--muted-foreground) / 0.6);
   }
 
   /* Firefox scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--foreground) / 0.75) hsl(var(--muted));
+    scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
   }
 }
 
