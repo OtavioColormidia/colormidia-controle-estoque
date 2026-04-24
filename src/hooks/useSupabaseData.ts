@@ -569,6 +569,32 @@ export const useSupabaseData = () => {
     broadcastRefresh();
   };
 
+  const updateSupplierLogo = async (supplierId: string, logoUrl: string | null) => {
+    const { error } = await supabase
+      .from('suppliers')
+      .update({
+        logo_url: logoUrl,
+        updated_by: (await supabase.auth.getUser()).data.user?.id,
+      })
+      .eq('id', supplierId);
+
+    if (error) {
+      toast({
+        title: 'Erro ao atualizar logo',
+        description: error.message,
+        variant: 'destructive',
+      });
+      throw error;
+    }
+
+    toast({
+      title: 'Logo atualizada',
+      description: 'A logo do fornecedor foi atualizada.',
+    });
+    await loadSuppliers();
+    broadcastRefresh();
+  };
+
   const addMovement = async (movement: Omit<StockMovement, 'id'>) => {
     const { data, error } = await supabase
       .from('stock_movements')
@@ -1101,6 +1127,7 @@ export const useSupabaseData = () => {
     deleteProduct,
     addSupplier,
     deleteSupplier,
+    updateSupplierLogo,
     addMovement,
     addPurchase,
     deletePurchase,

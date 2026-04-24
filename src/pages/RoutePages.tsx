@@ -87,9 +87,16 @@ export function ProductsPage() {
 }
 
 export function SuppliersPage() {
-  const { suppliers, addSupplier, deleteSupplier, loading } = useSupabaseDataContext();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplierLogo, loading } = useSupabaseDataContext();
   if (loading) return <Pending />;
-  return <SupplierManagement suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />;
+  return (
+    <SupplierManagement
+      suppliers={suppliers}
+      onAddSupplier={addSupplier}
+      onDeleteSupplier={deleteSupplier}
+      onUpdateSupplierLogo={updateSupplierLogo}
+    />
+  );
 }
 
 export function PurchasesPage() {

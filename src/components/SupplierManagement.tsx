@@ -31,9 +31,10 @@ interface SupplierManagementProps {
   suppliers: Supplier[];
   onAddSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<void>;
   onDeleteSupplier: (id: string) => void;
+  onUpdateSupplierLogo?: (supplierId: string, logoUrl: string | null) => Promise<void>;
 }
 
-export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteSupplier }: SupplierManagementProps) {
+export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteSupplier, onUpdateSupplierLogo }: SupplierManagementProps) {
   // Gerar próximo código automaticamente
   const getNextSupplierCode = () => {
     const existingCodes = suppliers.map(s => {
@@ -63,6 +64,59 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
   const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
+
+  const uploadLogoFile = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop() || 'png';
+    const path = `${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from('supplier-logos')
+      .upload(path, file, { upsert: false, contentType: file.type });
+    if (upErr) throw upErr;
+    const { data } = supabase.storage.from('supplier-logos').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const validateImageFile = (file: File): boolean => {
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem (PNG, JPG, SVG, WEBP).', variant: 'destructive' });
+      return false;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Imagem muito grande', description: 'Tamanho máximo: 2MB.', variant: 'destructive' });
+      return false;
+    }
+    return true;
+  };
+
+  const handleEditExistingLogo = async (supplier: Supplier, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !onUpdateSupplierLogo) return;
+    if (!validateImageFile(file)) return;
+
+    setEditingLogoId(supplier.id);
+    try {
+      const url = await uploadLogoFile(file);
+      await onUpdateSupplierLogo(supplier.id, url);
+    } catch (err: any) {
+      toast({ title: 'Erro ao atualizar logo', description: err.message, variant: 'destructive' });
+    } finally {
+      setEditingLogoId(null);
+    }
+  };
+
+  const handleRemoveExistingLogo = async (supplier: Supplier) => {
+    if (!onUpdateSupplierLogo) return;
+    setEditingLogoId(supplier.id);
+    try {
+      await onUpdateSupplierLogo(supplier.id, null);
+    } catch (err: any) {
+      toast({ title: 'Erro ao remover logo', description: err.message, variant: 'destructive' });
+    } finally {
+      setEditingLogoId(null);
+    }
+  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -403,11 +457,46 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
                   filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell>
-                      <div className="h-10 w-10 rounded-md border bg-muted/40 flex items-center justify-center overflow-hidden">
-                        {supplier.logoUrl ? (
-                          <img src={supplier.logoUrl} alt={supplier.name} className="h-full w-full object-contain" />
-                        ) : (
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center gap-1">
+                        <label
+                          className={`group relative h-10 w-10 rounded-md border bg-muted/40 flex items-center justify-center overflow-hidden ${onUpdateSupplierLogo ? 'cursor-pointer hover:border-primary' : ''}`}
+                          title={onUpdateSupplierLogo ? (supplier.logoUrl ? 'Trocar logo' : 'Adicionar logo') : undefined}
+                        >
+                          {supplier.logoUrl ? (
+                            <img src={supplier.logoUrl} alt={supplier.name} className="h-full w-full object-contain" />
+                          ) : (
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          {onUpdateSupplierLogo && (
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              {editingLogoId === supplier.id ? (
+                                <span className="text-[10px] text-white font-medium">...</span>
+                              ) : (
+                                <Upload className="h-4 w-4 text-white" />
+                              )}
+                            </div>
+                          )}
+                          {onUpdateSupplierLogo && (
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={editingLogoId === supplier.id}
+                              onChange={(e) => handleEditExistingLogo(supplier, e)}
+                            />
+                          )}
+                        </label>
+                        {onUpdateSupplierLogo && supplier.logoUrl && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={editingLogoId === supplier.id}
+                            onClick={() => handleRemoveExistingLogo(supplier)}
+                            title="Remover logo"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>
