@@ -58,6 +58,7 @@ export const supplierSchema = z.object({
   state: z.string().trim().max(2).optional().or(z.literal('')),
   zipCode: z.string().trim().max(10).optional().or(z.literal('')),
   active: z.boolean().default(true),
+  logoUrl: z.string().trim().url().optional().or(z.literal('')),
 });
 export type SupplierInput = z.infer<typeof supplierSchema>;
 

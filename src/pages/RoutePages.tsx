@@ -33,13 +33,14 @@ function Pending() {
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { products, movements, purchases, loading } = useSupabaseDataContext();
+  const { products, movements, purchases, suppliers, loading } = useSupabaseDataContext();
   if (loading) return <Pending />;
   return (
     <Dashboard
       products={products}
       movements={movements}
       purchases={purchases}
+      suppliers={suppliers}
       onTabChange={(tab) => navigate(tabToRoute[tab] ?? '/dashboard')}
     />
   );

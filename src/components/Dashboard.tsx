@@ -13,8 +13,9 @@ import {
   TrendingDown,
   BarChart3,
   Paperclip,
+  Building2,
 } from "lucide-react";
-import { Product, StockMovement, Purchase, UserRole } from "@/types/inventory";
+import { Product, StockMovement, Purchase, Supplier, UserRole } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ interface DashboardProps {
   products: Product[];
   movements: StockMovement[];
   purchases: Purchase[];
+  suppliers?: Supplier[];
   onTabChange: (tab: string) => void;
 }
 
@@ -46,9 +48,10 @@ interface RecentActivity {
   date: Date;
   value?: number;
   purchaseId?: string;
+  supplierLogo?: string;
 }
 
-export default function Dashboard({ products, movements, purchases, onTabChange }: DashboardProps) {
+export default function Dashboard({ products, movements, purchases, suppliers = [], onTabChange }: DashboardProps) {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -118,15 +121,21 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
       date: new Date(m.createdAt || m.date),
       value: m.totalValue,
     })),
-    ...purchases.map((p) => ({
-      id: p.id,
-      type: "purchase" as const,
-      description: p.supplierName || "Fornecedor não informado",
-      detail: `Pedido de compra • ${p.items?.length || 0} itens${p.createdByName ? ` • por ${p.createdByName}` : ""}`,
-      date: new Date(p.date),
-      value: p.totalValue,
-      purchaseId: p.id,
-    })),
+    ...purchases.map((p) => {
+      const supplier = suppliers.find(
+        (s) => s.id === p.supplierId || s.name === p.supplierName
+      );
+      return {
+        id: p.id,
+        type: "purchase" as const,
+        description: p.supplierName || "Fornecedor não informado",
+        detail: `Pedido de compra • ${p.items?.length || 0} itens${p.createdByName ? ` • por ${p.createdByName}` : ""}`,
+        date: new Date(p.date),
+        value: p.totalValue,
+        purchaseId: p.id,
+        supplierLogo: supplier?.logoUrl,
+      };
+    }),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 8);
@@ -177,15 +186,25 @@ export default function Dashboard({ products, movements, purchases, onTabChange 
             return (
               <div key={activity.id} className="p-3 sm:p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="flex items-start gap-3">
-                  <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    activity.type === "entry" ? "bg-success/10 text-success"
-                      : activity.type === "exit" ? "bg-warning/10 text-warning"
-                        : "bg-primary/10 text-primary"
-                  }`}>
-                    {activity.type === "entry" ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
-                      : activity.type === "exit" ? <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5" />
-                        : <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  </div>
+                  {activity.type === "purchase" && activity.supplierLogo ? (
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-background border overflow-hidden">
+                      <img
+                        src={activity.supplierLogo}
+                        alt={activity.description}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      activity.type === "entry" ? "bg-success/10 text-success"
+                        : activity.type === "exit" ? "bg-warning/10 text-warning"
+                          : "bg-primary/10 text-primary"
+                    }`}>
+                      {activity.type === "entry" ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                        : activity.type === "exit" ? <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5" />
+                          : <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-medium text-foreground text-sm sm:text-base truncate">{activity.description}</p>

@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Building2, Mail, Phone, Download, Trash2, Search, Users } from 'lucide-react';
+import { Plus, Building2, Mail, Phone, Download, Trash2, Search, Users, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { Supplier } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -57,10 +57,44 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
     state: '',
     zipCode: '',
     active: true,
+    logoUrl: '',
   });
   
   const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem (PNG, JPG, SVG, WEBP).', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Imagem muito grande', description: 'Tamanho máximo: 2MB.', variant: 'destructive' });
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('supplier-logos')
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('supplier-logos').getPublicUrl(path);
+      setFormData(prev => ({ ...prev, logoUrl: data.publicUrl }));
+      toast({ title: 'Logo carregada', description: 'A imagem foi enviada com sucesso.' });
+    } catch (err: any) {
+      toast({ title: 'Erro no upload', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsUploadingLogo(false);
+      e.target.value = '';
+    }
+  };
 
   const formatCNPJ = (value: string) => {
     // Remove todos os caracteres não numéricos
@@ -130,6 +164,7 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
         state: '', 
         zipCode: '', 
         active: true,
+        logoUrl: '',
       });
     } catch (error) {
       console.error('Erro ao cadastrar fornecedor:', error);
@@ -278,6 +313,52 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
               <Label>Email</Label>
               <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
             </div>
+            <div className="space-y-2">
+              <Label>Logo da empresa</Label>
+              <div className="flex items-center gap-3">
+                <div className="h-16 w-16 rounded-lg border bg-muted/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {formData.logoUrl ? (
+                    <img src={formData.logoUrl} alt="Logo" className="h-full w-full object-contain" />
+                  ) : (
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 flex gap-2">
+                  <label className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                      disabled={isUploadingLogo}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full pointer-events-none"
+                      disabled={isUploadingLogo}
+                      asChild
+                    >
+                      <span>
+                        <Upload className="h-4 w-4 mr-2" />
+                        {isUploadingLogo ? 'Enviando...' : formData.logoUrl ? 'Trocar logo' : 'Enviar logo'}
+                      </span>
+                    </Button>
+                  </label>
+                  {formData.logoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setFormData({ ...formData, logoUrl: '' })}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">PNG, JPG, SVG ou WEBP. Máx 2MB.</p>
+            </div>
             <Button type="submit" className="w-full bg-gradient-primary">
               <Building2 className="h-4 w-4 mr-2" />
               Cadastrar Fornecedor
@@ -302,6 +383,7 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16">Logo</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Razão Social</TableHead>
                   <TableHead>Nome Fantasia</TableHead>
@@ -313,13 +395,22 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
               <TableBody>
                 {filteredSuppliers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       {searchQuery ? 'Nenhum fornecedor encontrado' : 'Nenhum fornecedor cadastrado'}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
+                    <TableCell>
+                      <div className="h-10 w-10 rounded-md border bg-muted/40 flex items-center justify-center overflow-hidden">
+                        {supplier.logoUrl ? (
+                          <img src={supplier.logoUrl} alt={supplier.name} className="h-full w-full object-contain" />
+                        ) : (
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-mono">{supplier.code}</TableCell>
                     <TableCell>{supplier.name}</TableCell>
                     <TableCell>{supplier.tradeName || '-'}</TableCell>

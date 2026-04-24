@@ -25,6 +25,7 @@ export interface Supplier {
   state: string;
   zipCode: string;
   active: boolean;
+  logoUrl?: string;
 }
 
 export interface StockMovement {
