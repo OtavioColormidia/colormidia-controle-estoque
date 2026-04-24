@@ -188,7 +188,7 @@ export default function Auth() {
                   )}
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-all shadow-lg hover:shadow-xl font-medium" 
+                    className="w-full h-11 bg-gradient-primary hover:opacity-95 transition-all shadow-lg hover:shadow-glow font-medium animate-shine" 
                     disabled={loading}
                   >
                     {loading ? (
@@ -258,7 +258,7 @@ export default function Auth() {
                   )}
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-all shadow-lg hover:shadow-xl font-medium" 
+                    className="w-full h-11 bg-gradient-primary hover:opacity-95 transition-all shadow-lg hover:shadow-glow font-medium animate-shine" 
                     disabled={loading}
                   >
                     {loading ? (
