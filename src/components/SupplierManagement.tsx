@@ -64,6 +64,59 @@ export default function SupplierManagement({ suppliers, onAddSupplier, onDeleteS
   const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
+
+  const uploadLogoFile = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop() || 'png';
+    const path = `${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from('supplier-logos')
+      .upload(path, file, { upsert: false, contentType: file.type });
+    if (upErr) throw upErr;
+    const { data } = supabase.storage.from('supplier-logos').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const validateImageFile = (file: File): boolean => {
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem (PNG, JPG, SVG, WEBP).', variant: 'destructive' });
+      return false;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Imagem muito grande', description: 'Tamanho máximo: 2MB.', variant: 'destructive' });
+      return false;
+    }
+    return true;
+  };
+
+  const handleEditExistingLogo = async (supplier: Supplier, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !onUpdateSupplierLogo) return;
+    if (!validateImageFile(file)) return;
+
+    setEditingLogoId(supplier.id);
+    try {
+      const url = await uploadLogoFile(file);
+      await onUpdateSupplierLogo(supplier.id, url);
+    } catch (err: any) {
+      toast({ title: 'Erro ao atualizar logo', description: err.message, variant: 'destructive' });
+    } finally {
+      setEditingLogoId(null);
+    }
+  };
+
+  const handleRemoveExistingLogo = async (supplier: Supplier) => {
+    if (!onUpdateSupplierLogo) return;
+    setEditingLogoId(supplier.id);
+    try {
+      await onUpdateSupplierLogo(supplier.id, null);
+    } catch (err: any) {
+      toast({ title: 'Erro ao remover logo', description: err.message, variant: 'destructive' });
+    } finally {
+      setEditingLogoId(null);
+    }
+  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
