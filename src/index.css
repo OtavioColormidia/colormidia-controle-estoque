@@ -390,6 +390,120 @@ All colors MUST be HSL.
   60%, 100% { left: 125%; }
 }
 
+/* ===== Sidebar visual enhancements ===== */
+@layer utilities {
+  /* Gradient background applied to the sidebar surface */
+  .sidebar-gradient {
+    background:
+      radial-gradient(circle at 20% 0%, hsl(217 91% 25% / 0.45), transparent 50%),
+      radial-gradient(circle at 90% 100%, hsl(24 95% 45% / 0.18), transparent 55%),
+      var(--gradient-sidebar);
+  }
+
+  /* Decorative orbs floating behind the menu */
+  .sidebar-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(40px);
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  /* Animated active indicator bar */
+  .nav-active-indicator {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: linear-gradient(180deg, hsl(var(--sidebar-primary)), hsl(217 91% 60%));
+    box-shadow: 0 0 12px hsl(var(--sidebar-primary) / 0.7);
+    animation: indicatorPulse 2.4s ease-in-out infinite;
+  }
+
+  /* Hover sweep highlight for menu items */
+  .nav-hover-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-hover-sweep::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--sidebar-primary) / 0.12),
+      transparent
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+  }
+  .nav-hover-sweep:hover::before {
+    transform: translateX(100%);
+  }
+
+  /* Section label with accent line */
+  .sidebar-label-fancy {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: hsl(var(--sidebar-foreground) / 0.5);
+  }
+  .sidebar-label-fancy::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--sidebar-primary) / 0.4),
+      transparent
+    );
+  }
+
+  /* Logo glow ring inside sidebar header */
+  .sidebar-logo-ring {
+    position: relative;
+  }
+  .sidebar-logo-ring::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--sidebar-primary)),
+      hsl(217 91% 60%),
+      hsl(var(--sidebar-primary))
+    );
+    z-index: -1;
+    animation: spinSlow 6s linear infinite;
+    opacity: 0.85;
+  }
+}
+
+@keyframes indicatorPulse {
+  0%, 100% {
+    box-shadow: 0 0 12px hsl(var(--sidebar-primary) / 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(var(--sidebar-primary) / 1), 0 0 30px hsl(217 91% 60% / 0.5);
+  }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* Mobile responsiveness improvements */
 @media (max-width: 640px) {
   .container {
