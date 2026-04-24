@@ -1127,6 +1127,7 @@ export const useSupabaseData = () => {
     deleteProduct,
     addSupplier,
     deleteSupplier,
+    updateSupplierLogo,
     addMovement,
     addPurchase,
     deletePurchase,
