@@ -18,10 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, ClipboardList } from 'lucide-react';
 import { Product } from '@/types/inventory';
 import { toast } from '@/components/ui/use-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import PageHeader from '@/components/shared/PageHeader';
+import { productSchema, firstError } from '@/lib/validation/schemas';
 
 interface ProductManagementProps {
   products: Product[];
@@ -51,25 +53,44 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const parsed = productSchema.safeParse({
+      code: formData.code,
+      name: formData.name,
+      description: formData.description,
+      category: formData.category,
+      minStock: parseInt(formData.minStock || '0', 10),
+      currentStock: parseInt(formData.currentStock || '0', 10),
+    });
+
+    if (!parsed.success) {
+      toast({
+        title: 'Não foi possível salvar',
+        description: firstError(parsed) ?? 'Verifique os campos e tente novamente.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       await onAddProduct({
-        code: formData.code,
-        name: formData.name,
-        description: formData.description,
-        unit: 'UN', // Default value
-        category: formData.category,
-        minStock: parseInt(formData.minStock),
-        currentStock: parseInt(formData.currentStock),
-        location: '', // Default empty
+        code: parsed.data.code,
+        name: parsed.data.name,
+        description: parsed.data.description || '',
+        unit: 'UN',
+        category: parsed.data.category,
+        minStock: parsed.data.minStock,
+        currentStock: parsed.data.currentStock,
+        location: '',
       });
-      toast({ title: 'Produto cadastrado', description: `${formData.name} foi adicionado com sucesso` });
-      setFormData({ 
-        code: getNextProductCode(), // Gerar novo código após cadastro
-        name: '', 
-        description: '', 
-        category: '', 
-        minStock: '', 
-        currentStock: '' 
+      toast({ title: 'Produto cadastrado', description: `${parsed.data.name} foi adicionado com sucesso` });
+      setFormData({
+        code: getNextProductCode(),
+        name: '',
+        description: '',
+        category: '',
+        minStock: '',
+        currentStock: '',
       });
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);
@@ -78,10 +99,11 @@ export default function ProductManagement({ products, onAddProduct, onDeleteProd
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Cadastro de Produtos</h2>
-        <p className="text-muted-foreground mt-1">Gerencie os produtos do almoxarifado</p>
-      </div>
+      <PageHeader
+        icon={ClipboardList}
+        title="Cadastro de Produtos"
+        description="Gerencie os produtos do almoxarifado"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">

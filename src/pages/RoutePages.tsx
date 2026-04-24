@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
 import InventoryControl from '@/components/InventoryControl';
 import TrussControl from '@/components/TrussControl';
@@ -11,6 +10,7 @@ import Purchases from '@/components/Purchases';
 import SupplierMaterials from '@/components/SupplierMaterials';
 import UserManagement from '@/components/UserManagement';
 import FormResponses from '@/components/FormResponses';
+import LoadingState from '@/components/shared/LoadingState';
 import { useSupabaseDataContext } from '@/contexts/SupabaseDataContext';
 
 const tabToRoute: Record<string, string> = {
@@ -28,11 +28,7 @@ const tabToRoute: Record<string, string> = {
 };
 
 function Pending() {
-  return (
-    <div className="flex items-center justify-center py-20">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>
-  );
+  return <LoadingState variant="page" />;
 }
 
 export function DashboardPage() {

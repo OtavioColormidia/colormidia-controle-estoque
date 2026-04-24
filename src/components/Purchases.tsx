@@ -36,6 +36,8 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import PageHeader from "@/components/shared/PageHeader";
+import { purchaseHeaderSchema, purchaseItemSchema, firstError } from "@/lib/validation/schemas";
 
 import { toast } from "@/components/ui/use-toast";
 
@@ -180,43 +182,54 @@ export default function Purchases({
   }, [suppliers, supplierSearch]);
 
   const handleAddItem = () => {
-    if (productName && quantity && unitPrice) {
-      const qty = Number(quantity);
-      const price = Number(unitPrice);
-      const subtotal = qty * price;
-      const discInput = Number(itemDiscount) || 0;
-      let discValue = 0;
-      if (itemDiscountType === "percent") {
-        discValue = subtotal * (discInput / 100);
-      } else {
-        discValue = discInput;
-      }
-      const newItem: PurchaseItem = {
-        productId: "",
-        productName: productName,
-        quantity: qty,
-        unitPrice: price,
-        totalPrice: subtotal - discValue,
-        discountValue: discValue,
-        discountType: itemDiscountType,
-        discountInput: discInput,
-      };
+    const qty = Number(quantity);
+    const price = Number(unitPrice);
 
-      if (editingItemIndex !== null) {
-        const updatedItems = [...purchaseItems];
-        updatedItems[editingItemIndex] = newItem;
-        setPurchaseItems(updatedItems);
-        setEditingItemIndex(null);
-      } else {
-        setPurchaseItems([...purchaseItems, newItem]);
-      }
+    const parsed = purchaseItemSchema.safeParse({
+      productName,
+      quantity: Number.isFinite(qty) ? qty : NaN,
+      unitPrice: Number.isFinite(price) ? price : NaN,
+    });
 
-      setProductName("");
-      setQuantity("");
-      setUnitPrice("");
-      setItemDiscount("");
-      setItemDiscountType("value");
+    if (!parsed.success) {
+      toast({
+        title: 'Item inválido',
+        description: firstError(parsed) ?? 'Verifique os dados do item.',
+        variant: 'destructive',
+      });
+      return;
     }
+
+    const subtotal = parsed.data.quantity * parsed.data.unitPrice;
+    const discInput = Number(itemDiscount) || 0;
+    const discValue =
+      itemDiscountType === 'percent' ? subtotal * (discInput / 100) : discInput;
+
+    const newItem: PurchaseItem = {
+      productId: '',
+      productName: parsed.data.productName,
+      quantity: parsed.data.quantity,
+      unitPrice: parsed.data.unitPrice,
+      totalPrice: subtotal - discValue,
+      discountValue: discValue,
+      discountType: itemDiscountType,
+      discountInput: discInput,
+    };
+
+    if (editingItemIndex !== null) {
+      const updatedItems = [...purchaseItems];
+      updatedItems[editingItemIndex] = newItem;
+      setPurchaseItems(updatedItems);
+      setEditingItemIndex(null);
+    } else {
+      setPurchaseItems([...purchaseItems, newItem]);
+    }
+
+    setProductName('');
+    setQuantity('');
+    setUnitPrice('');
+    setItemDiscount('');
+    setItemDiscountType('value');
   };
 
   const handleEditItem = (index: number) => {
@@ -278,7 +291,33 @@ export default function Purchases({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.supplierId && purchaseItems.length > 0) {
+
+    const headerCheck = purchaseHeaderSchema.safeParse({
+      supplierId: formData.supplierId,
+      supplierName: formData.supplierName,
+      documentNumber: formData.documentNumber,
+      notes: formData.notes,
+    });
+
+    if (!headerCheck.success) {
+      toast({
+        title: 'Não foi possível salvar',
+        description: firstError(headerCheck) ?? 'Verifique o cabeçalho do pedido.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (purchaseItems.length === 0) {
+      toast({
+        title: 'Adicione pelo menos um item',
+        description: 'Um pedido de compra precisa ter ao menos um item.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    {
       const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
       const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
       const ipiValue = Number(ipi) || 0;
@@ -371,10 +410,12 @@ export default function Purchases({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Compras</h2>
-        <p className="text-muted-foreground mt-1">Gerencie as compras com fornecedores</p>
-      </div>
+      <PageHeader
+        icon={ShoppingCart}
+        title="Compras"
+        description="Gerencie as compras com fornecedores"
+        iconAccent="primary"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">
