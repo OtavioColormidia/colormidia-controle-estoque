@@ -28,9 +28,7 @@ import {
   X,
   Loader2,
   Eye,
-  ShoppingBag,
 } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Purchase, Product, Supplier, PurchaseItem } from "@/types/inventory";
 import { format } from "date-fns";
@@ -373,12 +371,10 @@ export default function Purchases({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Compras"
-        description="Gerencie pedidos de compra e relacionamento com fornecedores"
-        icon={ShoppingBag}
-        tone="accent"
-      />
+      <div>
+        <h2 className="text-3xl font-bold text-foreground">Compras</h2>
+        <p className="text-muted-foreground mt-1">Gerencie as compras com fornecedores</p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6">

@@ -29,7 +29,6 @@ import {
   CheckCircle2,
   Undo2,
 } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -424,18 +423,26 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <PageHeader
-        title="Requisição de Materiais"
-        description="Respostas recebidas do Google Forms em tempo real"
-        icon={ClipboardList}
-        tone="primary"
-        actions={
-          <Button variant="outline" onClick={loadResponses} disabled={loading} className="gap-2">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Atualizar
-          </Button>
-        }
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+            <ClipboardList className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            Requisição de Materiais
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Respostas recebidas do Google Forms em tempo real
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={loadResponses}
+          disabled={loading}
+          className="gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          Atualizar
+        </Button>
+      </div>
 
       <Card>
         <CardHeader className="pb-3">

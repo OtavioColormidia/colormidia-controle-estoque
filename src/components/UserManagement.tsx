@@ -28,8 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, UserCog, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
-import PageHeader from '@/components/layout/PageHeader';
+import { Loader2, UserCog, CheckCircle, XCircle } from 'lucide-react';
 import type { UserRole } from '@/types/inventory';
 
 interface UserData {
@@ -301,15 +300,11 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Gerenciamento de Usuários"
-        description="Aprove acessos, defina cargos e controle permissões"
-        icon={ShieldCheck}
-        tone="destructive"
-      />
-      <Card>
-        <CardContent className="pt-6">
+    <Card>
+      <CardHeader>
+        <CardTitle>Gerenciamento de Usuários</CardTitle>
+      </CardHeader>
+      <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -425,7 +420,6 @@ export default function UserManagement() {
           </Table>
         </div>
       </CardContent>
-      </Card>
-    </div>
+    </Card>
   );
 }
