@@ -66,10 +66,18 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
-    const loadUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
 
+    const fetchPendingCount = async () => {
+      const { count } = await supabase
+        .from('form_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('ordered', false);
+      if (!cancelled) setPendingRequestsCount(count ?? 0);
+    };
+
+    const loadUserData = async (user: { id: string }) => {
       // Load profile
       const { data: profile } = await supabase
         .from('profiles')
@@ -77,7 +85,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
         .eq('user_id', user.id)
         .single();
 
-      if (profile?.display_name) {
+      if (!cancelled && profile?.display_name) {
         setDisplayName(profile.display_name);
       }
 
@@ -87,7 +95,7 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
         .select('role')
         .eq('user_id', user.id);
 
-      if (roles) {
+      if (!cancelled && roles) {
         setUserRoles(roles.map(r => r.role as UserRole));
       }
 
@@ -95,41 +103,51 @@ export default function Layout({ children, activeTab, onTabChange }: LayoutProps
       const { data: products } = await supabase
         .from('products')
         .select('current_stock, min_stock');
-      
-      if (products) {
-        // Atenção: estoque <= min_stock * 1.5, Crítico: estoque <= min_stock
+
+      if (!cancelled && products) {
         const alertStock = products.filter(p => p.current_stock <= p.min_stock * 1.5).length;
         setAlertStockCount(alertStock);
       }
 
-      // Load pending form requests count
-      const { count } = await supabase
-        .from('form_responses')
-        .select('*', { count: 'exact', head: true })
-        .eq('ordered', false);
-      setPendingRequestsCount(count ?? 0);
+      await fetchPendingCount();
     };
 
-    loadUserData();
+    const setupRealtime = () => {
+      if (channel) return;
+      channel = supabase
+        .channel('layout-form-responses-count')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'form_responses' },
+          () => {
+            fetchPendingCount();
+          }
+        )
+        .subscribe();
+    };
 
-    // Realtime subscription for pending count
-    const channel = supabase
-      .channel('layout-form-responses-count')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'form_responses' },
-        async () => {
-          const { count } = await supabase
-            .from('form_responses')
-            .select('*', { count: 'exact', head: true })
-            .eq('ordered', false);
-          setPendingRequestsCount(count ?? 0);
-        }
-      )
-      .subscribe();
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await loadUserData(session.user);
+        setupRealtime();
+      }
+    };
+
+    init();
+
+    // React to auth state changes (e.g., session restored after initial render)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        loadUserData(session.user);
+        setupRealtime();
+      }
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      subscription.unsubscribe();
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
