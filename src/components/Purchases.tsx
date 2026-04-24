@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/shared/PageHeader";
+import { purchaseHeaderSchema, purchaseItemSchema, firstError } from "@/lib/validation/schemas";
 
 import { toast } from "@/components/ui/use-toast";
 
@@ -181,43 +182,54 @@ export default function Purchases({
   }, [suppliers, supplierSearch]);
 
   const handleAddItem = () => {
-    if (productName && quantity && unitPrice) {
-      const qty = Number(quantity);
-      const price = Number(unitPrice);
-      const subtotal = qty * price;
-      const discInput = Number(itemDiscount) || 0;
-      let discValue = 0;
-      if (itemDiscountType === "percent") {
-        discValue = subtotal * (discInput / 100);
-      } else {
-        discValue = discInput;
-      }
-      const newItem: PurchaseItem = {
-        productId: "",
-        productName: productName,
-        quantity: qty,
-        unitPrice: price,
-        totalPrice: subtotal - discValue,
-        discountValue: discValue,
-        discountType: itemDiscountType,
-        discountInput: discInput,
-      };
+    const qty = Number(quantity);
+    const price = Number(unitPrice);
 
-      if (editingItemIndex !== null) {
-        const updatedItems = [...purchaseItems];
-        updatedItems[editingItemIndex] = newItem;
-        setPurchaseItems(updatedItems);
-        setEditingItemIndex(null);
-      } else {
-        setPurchaseItems([...purchaseItems, newItem]);
-      }
+    const parsed = purchaseItemSchema.safeParse({
+      productName,
+      quantity: Number.isFinite(qty) ? qty : NaN,
+      unitPrice: Number.isFinite(price) ? price : NaN,
+    });
 
-      setProductName("");
-      setQuantity("");
-      setUnitPrice("");
-      setItemDiscount("");
-      setItemDiscountType("value");
+    if (!parsed.success) {
+      toast({
+        title: 'Item inválido',
+        description: firstError(parsed) ?? 'Verifique os dados do item.',
+        variant: 'destructive',
+      });
+      return;
     }
+
+    const subtotal = parsed.data.quantity * parsed.data.unitPrice;
+    const discInput = Number(itemDiscount) || 0;
+    const discValue =
+      itemDiscountType === 'percent' ? subtotal * (discInput / 100) : discInput;
+
+    const newItem: PurchaseItem = {
+      productId: '',
+      productName: parsed.data.productName,
+      quantity: parsed.data.quantity,
+      unitPrice: parsed.data.unitPrice,
+      totalPrice: subtotal - discValue,
+      discountValue: discValue,
+      discountType: itemDiscountType,
+      discountInput: discInput,
+    };
+
+    if (editingItemIndex !== null) {
+      const updatedItems = [...purchaseItems];
+      updatedItems[editingItemIndex] = newItem;
+      setPurchaseItems(updatedItems);
+      setEditingItemIndex(null);
+    } else {
+      setPurchaseItems([...purchaseItems, newItem]);
+    }
+
+    setProductName('');
+    setQuantity('');
+    setUnitPrice('');
+    setItemDiscount('');
+    setItemDiscountType('value');
   };
 
   const handleEditItem = (index: number) => {
