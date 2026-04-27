@@ -506,44 +506,79 @@ export const useSupabaseData = () => {
     broadcastRefresh();
   };
 
-  const addSupplier = async (supplier: Omit<Supplier, 'id'>) => {
+  const getNextSupplierCodeFromDB = async (): Promise<string> => {
     const { data, error } = await supabase
       .from('suppliers')
-      .insert({
-        code: supplier.code,
-        name: supplier.name,
-        trade_name: supplier.tradeName,
-        cnpj: supplier.cnpj,
-        contact: supplier.contact,
-        email: supplier.email,
-        phone: supplier.phone,
-        address: supplier.address,
-        city: supplier.city,
-        state: supplier.state,
-        zip_code: supplier.zipCode,
-        active: supplier.active,
-        logo_url: supplier.logoUrl || null,
-        created_by: (await supabase.auth.getUser()).data.user?.id,
-        updated_by: (await supabase.auth.getUser()).data.user?.id
-      })
-      .select()
-      .single();
+      .select('code')
+      .ilike('code', 'FORN%');
+    if (error) throw error;
+    const max = (data || []).reduce((acc, row) => {
+      const m = (row as any).code?.match(/^FORN(\d+)$/);
+      const n = m ? parseInt(m[1], 10) : 0;
+      return n > acc ? n : acc;
+    }, 0);
+    return `FORN${String(max + 1).padStart(3, '0')}`;
+  };
 
-    if (error) {
-      toast({
-        title: "Erro ao adicionar fornecedor",
-        description: error.message,
-        variant: "destructive"
-      });
-      throw error;
+  const addSupplier = async (supplier: Omit<Supplier, 'id'>) => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    let codeToUse = supplier.code;
+    let attempt = 0;
+    let lastError: any = null;
+
+    while (attempt < 5) {
+      const { error } = await supabase
+        .from('suppliers')
+        .insert({
+          code: codeToUse,
+          name: supplier.name,
+          trade_name: supplier.tradeName,
+          cnpj: supplier.cnpj,
+          contact: supplier.contact,
+          email: supplier.email,
+          phone: supplier.phone,
+          address: supplier.address,
+          city: supplier.city,
+          state: supplier.state,
+          zip_code: supplier.zipCode,
+          active: supplier.active,
+          logo_url: supplier.logoUrl || null,
+          created_by: userId,
+          updated_by: userId
+        })
+        .select()
+        .single();
+
+      if (!error) {
+        toast({
+          title: "Fornecedor adicionado",
+          description: "O fornecedor foi salvo no banco de dados."
+        });
+        await loadSuppliers();
+        broadcastRefresh();
+        return;
+      }
+
+      lastError = error;
+      // 23505 = unique_violation. Se for colisão de código, recalcula e tenta de novo.
+      const isCodeCollision =
+        (error as any).code === '23505' && /suppliers_code_key/i.test(error.message || '');
+      if (!isCodeCollision) break;
+
+      try {
+        codeToUse = await getNextSupplierCodeFromDB();
+      } catch {
+        break;
+      }
+      attempt++;
     }
 
     toast({
-      title: "Fornecedor adicionado",
-      description: "O fornecedor foi salvo no banco de dados."
+      title: "Erro ao adicionar fornecedor",
+      description: lastError?.message || 'Falha desconhecida',
+      variant: "destructive"
     });
-    await loadSuppliers();
-    broadcastRefresh();
+    throw lastError;
   };
 
   const deleteSupplier = async (supplierId: string) => {
