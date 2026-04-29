@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Car, Plus, Trash2, Camera, MapPin, Gauge, Calendar as CalendarIcon, Image as ImageIcon, X, Pencil, CheckCircle2 } from 'lucide-react';
+import { Car, Plus, Trash2, Camera, MapPin, Gauge, Calendar as CalendarIcon, Image as ImageIcon, X, Pencil, CheckCircle2, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
