@@ -148,3 +148,7 @@ export function FormResponsesPage() {
 export function UsersPage() {
   return <UserManagement />;
 }
+
+export function VehiclesPage() {
+  return <VehicleControl />;
+}
