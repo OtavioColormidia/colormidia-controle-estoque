@@ -651,6 +651,7 @@ export type Database = {
           model: string
           notes: string | null
           plate: string
+          renavam: string | null
           updated_at: string
           updated_by: string | null
           year: number | null
@@ -665,6 +666,7 @@ export type Database = {
           model: string
           notes?: string | null
           plate: string
+          renavam?: string | null
           updated_at?: string
           updated_by?: string | null
           year?: number | null
@@ -679,6 +681,7 @@ export type Database = {
           model?: string
           notes?: string | null
           plate?: string
+          renavam?: string | null
           updated_at?: string
           updated_by?: string | null
           year?: number | null
