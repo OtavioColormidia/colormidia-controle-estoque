@@ -81,6 +81,13 @@ const sections: NavSection[] = [
     ],
   },
   {
+    label: 'Frota',
+    accent: 'hsl(45 95% 55%)',
+    items: [
+      { title: 'Controle de Veículos', url: '/veiculos', icon: Car, roles: ['admin', 'compras', 'almoxarife', 'visualizador'], iconClass: 'bg-amber-500/15 text-amber-300 group-hover:bg-amber-500/25 group-hover:text-amber-200' },
+    ],
+  },
+  {
     label: 'Cadastros',
     accent: 'hsl(190 90% 55%)',
     items: [
