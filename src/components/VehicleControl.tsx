@@ -256,10 +256,6 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
                 <Label>Observações</Label>
                 <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
               </div>
-              <div>
-                <Label>Observações</Label>
-                <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
-              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
