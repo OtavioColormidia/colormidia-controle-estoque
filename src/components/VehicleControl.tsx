@@ -286,13 +286,18 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
         </div>
       )}
 
-      <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Excluir veículo?"
-        description="Esta ação não pode ser desfeita. As viagens deste veículo serão mantidas."
-        onConfirm={remove}
-      />
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir veículo?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita. As viagens deste veículo serão mantidas.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={remove} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
