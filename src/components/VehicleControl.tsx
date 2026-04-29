@@ -415,19 +415,29 @@ function TripsTab({ vehicles, trips, onChanged }: { vehicles: Vehicle[]; trips: 
       <NewTripDialog open={open} onOpenChange={setOpen} vehicles={vehicles} onSaved={onChanged} />
       <FinishTripDialog trip={finishing} onOpenChange={(o) => !o && setFinishing(null)} onSaved={onChanged} />
 
-      <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Excluir viagem?"
-        description="Esta ação não pode ser desfeita."
-        onConfirm={async () => {
-          if (!deleteId) return;
-          const { error } = await supabase.from('vehicle_trips').delete().eq('id', deleteId);
-          if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-          else { toast({ title: 'Viagem excluída' }); onChanged(); }
-          setDeleteId(null);
-        }}
-      />
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir viagem?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!deleteId) return;
+                const { error } = await supabase.from('vehicle_trips').delete().eq('id', deleteId);
+                if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+                else { toast({ title: 'Viagem excluída' }); onChanged(); }
+                setDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
         <DialogContent className="max-w-2xl">
