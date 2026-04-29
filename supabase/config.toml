@@ -2,3 +2,6 @@ project_id = "xmaeixjvbpgwkhipaxys"
 
 [functions.receive-form-response]
 verify_jwt = false
+
+[functions.receive-vehicle-trip]
+verify_jwt = false
