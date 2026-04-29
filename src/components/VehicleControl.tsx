@@ -125,39 +125,8 @@ export default function VehicleControl() {
 function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: () => void }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vehicle | null>(null);
-  const [form, setForm] = useState({ plate: '', model: '', brand: '', year: '', color: '', notes: '' });
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [form, setForm] = useState({ plate: '', model: '', brand: '', year: '', color: '', renavam: '', notes: '' });
 
-  const resetForm = () => {
-    setForm({ plate: '', model: '', brand: '', year: '', color: '', notes: '' });
-    setEditing(null);
-  };
-
-  const openEdit = (v: Vehicle) => {
-    setEditing(v);
-    setForm({
-      plate: v.plate,
-      model: v.model,
-      brand: v.brand ?? '',
-      year: v.year ? String(v.year) : '',
-      color: v.color ?? '',
-      notes: v.notes ?? '',
-    });
-    setOpen(true);
-  };
-
-  const submit = async () => {
-    if (!form.plate.trim() || !form.model.trim()) {
-      toast({ title: 'Placa e Modelo são obrigatórios', variant: 'destructive' });
-      return;
-    }
-    const payload = {
-      plate: form.plate.trim().toUpperCase(),
-      model: form.model.trim(),
-      brand: form.brand.trim() || null,
-      year: form.year ? parseInt(form.year, 10) : null,
-      color: form.color.trim() || null,
-      notes: form.notes.trim() || null,
     };
     if (editing) {
       const { error } = await supabase.from('vehicles').update(payload).eq('id', editing.id);
