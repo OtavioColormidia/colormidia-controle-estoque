@@ -282,6 +282,11 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
                     <p className="text-xs text-muted-foreground">
                       {[v.brand, v.year, v.color].filter(Boolean).join(' • ') || 'Sem informações adicionais'}
                     </p>
+                    {v.renavam && (
+                      <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                        RENAVAM: {v.renavam}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(v)}>
