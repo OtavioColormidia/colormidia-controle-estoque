@@ -18,6 +18,7 @@ import {
   SuppliersPage,
   SupplierMaterialsPage,
   UsersPage,
+  VehiclesPage,
 } from "./pages/RoutePages";
 
 const queryClient = new QueryClient();
