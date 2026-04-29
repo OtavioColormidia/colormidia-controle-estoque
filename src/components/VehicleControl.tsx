@@ -34,6 +34,7 @@ interface Vehicle {
   brand: string | null;
   year: number | null;
   color: string | null;
+  renavam: string | null;
   notes: string | null;
   active: boolean;
 }
