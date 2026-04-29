@@ -448,7 +448,7 @@ function TripsTab({ vehicles, trips, onChanged }: { vehicles: Vehicle[]; trips: 
         />
       ) : (
         <div className="grid gap-3">
-          {trips.map((t) => (
+          {filteredTrips.map((t) => (
             <Card key={t.id} className="overflow-hidden">
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
