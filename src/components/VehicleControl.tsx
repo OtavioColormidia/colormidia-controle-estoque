@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Car, Plus, Trash2, Camera, MapPin, Gauge, Calendar as CalendarIcon, Image as ImageIcon, X, Pencil, CheckCircle2 } from 'lucide-react';
+import { Car, Plus, Trash2, Camera, MapPin, Gauge, Calendar as CalendarIcon, Image as ImageIcon, X, Pencil, CheckCircle2, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -328,6 +328,44 @@ function TripsTab({ vehicles, trips, onChanged }: { vehicles: Vehicle[]; trips: 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const [filterDriver, setFilterDriver] = useState('');
+  const [filterVehicle, setFilterVehicle] = useState<string>('all');
+  const [filterStart, setFilterStart] = useState('');
+  const [filterEnd, setFilterEnd] = useState('');
+
+  const drivers = useMemo(
+    () => Array.from(new Set(trips.map((t) => t.driver_name).filter(Boolean))).sort(),
+    [trips],
+  );
+
+  const filteredTrips = useMemo(() => {
+    return trips.filter((t) => {
+      if (filterDriver && !t.driver_name.toLowerCase().includes(filterDriver.toLowerCase())) return false;
+      if (filterVehicle !== 'all') {
+        if (filterVehicle === '__none__') {
+          if (t.vehicle_id) return false;
+        } else if (t.vehicle_id !== filterVehicle) {
+          return false;
+        }
+      }
+      if (filterStart) {
+        if (new Date(t.date) < new Date(filterStart + 'T00:00:00')) return false;
+      }
+      if (filterEnd) {
+        if (new Date(t.date) > new Date(filterEnd + 'T23:59:59')) return false;
+      }
+      return true;
+    });
+  }, [trips, filterDriver, filterVehicle, filterStart, filterEnd]);
+
+  const hasFilters = filterDriver || filterVehicle !== 'all' || filterStart || filterEnd;
+  const clearFilters = () => {
+    setFilterDriver('');
+    setFilterVehicle('all');
+    setFilterStart('');
+    setFilterEnd('');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -337,15 +375,80 @@ function TripsTab({ vehicles, trips, onChanged }: { vehicles: Vehicle[]; trips: 
         </Button>
       </div>
 
-      {trips.length === 0 ? (
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtros</span>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={clearFilters}>
+                <X className="h-3 w-3 mr-1" />
+                Limpar
+              </Button>
+            )}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <Label className="text-xs">Motorista</Label>
+              <Input
+                list="driver-options"
+                value={filterDriver}
+                onChange={(e) => setFilterDriver(e.target.value)}
+                placeholder="Buscar motorista"
+              />
+              <datalist id="driver-options">
+                {drivers.map((d) => (
+                  <option key={d} value={d} />
+                ))}
+              </datalist>
+            </div>
+            <div>
+              <Label className="text-xs">Veículo</Label>
+              <Select value={filterVehicle} onValueChange={setFilterVehicle}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="__none__">Sem veículo vinculado</SelectItem>
+                  {vehicles.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.plate} — {v.model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">De</Label>
+              <Input type="date" value={filterStart} onChange={(e) => setFilterStart(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Até</Label>
+              <Input type="date" value={filterEnd} onChange={(e) => setFilterEnd(e.target.value)} />
+            </div>
+          </div>
+          {hasFilters && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Mostrando {filteredTrips.length} de {trips.length} viagens
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {filteredTrips.length === 0 ? (
         <EmptyState
           icon={MapPin}
-          title="Nenhuma viagem registrada"
-          description="Registre a primeira viagem informando motorista, veículo e KM de saída."
+          title={hasFilters ? 'Nenhuma viagem encontrada' : 'Nenhuma viagem registrada'}
+          description={
+            hasFilters
+              ? 'Ajuste os filtros para ver outros resultados.'
+              : 'Registre a primeira viagem informando motorista, veículo e KM de saída.'
+          }
         />
       ) : (
         <div className="grid gap-3">
-          {trips.map((t) => (
+          {filteredTrips.map((t) => (
             <Card key={t.id} className="overflow-hidden">
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
