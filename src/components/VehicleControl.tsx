@@ -243,6 +243,20 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
                 </div>
               </div>
               <div>
+                <Label>RENAVAM</Label>
+                <Input
+                  value={form.renavam}
+                  onChange={(e) => setForm({ ...form, renavam: e.target.value.replace(/\D/g, '') })}
+                  placeholder="00000000000"
+                  maxLength={11}
+                  inputMode="numeric"
+                />
+              </div>
+              <div>
+                <Label>Observações</Label>
+                <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
+              </div>
+              <div>
                 <Label>Observações</Label>
                 <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
               </div>
