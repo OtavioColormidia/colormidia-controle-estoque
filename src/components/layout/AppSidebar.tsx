@@ -11,6 +11,7 @@ import {
   Tag,
   Building2,
   Truck,
+  Car,
   UserCog,
 } from 'lucide-react';
 import {
