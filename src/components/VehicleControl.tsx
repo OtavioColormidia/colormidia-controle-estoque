@@ -126,7 +126,40 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vehicle | null>(null);
   const [form, setForm] = useState({ plate: '', model: '', brand: '', year: '', color: '', renavam: '', notes: '' });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const resetForm = () => {
+    setEditing(null);
+    setForm({ plate: '', model: '', brand: '', year: '', color: '', renavam: '', notes: '' });
+  };
+
+  const openEdit = (v: Vehicle) => {
+    setEditing(v);
+    setForm({
+      plate: v.plate,
+      model: v.model,
+      brand: v.brand ?? '',
+      year: v.year ? String(v.year) : '',
+      color: v.color ?? '',
+      renavam: v.renavam ?? '',
+      notes: v.notes ?? '',
+    });
+    setOpen(true);
+  };
+
+  const submit = async () => {
+    if (!form.plate.trim() || !form.model.trim()) {
+      toast({ title: 'Preencha placa e modelo', variant: 'destructive' });
+      return;
+    }
+    const payload = {
+      plate: form.plate.trim().toUpperCase(),
+      model: form.model.trim(),
+      brand: form.brand.trim() || null,
+      year: form.year ? parseInt(form.year, 10) : null,
+      color: form.color.trim() || null,
+      renavam: form.renavam.trim() || null,
+      notes: form.notes.trim() || null,
     };
     if (editing) {
       const { error } = await supabase.from('vehicles').update(payload).eq('id', editing.id);
