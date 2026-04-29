@@ -572,6 +572,119 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_trips: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          destination: string | null
+          driver_name: string
+          id: string
+          km_end: number | null
+          km_start: number
+          km_total: number | null
+          notes: string | null
+          odometer_end_url: string | null
+          odometer_start_url: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          vehicle_id: string | null
+          vehicle_label: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          destination?: string | null
+          driver_name: string
+          id?: string
+          km_end?: number | null
+          km_start: number
+          km_total?: number | null
+          notes?: string | null
+          odometer_end_url?: string | null
+          odometer_start_url?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_id?: string | null
+          vehicle_label?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          destination?: string | null
+          driver_name?: string
+          id?: string
+          km_end?: number | null
+          km_start?: number
+          km_total?: number | null
+          notes?: string | null
+          odometer_end_url?: string | null
+          odometer_start_url?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_id?: string | null
+          vehicle_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_trips_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          active: boolean
+          brand: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          model: string
+          notes: string | null
+          plate: string
+          updated_at: string
+          updated_by: string | null
+          year: number | null
+        }
+        Insert: {
+          active?: boolean
+          brand?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          model: string
+          notes?: string | null
+          plate: string
+          updated_at?: string
+          updated_by?: string | null
+          year?: number | null
+        }
+        Update: {
+          active?: boolean
+          brand?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          model?: string
+          notes?: string | null
+          plate?: string
+          updated_at?: string
+          updated_by?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
