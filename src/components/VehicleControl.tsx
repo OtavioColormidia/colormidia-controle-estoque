@@ -34,6 +34,7 @@ interface Vehicle {
   brand: string | null;
   year: number | null;
   color: string | null;
+  renavam: string | null;
   notes: string | null;
   active: boolean;
 }
@@ -124,12 +125,12 @@ export default function VehicleControl() {
 function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: () => void }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vehicle | null>(null);
-  const [form, setForm] = useState({ plate: '', model: '', brand: '', year: '', color: '', notes: '' });
+  const [form, setForm] = useState({ plate: '', model: '', brand: '', year: '', color: '', renavam: '', notes: '' });
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const resetForm = () => {
-    setForm({ plate: '', model: '', brand: '', year: '', color: '', notes: '' });
     setEditing(null);
+    setForm({ plate: '', model: '', brand: '', year: '', color: '', renavam: '', notes: '' });
   };
 
   const openEdit = (v: Vehicle) => {
@@ -140,6 +141,7 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
       brand: v.brand ?? '',
       year: v.year ? String(v.year) : '',
       color: v.color ?? '',
+      renavam: v.renavam ?? '',
       notes: v.notes ?? '',
     });
     setOpen(true);
@@ -147,7 +149,7 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
 
   const submit = async () => {
     if (!form.plate.trim() || !form.model.trim()) {
-      toast({ title: 'Placa e Modelo são obrigatórios', variant: 'destructive' });
+      toast({ title: 'Preencha placa e modelo', variant: 'destructive' });
       return;
     }
     const payload = {
@@ -156,6 +158,7 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
       brand: form.brand.trim() || null,
       year: form.year ? parseInt(form.year, 10) : null,
       color: form.color.trim() || null,
+      renavam: form.renavam.trim() || null,
       notes: form.notes.trim() || null,
     };
     if (editing) {
@@ -240,6 +243,16 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
                 </div>
               </div>
               <div>
+                <Label>RENAVAM</Label>
+                <Input
+                  value={form.renavam}
+                  onChange={(e) => setForm({ ...form, renavam: e.target.value.replace(/\D/g, '') })}
+                  placeholder="00000000000"
+                  maxLength={11}
+                  inputMode="numeric"
+                />
+              </div>
+              <div>
                 <Label>Observações</Label>
                 <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
               </div>
@@ -269,6 +282,11 @@ function VehiclesTab({ vehicles, onChanged }: { vehicles: Vehicle[]; onChanged: 
                     <p className="text-xs text-muted-foreground">
                       {[v.brand, v.year, v.color].filter(Boolean).join(' • ') || 'Sem informações adicionais'}
                     </p>
+                    {v.renavam && (
+                      <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                        RENAVAM: {v.renavam}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(v)}>
