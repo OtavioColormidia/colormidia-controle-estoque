@@ -9,7 +9,6 @@ import SupplierManagement from '@/components/SupplierManagement';
 import Purchases from '@/components/Purchases';
 import SupplierMaterials from '@/components/SupplierMaterials';
 import UserManagement from '@/components/UserManagement';
-import VehicleControl from '@/components/VehicleControl';
 import FormResponses from '@/components/FormResponses';
 import LoadingState from '@/components/shared/LoadingState';
 import { useSupabaseDataContext } from '@/contexts/SupabaseDataContext';
@@ -147,8 +146,4 @@ export function FormResponsesPage() {
 
 export function UsersPage() {
   return <UserManagement />;
-}
-
-export function VehiclesPage() {
-  return <VehicleControl />;
 }
