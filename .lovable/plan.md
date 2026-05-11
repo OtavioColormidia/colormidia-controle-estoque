@@ -1,48 +1,31 @@
+# Remover Controle de Veículos + Atalho Requisição no Dashboard
 
+## 1. Remover Controle de Veículos (frontend)
 
-## Entendi os 3 ajustes
+- `src/components/layout/AppSidebar.tsx`: remover a seção `Frota` inteira (item "Controle de Veículos" e import do ícone `Car`).
+- `src/App.tsx`: remover import `VehiclesPage` e a rota `/veiculos`.
+- `src/pages/RoutePages.tsx`: remover import de `VehicleControl` e o export `VehiclesPage`.
+- Excluir o arquivo `src/components/VehicleControl.tsx`.
 
-### 1. Remover coluna "Carimbo de data/hora"
-A tabela já mostra a coluna "Data" (de `submitted_at`). O "Carimbo de data/hora" vem dentro do `data` JSON e fica duplicado. Vou ocultar essa chave da renderização (filtrar do `allKeys`).
+## 2. Adicionar atalho "Requisição de Materiais" no Dashboard
 
-### 2. Materiais sem truncamento
-Hoje a coluna usa `truncate` + `max-w-xs` → corta com "...". Vou remover o truncate da coluna "Materiais" especificamente (ou de todas), permitindo quebra de linha (`whitespace-pre-wrap break-words`) pra ver o pedido completo.
+Em `src/components/Dashboard.tsx`, no array `quickAccessCards`, adicionar (logo após "Compras") um novo card:
 
-### 3. Marcar como "Pedido feito" (controle visual)
-Adicionar um status persistente por requisição pra evitar duplicidade entre usuários:
-- **Botão "Marcar como pedido feito"** em cada linha/card
-- Quando marcado: linha fica com fundo verde claro + badge "✓ Pedido feito" + nome de quem marcou + data/hora
-- Botão pra desmarcar (caso erro)
-- Sincroniza em tempo real entre todos os usuários (já existe realtime na tabela)
+- id: `form-responses` (já mapeado em `tabToRoute` para `/requisicoes`)
+- label: "Requisição de Materiais"
+- description: "Pedidos recebidos via formulário"
+- icon: `FileText` (lucide)
+- gradient: `from-fuchsia-500 to-pink-500`
+- allowedRoles: `["admin", "compras", "almoxarife"]`
 
-#### Mudanças no banco
-Adicionar 3 colunas em `form_responses`:
-- `ordered` (boolean, default false)
-- `ordered_by` (uuid, FK lógica pra profiles)
-- `ordered_at` (timestamptz)
+Nenhuma mudança de rota necessária — `/requisicoes` já existe.
 
-E atualizar RLS pra permitir UPDATE dessas colunas por usuários autorizados (admin/compras/almoxarife).
+## 3. Backend (NÃO incluído neste plano)
 
-#### Mudanças no frontend (`FormResponses.tsx`)
-- Filtrar `Carimbo de data/hora` (e variações) da lista de colunas exibidas
-- Remover truncate da coluna Materiais — usar `whitespace-pre-wrap break-words`
-- Adicionar coluna "Status" com botão verde "Marcar pedido feito" / badge "✓ Pedido por {nome} em {data}"
-- Linhas com `ordered = true` recebem fundo verde sutil (`bg-green-500/5`) e texto levemente apagado
-- Adicionar filtro: "Todos / Pendentes / Pedido feito" no topo
-- Buscar `display_name` do `ordered_by` via join com `profiles`
+A edge function `receive-vehicle-trip` e as tabelas `vehicles` / `vehicle_trips` no Supabase **não serão removidas** nesta etapa para evitar perda de dados. Se quiser que eu também apague (edge function + migration para dropar as tabelas + remover secret `VEHICLE_TRIP_WEBHOOK_SECRET`), me confirme depois.
 
-### Arquivos afetados
-- Migração SQL: adicionar 3 colunas + policy de UPDATE em `form_responses`
-- `src/components/FormResponses.tsx`: ocultar carimbo, sem truncate, botão de status, filtro, fundo verde
-- Sem mudança no Apps Script (não mexe)
+## Detalhes técnicos
 
-### Resultado visual esperado
-```
-[Filtro: Pendentes ▾]  [Buscar...]
-
-| Data       | Tipo    | Solicitante | Materiais (texto completo)        | Status                          |
-|------------|---------|-------------|-----------------------------------|---------------------------------|
-| 17/04 13:16| Pedido  | Otavio      | 1 chapa 1,22 acm preto fosco...   | [✓ Marcar pedido feito]         |
-| 16/04 09:00| Pedido  | Danilo      | 2 lonas 3x2 brancas...            | ✓ Feito por Maria · 16/04 14:20 |  ← linha verde
-```
-
+- O id `form-responses` no card aciona `onTabChange("form-responses")` que o `DashboardPage` traduz via `tabToRoute` para `navigate("/requisicoes")`.
+- A sidebar não muda para Requisições (já existe na seção "Compras").
+- Após remover a seção Frota, a sidebar fica sem a label "Frota" e sem o item — comportamento esperado.
