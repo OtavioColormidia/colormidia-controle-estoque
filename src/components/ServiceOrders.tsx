@@ -440,18 +440,25 @@ export default function ServiceOrders() {
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Excluir Ordem de Serviço"
-        description="Esta ação não pode ser desfeita. Tem certeza?"
-        confirmText="Excluir"
-        variant="destructive"
-        onConfirm={async () => {
-          if (deleteId) await deleteOrder(deleteId);
-          setDeleteId(null);
-        }}
-      />
-    </div>
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Ordem de Serviço</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita. Tem certeza?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (deleteId) await deleteOrder(deleteId);
+                setDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
   );
 }
