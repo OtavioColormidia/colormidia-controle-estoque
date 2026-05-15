@@ -460,5 +460,6 @@ export default function ServiceOrders() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
   );
 }
