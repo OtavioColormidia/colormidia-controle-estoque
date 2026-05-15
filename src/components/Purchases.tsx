@@ -112,13 +112,27 @@ export default function Purchases({
     purchases.forEach((p) => loadAttachments(p.id));
   }, [purchases.length]);
 
+  const sanitizeFileName = (name: string) => {
+    const dot = name.lastIndexOf(".");
+    const base = dot > 0 ? name.slice(0, dot) : name;
+    const ext = dot > 0 ? name.slice(dot) : "";
+    const clean = base
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9._-]+/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
+    return (clean || "arquivo") + ext.toLowerCase();
+  };
+
   const handleFileUpload = async (purchaseId: string, files: FileList) => {
     setUploadingFiles((prev) => ({ ...prev, [purchaseId]: true }));
     try {
       for (const file of Array.from(files)) {
+        const safeName = sanitizeFileName(file.name);
         const { error } = await supabase.storage
           .from("purchase-attachments")
-          .upload(`${purchaseId}/${file.name}`, file, { upsert: true });
+          .upload(`${purchaseId}/${safeName}`, file, { upsert: true });
         if (error) throw error;
       }
       toast({ title: "Anexo(s) enviado(s)", description: `${files.length} arquivo(s) enviado(s) com sucesso` });
@@ -361,7 +375,7 @@ export default function Purchases({
             for (const file of formFiles) {
               await supabase.storage
                 .from("purchase-attachments")
-                .upload(`${newId}/${file.name}`, file, { upsert: true });
+                .upload(`${newId}/${sanitizeFileName(file.name)}`, file, { upsert: true });
             }
             await loadAttachments(newId);
           }
