@@ -110,22 +110,31 @@ function ChecklistEditor({
               placeholder="Nome do item"
               className="flex-1 h-9"
             />
-            <ToggleGroup
-              type="single"
-              value={item.status}
-              onValueChange={(v) => v && updateItem(idx, { status: v as ChecklistStatus })}
-              className="justify-start"
-            >
-              <ToggleGroupItem value="sim" className="h-9 px-3 data-[state=on]:bg-success data-[state=on]:text-success-foreground">
-                Sim
-              </ToggleGroupItem>
-              <ToggleGroupItem value="nao" className="h-9 px-3 data-[state=on]:bg-destructive data-[state=on]:text-destructive-foreground">
-                Não
-              </ToggleGroupItem>
-              <ToggleGroupItem value="na" className="h-9 px-3 data-[state=on]:bg-muted-foreground/30">
-                N/A
-              </ToggleGroupItem>
-            </ToggleGroup>
+            <div className="inline-flex rounded-md border border-border/60 overflow-hidden">
+              {(['sim', 'nao', 'na'] as ChecklistStatus[]).map((s) => {
+                const active = item.status === s;
+                const label = s === 'sim' ? 'Sim' : s === 'nao' ? 'Não' : 'N/A';
+                const activeClass =
+                  s === 'sim'
+                    ? 'bg-success text-success-foreground'
+                    : s === 'nao'
+                    ? 'bg-destructive text-destructive-foreground'
+                    : 'bg-muted-foreground/30 text-foreground';
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => updateItem(idx, { status: s })}
+                    className={cn(
+                      'h-9 px-3 text-xs font-medium transition-colors',
+                      active ? activeClass : 'bg-background hover:bg-muted'
+                    )}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
             <Button
               type="button"
               variant="ghost"
