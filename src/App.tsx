@@ -18,6 +18,7 @@ import {
   SuppliersPage,
   SupplierMaterialsPage,
   UsersPage,
+  ServiceOrdersPage,
 } from "./pages/RoutePages";
 
 const queryClient = new QueryClient();
