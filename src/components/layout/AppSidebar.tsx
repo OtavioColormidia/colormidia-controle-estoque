@@ -155,13 +155,7 @@ export function AppSidebar() {
   };
 
   const toggleSection = (label: string) => {
-    setOpenSections((prev) => {
-      const next = { ...prev, [label]: prev[label] === false ? true : false };
-      try {
-        localStorage.setItem('sidebar-open-sections', JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setOpenSections((prev) => ({ ...prev, [label]: prev[label] === false ? true : false }));
   };
 
   useEffect(() => {
