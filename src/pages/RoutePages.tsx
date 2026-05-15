@@ -26,6 +26,7 @@ const tabToRoute: Record<string, string> = {
   suppliers: '/fornecedores',
   'supplier-materials': '/fornecedores-materiais',
   users: '/usuarios',
+  'service-orders': '/servicos',
 };
 
 function Pending() {
