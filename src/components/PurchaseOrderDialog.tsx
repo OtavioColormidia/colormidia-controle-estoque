@@ -206,8 +206,16 @@ export default function PurchaseOrderDialog({
         expectedDeliveryDate,
       });
       if (newId && formFiles.length > 0) {
+        const sanitize = (n: string) => {
+          const dot = n.lastIndexOf(".");
+          const base = dot > 0 ? n.slice(0, dot) : n;
+          const ext = dot > 0 ? n.slice(dot) : "";
+          const clean = base.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+          return (clean || "arquivo") + ext.toLowerCase();
+        };
         for (const file of formFiles) {
-          await supabase.storage.from("purchase-attachments").upload(`${newId}/${file.name}`, file, { upsert: true });
+          await supabase.storage.from("purchase-attachments").upload(`${newId}/${sanitize(file.name)}`, file, { upsert: true });
         }
       }
       toast({
