@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -115,21 +115,18 @@ export function AppSidebar() {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [alertStockCount, setAlertStockCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
-    try {
-      const saved = localStorage.getItem('sidebar-open-sections');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return {};
-  });
-
-  // Drag-and-drop reordering (in-memory, resets on refresh)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [sectionOrder, setSectionOrder] = useState<string[]>(() => sections.map((s) => s.label));
   const [itemOrders, setItemOrders] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(sections.map((s) => [s.label, s.items.map((i) => i.url)]))
   );
   const [draggingSection, setDraggingSection] = useState<string | null>(null);
   const [draggingItem, setDraggingItem] = useState<{ section: string; url: string } | null>(null);
+
+  // Persistence: per-user sidebar preferences in Supabase
+  const userIdRef = useRef<string | null>(null);
+  const prefsLoadedRef = useRef(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reorderSection = (from: string, to: string) => {
     if (from === to) return;
@@ -158,13 +155,7 @@ export function AppSidebar() {
   };
 
   const toggleSection = (label: string) => {
-    setOpenSections((prev) => {
-      const next = { ...prev, [label]: prev[label] === false ? true : false };
-      try {
-        localStorage.setItem('sidebar-open-sections', JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setOpenSections((prev) => ({ ...prev, [label]: prev[label] === false ? true : false }));
   };
 
   useEffect(() => {
@@ -191,10 +182,45 @@ export function AppSidebar() {
       if (!cancelled && data) setUserRoles(data.map((r) => r.role as UserRole));
     };
 
+    const loadSidebarPrefs = async (userId: string) => {
+      const { data } = await supabase
+        .from('user_sidebar_preferences')
+        .select('section_order, item_orders, open_sections')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (data) {
+        const validLabels = new Set(sections.map((s) => s.label));
+        const savedOrder = Array.isArray(data.section_order) ? (data.section_order as string[]).filter((l) => validLabels.has(l)) : [];
+        const merged = [...savedOrder, ...sections.map((s) => s.label).filter((l) => !savedOrder.includes(l))];
+        setSectionOrder(merged);
+        if (data.item_orders && typeof data.item_orders === 'object') {
+          const next: Record<string, string[]> = {};
+          for (const s of sections) {
+            const savedItems = Array.isArray((data.item_orders as any)[s.label]) ? (data.item_orders as any)[s.label] as string[] : [];
+            const allUrls = s.items.map((i) => i.url);
+            const valid = savedItems.filter((u) => allUrls.includes(u));
+            next[s.label] = [...valid, ...allUrls.filter((u) => !valid.includes(u))];
+          }
+          setItemOrders(next);
+        }
+        if (data.open_sections && typeof data.open_sections === 'object') {
+          setOpenSections(data.open_sections as Record<string, boolean>);
+        }
+      }
+      prefsLoadedRef.current = true;
+    };
+
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        await Promise.all([loadRoles(session.user.id), fetchAlertStock(), fetchPendingCount()]);
+        userIdRef.current = session.user.id;
+        await Promise.all([
+          loadRoles(session.user.id),
+          fetchAlertStock(),
+          fetchPendingCount(),
+          loadSidebarPrefs(session.user.id),
+        ]);
         if (!channel) {
           channel = supabase
             .channel('sidebar-counts')
@@ -217,6 +243,33 @@ export function AppSidebar() {
       if (channel) supabase.removeChannel(channel);
     };
   }, []);
+
+  // Persist sidebar layout per-user (debounced)
+  useEffect(() => {
+    if (!prefsLoadedRef.current) return;
+    const userId = userIdRef.current;
+    if (!userId) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      supabase
+        .from('user_sidebar_preferences')
+        .upsert(
+          {
+            user_id: userId,
+            section_order: sectionOrder,
+            item_orders: itemOrders,
+            open_sections: openSections,
+          },
+          { onConflict: 'user_id' }
+        )
+        .then(({ error }) => {
+          if (error) console.error('Failed to save sidebar prefs', error);
+        });
+    }, 500);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [sectionOrder, itemOrders, openSections]);
 
   const hasAccess = (roles: UserRole[]) => userRoles.some((r) => roles.includes(r));
   const isActive = (path: string) => location.pathname === path;
