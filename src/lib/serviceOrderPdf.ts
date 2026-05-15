@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import logoColorMidia from '@/assets/logo-colormidia-pdf.jpg';
-import logoMezuk from '@/assets/logo-mezuk-pdf.jpg';
+import logoMezuk from '@/assets/logo-mezuk-pdf.png';
 import type { ChecklistItem, ServiceOrder } from '@/hooks/useServiceOrders';
 
 let cmCache: string | null = null;
