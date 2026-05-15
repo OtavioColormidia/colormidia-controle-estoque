@@ -106,6 +106,23 @@ export function AppSidebar() {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [alertStockCount, setAlertStockCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('sidebar-open-sections');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
+  });
+
+  const toggleSection = (label: string) => {
+    setOpenSections((prev) => {
+      const next = { ...prev, [label]: prev[label] === false ? true : false };
+      try {
+        localStorage.setItem('sidebar-open-sections', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
