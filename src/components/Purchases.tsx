@@ -375,7 +375,7 @@ export default function Purchases({
             for (const file of formFiles) {
               await supabase.storage
                 .from("purchase-attachments")
-                .upload(`${newId}/${file.name}`, file, { upsert: true });
+                .upload(`${newId}/${sanitizeFileName(file.name)}`, file, { upsert: true });
             }
             await loadAttachments(newId);
           }
