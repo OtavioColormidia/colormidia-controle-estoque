@@ -244,6 +244,33 @@ export function AppSidebar() {
     };
   }, []);
 
+  // Persist sidebar layout per-user (debounced)
+  useEffect(() => {
+    if (!prefsLoadedRef.current) return;
+    const userId = userIdRef.current;
+    if (!userId) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      supabase
+        .from('user_sidebar_preferences')
+        .upsert(
+          {
+            user_id: userId,
+            section_order: sectionOrder,
+            item_orders: itemOrders,
+            open_sections: openSections,
+          },
+          { onConflict: 'user_id' }
+        )
+        .then(({ error }) => {
+          if (error) console.error('Failed to save sidebar prefs', error);
+        });
+    }, 500);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [sectionOrder, itemOrders, openSections]);
+
   const hasAccess = (roles: UserRole[]) => userRoles.some((r) => roles.includes(r));
   const isActive = (path: string) => location.pathname === path;
 
