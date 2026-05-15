@@ -123,6 +123,40 @@ export function AppSidebar() {
     return {};
   });
 
+  // Drag-and-drop reordering (in-memory, resets on refresh)
+  const [sectionOrder, setSectionOrder] = useState<string[]>(() => sections.map((s) => s.label));
+  const [itemOrders, setItemOrders] = useState<Record<string, string[]>>(() =>
+    Object.fromEntries(sections.map((s) => [s.label, s.items.map((i) => i.url)]))
+  );
+  const [draggingSection, setDraggingSection] = useState<string | null>(null);
+  const [draggingItem, setDraggingItem] = useState<{ section: string; url: string } | null>(null);
+
+  const reorderSection = (from: string, to: string) => {
+    if (from === to) return;
+    setSectionOrder((prev) => {
+      const next = [...prev];
+      const fi = next.indexOf(from);
+      const ti = next.indexOf(to);
+      if (fi < 0 || ti < 0) return prev;
+      next.splice(fi, 1);
+      next.splice(ti, 0, from);
+      return next;
+    });
+  };
+
+  const reorderItem = (sectionLabel: string, fromUrl: string, toUrl: string) => {
+    if (fromUrl === toUrl) return;
+    setItemOrders((prev) => {
+      const list = [...(prev[sectionLabel] ?? [])];
+      const fi = list.indexOf(fromUrl);
+      const ti = list.indexOf(toUrl);
+      if (fi < 0 || ti < 0) return prev;
+      list.splice(fi, 1);
+      list.splice(ti, 0, fromUrl);
+      return { ...prev, [sectionLabel]: list };
+    });
+  };
+
   const toggleSection = (label: string) => {
     setOpenSections((prev) => {
       const next = { ...prev, [label]: prev[label] === false ? true : false };
