@@ -245,38 +245,72 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="relative">
-        {sections.map((section) => {
-          const visible = section.items.filter((i) => hasAccess(i.roles));
+        {sectionOrder
+          .map((label) => sections.find((s) => s.label === label))
+          .filter((s): s is NavSection => !!s)
+          .map((section) => {
+          const orderedUrls = itemOrders[section.label] ?? section.items.map((i) => i.url);
+          const visible = orderedUrls
+            .map((url) => section.items.find((i) => i.url === url))
+            .filter((i): i is NavItem => !!i && hasAccess(i.roles));
           if (!visible.length) return null;
           const hasActive = visible.some((i) => isActive(i.url));
           const isOpen = collapsed ? true : (openSections[section.label] ?? true);
+          const isSectionDragging = draggingSection === section.label;
           return (
-            <SidebarGroup key={section.label} className="px-2">
+            <SidebarGroup
+              key={section.label}
+              className={cn('px-2 transition-opacity', isSectionDragging && 'opacity-40')}
+              onDragOver={(e) => {
+                if (draggingSection && draggingSection !== section.label) e.preventDefault();
+              }}
+              onDrop={(e) => {
+                if (draggingSection) {
+                  e.preventDefault();
+                  reorderSection(draggingSection, section.label);
+                  setDraggingSection(null);
+                }
+              }}
+            >
               <Collapsible open={isOpen} onOpenChange={() => !collapsed && toggleSection(section.label)}>
                 {!collapsed && (
-                  <CollapsibleTrigger asChild>
-                    <button
-                      type="button"
-                      className="w-full flex items-center justify-between rounded-md px-2 py-1 text-left hover:bg-sidebar-accent/40 transition-colors group"
+                  <div className="w-full flex items-center gap-1 group">
+                    <span
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggingSection(section.label);
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      onDragEnd={() => setDraggingSection(null)}
+                      title="Arrastar seção"
+                      className="flex h-5 w-4 items-center justify-center cursor-grab active:cursor-grabbing text-sidebar-foreground/30 hover:text-sidebar-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <SidebarGroupLabel className="sidebar-label-fancy px-0 cursor-pointer">
-                        <span
-                          className="h-1.5 w-1.5 rounded-full shadow-[0_0_8px_currentColor]"
-                          style={{ backgroundColor: section.accent, color: section.accent }}
+                      <GripVertical className="h-3.5 w-3.5" />
+                    </span>
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex-1 flex items-center justify-between rounded-md px-2 py-1 text-left hover:bg-sidebar-accent/40 transition-colors"
+                      >
+                        <SidebarGroupLabel className="sidebar-label-fancy px-0 cursor-pointer">
+                          <span
+                            className="h-1.5 w-1.5 rounded-full shadow-[0_0_8px_currentColor]"
+                            style={{ backgroundColor: section.accent, color: section.accent }}
+                          />
+                          {section.label}
+                          {!isOpen && hasActive && (
+                            <span className="ml-1 h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
+                          )}
+                        </SidebarGroupLabel>
+                        <ChevronDown
+                          className={cn(
+                            'h-3.5 w-3.5 text-sidebar-foreground/50 transition-transform duration-200',
+                            !isOpen && '-rotate-90'
+                          )}
                         />
-                        {section.label}
-                        {!isOpen && hasActive && (
-                          <span className="ml-1 h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
-                        )}
-                      </SidebarGroupLabel>
-                      <ChevronDown
-                        className={cn(
-                          'h-3.5 w-3.5 text-sidebar-foreground/50 transition-transform duration-200',
-                          !isOpen && '-rotate-90'
-                        )}
-                      />
-                    </button>
-                  </CollapsibleTrigger>
+                      </button>
+                    </CollapsibleTrigger>
+                  </div>
                 )}
                 <CollapsibleContent className="overflow-hidden transition-all">
                   <SidebarGroupContent>
@@ -288,15 +322,53 @@ export function AppSidebar() {
                         const showPendingBadge = item.url === '/requisicoes' && pendingRequestsCount > 0;
                         const showBadge = showStockBadge || showPendingBadge;
                         const badgeValue = showPendingBadge ? pendingRequestsCount : alertStockCount;
+                        const isItemDragging =
+                          draggingItem?.section === section.label && draggingItem.url === item.url;
 
                         return (
-                          <SidebarMenuItem key={item.url}>
+                          <SidebarMenuItem
+                            key={item.url}
+                            onDragOver={(e) => {
+                              if (
+                                draggingItem &&
+                                draggingItem.section === section.label &&
+                                draggingItem.url !== item.url
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onDrop={(e) => {
+                              if (
+                                draggingItem &&
+                                draggingItem.section === section.label
+                              ) {
+                                e.preventDefault();
+                                reorderItem(section.label, draggingItem.url, item.url);
+                                setDraggingItem(null);
+                              }
+                            }}
+                            className={cn('flex items-center gap-1 group/item', isItemDragging && 'opacity-40')}
+                          >
+                            {!collapsed && (
+                              <span
+                                draggable
+                                onDragStart={(e) => {
+                                  setDraggingItem({ section: section.label, url: item.url });
+                                  e.dataTransfer.effectAllowed = 'move';
+                                }}
+                                onDragEnd={() => setDraggingItem(null)}
+                                title="Arrastar item"
+                                className="flex h-8 w-3 items-center justify-center cursor-grab active:cursor-grabbing text-sidebar-foreground/30 hover:text-sidebar-foreground/70 opacity-0 group-hover/item:opacity-100 transition-opacity flex-shrink-0"
+                              >
+                                <GripVertical className="h-3.5 w-3.5" />
+                              </span>
+                            )}
                             <SidebarMenuButton
                               asChild
                               isActive={active}
                               tooltip={item.title}
                               className={cn(
-                                'group nav-hover-sweep relative h-10 rounded-lg transition-all duration-300',
+                                'group nav-hover-sweep relative h-10 rounded-lg transition-all duration-300 flex-1',
                                 'hover:bg-sidebar-accent/60 hover:translate-x-0.5',
                                 active && 'bg-sidebar-accent/80 shadow-md font-medium'
                               )}
