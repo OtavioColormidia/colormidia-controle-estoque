@@ -115,21 +115,18 @@ export function AppSidebar() {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [alertStockCount, setAlertStockCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
-    try {
-      const saved = localStorage.getItem('sidebar-open-sections');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return {};
-  });
-
-  // Drag-and-drop reordering (in-memory, resets on refresh)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [sectionOrder, setSectionOrder] = useState<string[]>(() => sections.map((s) => s.label));
   const [itemOrders, setItemOrders] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(sections.map((s) => [s.label, s.items.map((i) => i.url)]))
   );
   const [draggingSection, setDraggingSection] = useState<string | null>(null);
   const [draggingItem, setDraggingItem] = useState<{ section: string; url: string } | null>(null);
+
+  // Persistence: per-user sidebar preferences in Supabase
+  const userIdRef = useRef<string | null>(null);
+  const prefsLoadedRef = useRef(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reorderSection = (from: string, to: string) => {
     if (from === to) return;
