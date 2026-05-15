@@ -13,6 +13,7 @@ import {
   Truck,
   UserCog,
   ChevronDown,
+  HardHat,
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
