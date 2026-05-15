@@ -205,69 +205,91 @@ export function AppSidebar() {
         {sections.map((section) => {
           const visible = section.items.filter((i) => hasAccess(i.roles));
           if (!visible.length) return null;
+          const hasActive = visible.some((i) => isActive(i.url));
+          const isOpen = collapsed ? true : (openSections[section.label] ?? true);
           return (
             <SidebarGroup key={section.label} className="px-2">
-              {!collapsed && (
-                <SidebarGroupLabel className="sidebar-label-fancy px-2">
-                  <span
-                    className="h-1.5 w-1.5 rounded-full shadow-[0_0_8px_currentColor]"
-                    style={{ backgroundColor: section.accent, color: section.accent }}
-                  />
-                  {section.label}
-                </SidebarGroupLabel>
-              )}
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-1">
-                  {visible.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.url);
-                    const showStockBadge = item.url === '/estoque' && alertStockCount > 0;
-                    const showPendingBadge = item.url === '/requisicoes' && pendingRequestsCount > 0;
-                    const showBadge = showStockBadge || showPendingBadge;
-                    const badgeValue = showPendingBadge ? pendingRequestsCount : alertStockCount;
+              <Collapsible open={isOpen} onOpenChange={() => !collapsed && toggleSection(section.label)}>
+                {!collapsed && (
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between rounded-md px-2 py-1 text-left hover:bg-sidebar-accent/40 transition-colors group"
+                    >
+                      <SidebarGroupLabel className="sidebar-label-fancy px-0 cursor-pointer">
+                        <span
+                          className="h-1.5 w-1.5 rounded-full shadow-[0_0_8px_currentColor]"
+                          style={{ backgroundColor: section.accent, color: section.accent }}
+                        />
+                        {section.label}
+                        {!isOpen && hasActive && (
+                          <span className="ml-1 h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
+                        )}
+                      </SidebarGroupLabel>
+                      <ChevronDown
+                        className={cn(
+                          'h-3.5 w-3.5 text-sidebar-foreground/50 transition-transform duration-200',
+                          !isOpen && '-rotate-90'
+                        )}
+                      />
+                    </button>
+                  </CollapsibleTrigger>
+                )}
+                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+                  <SidebarGroupContent>
+                    <SidebarMenu className="gap-1">
+                      {visible.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.url);
+                        const showStockBadge = item.url === '/estoque' && alertStockCount > 0;
+                        const showPendingBadge = item.url === '/requisicoes' && pendingRequestsCount > 0;
+                        const showBadge = showStockBadge || showPendingBadge;
+                        const badgeValue = showPendingBadge ? pendingRequestsCount : alertStockCount;
 
-                    return (
-                      <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={active}
-                          tooltip={item.title}
-                          className={cn(
-                            'group nav-hover-sweep relative h-10 rounded-lg transition-all duration-300',
-                            'hover:bg-sidebar-accent/60 hover:translate-x-0.5',
-                            active && 'bg-sidebar-accent/80 shadow-md font-medium'
-                          )}
-                        >
-                          <NavLink to={item.url} className="relative flex items-center gap-3">
-                            {active && <span className="nav-active-indicator" />}
-                            <span
+                        return (
+                          <SidebarMenuItem key={item.url}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={active}
+                              tooltip={item.title}
                               className={cn(
-                                'flex h-7 w-7 items-center justify-center rounded-md transition-all duration-300 flex-shrink-0',
-                                item.iconClass,
-                                active && 'scale-110 shadow-sm'
+                                'group nav-hover-sweep relative h-10 rounded-lg transition-all duration-300',
+                                'hover:bg-sidebar-accent/60 hover:translate-x-0.5',
+                                active && 'bg-sidebar-accent/80 shadow-md font-medium'
                               )}
                             >
-                              <Icon className="h-4 w-4" />
-                            </span>
-                            <span className="truncate text-sm">{item.title}</span>
-                            {showBadge && !collapsed && (
-                              <Badge
-                                variant="warning"
-                                className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle shadow-[0_0_10px_hsl(var(--warning)/0.5)]"
-                              >
-                                {badgeValue}
-                              </Badge>
-                            )}
-                            {showBadge && collapsed && (
-                              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse shadow-[0_0_8px_hsl(var(--warning))]" />
-                            )}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
+                              <NavLink to={item.url} className="relative flex items-center gap-3">
+                                {active && <span className="nav-active-indicator" />}
+                                <span
+                                  className={cn(
+                                    'flex h-7 w-7 items-center justify-center rounded-md transition-all duration-300 flex-shrink-0',
+                                    item.iconClass,
+                                    active && 'scale-110 shadow-sm'
+                                  )}
+                                >
+                                  <Icon className="h-4 w-4" />
+                                </span>
+                                <span className="truncate text-sm">{item.title}</span>
+                                {showBadge && !collapsed && (
+                                  <Badge
+                                    variant="warning"
+                                    className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle shadow-[0_0_10px_hsl(var(--warning)/0.5)]"
+                                  >
+                                    {badgeValue}
+                                  </Badge>
+                                )}
+                                {showBadge && collapsed && (
+                                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse shadow-[0_0_8px_hsl(var(--warning))]" />
+                                )}
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
             </SidebarGroup>
           );
         })}
