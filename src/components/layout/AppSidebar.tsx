@@ -182,10 +182,45 @@ export function AppSidebar() {
       if (!cancelled && data) setUserRoles(data.map((r) => r.role as UserRole));
     };
 
+    const loadSidebarPrefs = async (userId: string) => {
+      const { data } = await supabase
+        .from('user_sidebar_preferences')
+        .select('section_order, item_orders, open_sections')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (data) {
+        const validLabels = new Set(sections.map((s) => s.label));
+        const savedOrder = Array.isArray(data.section_order) ? (data.section_order as string[]).filter((l) => validLabels.has(l)) : [];
+        const merged = [...savedOrder, ...sections.map((s) => s.label).filter((l) => !savedOrder.includes(l))];
+        setSectionOrder(merged);
+        if (data.item_orders && typeof data.item_orders === 'object') {
+          const next: Record<string, string[]> = {};
+          for (const s of sections) {
+            const savedItems = Array.isArray((data.item_orders as any)[s.label]) ? (data.item_orders as any)[s.label] as string[] : [];
+            const allUrls = s.items.map((i) => i.url);
+            const valid = savedItems.filter((u) => allUrls.includes(u));
+            next[s.label] = [...valid, ...allUrls.filter((u) => !valid.includes(u))];
+          }
+          setItemOrders(next);
+        }
+        if (data.open_sections && typeof data.open_sections === 'object') {
+          setOpenSections(data.open_sections as Record<string, boolean>);
+        }
+      }
+      prefsLoadedRef.current = true;
+    };
+
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        await Promise.all([loadRoles(session.user.id), fetchAlertStock(), fetchPendingCount()]);
+        userIdRef.current = session.user.id;
+        await Promise.all([
+          loadRoles(session.user.id),
+          fetchAlertStock(),
+          fetchPendingCount(),
+          loadSidebarPrefs(session.user.id),
+        ]);
         if (!channel) {
           channel = supabase
             .channel('sidebar-counts')
