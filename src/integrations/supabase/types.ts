@@ -260,6 +260,63 @@ export type Database = {
           },
         ]
       }
+      service_orders: {
+        Row: {
+          auxiliar_name: string | null
+          client_name: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          delivered_at: string | null
+          employee_name: string
+          epis: Json
+          id: string
+          notes: string | null
+          returned_at: string | null
+          service_type: string
+          status: string
+          tools: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          auxiliar_name?: string | null
+          client_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          delivered_at?: string | null
+          employee_name: string
+          epis?: Json
+          id?: string
+          notes?: string | null
+          returned_at?: string | null
+          service_type: string
+          status?: string
+          tools?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          auxiliar_name?: string | null
+          client_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          delivered_at?: string | null
+          employee_name?: string
+          epis?: Json
+          id?: string
+          notes?: string | null
+          returned_at?: string | null
+          service_type?: string
+          status?: string
+          tools?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       stock_movements: {
         Row: {
           created_at: string
