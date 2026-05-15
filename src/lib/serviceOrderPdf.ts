@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import logoColorMidia from '@/assets/logo-colormidia-pdf.jpg';
-import logoMezuk from '@/assets/logo-mezuk-pdf.jpg';
+import logoMezuk from '@/assets/logo-mezuk-pdf.png';
 import type { ChecklistItem, ServiceOrder } from '@/hooks/useServiceOrders';
 
 let cmCache: string | null = null;
@@ -37,28 +37,29 @@ export const exportServiceOrderPDF = async (order: ServiceOrder) => {
   const margin = 12;
 
   // ===== Header with logos =====
-  if (cmCache) doc.addImage(cmCache, 'JPEG', margin, 10, 28, 18);
-  if (mzCache) doc.addImage(mzCache, 'JPEG', pageW - margin - 28, 10, 28, 18);
+  if (cmCache) doc.addImage(cmCache, 'JPEG', margin, 10, 32, 18);
+  if (mzCache) doc.addImage(mzCache, 'PNG', pageW - margin - 32, 12, 32, 14);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
+  doc.setFontSize(17);
   doc.setTextColor(20, 30, 50);
   doc.text('Checklist Ferramentas e EPI', pageW / 2, 22, { align: 'center' });
-  doc.setDrawColor(220);
+  doc.setDrawColor(37, 99, 235);
+  doc.setLineWidth(0.6);
   doc.line(margin, 32, pageW - margin, 32);
+  doc.setLineWidth(0.2);
 
   // ===== Date =====
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(60, 60, 60);
-  doc.text(formatDate(order.date), margin, 40);
+  doc.setFontSize(10);
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Data: ${formatDate(order.date)}`, margin, 39);
 
   // ===== Header info table =====
   autoTable(doc, {
-    startY: 44,
+    startY: 43,
     theme: 'grid',
-    styles: { fontSize: 10, cellPadding: 3, textColor: 30 },
-    headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+    styles: { fontSize: 10, cellPadding: 3, textColor: 30, lineColor: [200, 210, 225], lineWidth: 0.2 },
     body: [
       [
         { content: 'Funcionário', styles: { fontStyle: 'bold', fillColor: [240, 244, 250] } },
@@ -84,66 +85,84 @@ export const exportServiceOrderPDF = async (order: ServiceOrder) => {
       const right = items[i + 1];
       const lc = statusToCells(left.status);
       const rc = right ? statusToCells(right.status) : { sim: '', nao: '', na: '' };
+      const mark = (v: string, kind: 'sim' | 'nao' | 'na') => {
+        if (!v) return { content: '', styles: { halign: 'center' } };
+        const colors: Record<string, [number, number, number]> = {
+          sim: [22, 163, 74],
+          nao: [220, 38, 38],
+          na: [120, 120, 120],
+        };
+        return {
+          content: v,
+          styles: { halign: 'center', textColor: colors[kind], fontStyle: 'bold' },
+        };
+      };
       body.push([
         { content: left.name, styles: { fontStyle: 'bold' } },
-        { content: lc.sim, styles: { halign: 'center' } },
-        { content: lc.nao, styles: { halign: 'center' } },
-        { content: lc.na, styles: { halign: 'center' } },
+        mark(lc.sim, 'sim'),
+        mark(lc.nao, 'nao'),
+        mark(lc.na, 'na'),
         { content: right ? right.name : '', styles: { fontStyle: 'bold' } },
-        { content: rc.sim, styles: { halign: 'center' } },
-        { content: rc.nao, styles: { halign: 'center' } },
-        { content: rc.na, styles: { halign: 'center' } },
+        mark(rc.sim, 'sim'),
+        mark(rc.nao, 'nao'),
+        mark(rc.na, 'na'),
       ]);
     }
     return body;
   };
 
   const checklistColStyles: any = {
-    0: { cellWidth: 44 },
-    1: { cellWidth: 10, halign: 'center' },
-    2: { cellWidth: 10, halign: 'center' },
-    3: { cellWidth: 10, halign: 'center' },
-    4: { cellWidth: 44 },
-    5: { cellWidth: 10, halign: 'center' },
-    6: { cellWidth: 10, halign: 'center' },
-    7: { cellWidth: 10, halign: 'center' },
+    0: { cellWidth: 50 },
+    1: { cellWidth: 14, halign: 'center' },
+    2: { cellWidth: 14, halign: 'center' },
+    3: { cellWidth: 14, halign: 'center' },
+    4: { cellWidth: 50 },
+    5: { cellWidth: 14, halign: 'center' },
+    6: { cellWidth: 14, halign: 'center' },
+    7: { cellWidth: 14, halign: 'center' },
+  };
+
+  const sectionTitle = (title: string, y: number) => {
+    doc.setFillColor(37, 99, 235);
+    doc.rect(margin, y - 4.5, pageW - margin * 2, 6.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.text(title, margin + 3, y);
+    doc.setTextColor(30);
   };
 
   // ===== Ferramentas section =====
-  const afterHeaderY = (doc as any).lastAutoTable.finalY + 6;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(37, 99, 235);
-  doc.text('Ferramentas', margin, afterHeaderY);
+  const afterHeaderY = (doc as any).lastAutoTable.finalY + 8;
+  sectionTitle('FERRAMENTAS', afterHeaderY);
 
   autoTable(doc, {
-    startY: afterHeaderY + 2,
+    startY: afterHeaderY + 3,
     theme: 'grid',
-    styles: { fontSize: 9, cellPadding: 2.5, textColor: 30 },
+    styles: { fontSize: 9, cellPadding: 2.5, textColor: 30, lineColor: [200, 210, 225], lineWidth: 0.2, valign: 'middle' },
     head: [[
       'Item', 'Sim', 'Não', 'N/A', 'Item', 'Sim', 'Não', 'N/A',
     ]],
-    headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', halign: 'center' },
+    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold', halign: 'center', valign: 'middle', minCellHeight: 8 },
+    alternateRowStyles: { fillColor: [248, 250, 253] },
     body: buildChecklistBody(order.tools),
     margin: { left: margin, right: margin },
     columnStyles: checklistColStyles,
   });
 
   // ===== EPI section =====
-  const afterToolsY = (doc as any).lastAutoTable.finalY + 6;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(37, 99, 235);
-  doc.text("EPI's", margin, afterToolsY);
+  const afterToolsY = (doc as any).lastAutoTable.finalY + 8;
+  sectionTitle("EPI'S", afterToolsY);
 
   autoTable(doc, {
-    startY: afterToolsY + 2,
+    startY: afterToolsY + 3,
     theme: 'grid',
-    styles: { fontSize: 9, cellPadding: 2.5, textColor: 30 },
+    styles: { fontSize: 9, cellPadding: 2.5, textColor: 30, lineColor: [200, 210, 225], lineWidth: 0.2, valign: 'middle' },
     head: [[
       'Item', 'Sim', 'Não', 'N/A', 'Item', 'Sim', 'Não', 'N/A',
     ]],
-    headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', halign: 'center' },
+    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold', halign: 'center', valign: 'middle', minCellHeight: 8 },
+    alternateRowStyles: { fillColor: [248, 250, 253] },
     body: buildChecklistBody(order.epis),
     margin: { left: margin, right: margin },
     columnStyles: checklistColStyles,
