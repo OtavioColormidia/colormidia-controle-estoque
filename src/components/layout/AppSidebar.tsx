@@ -13,6 +13,7 @@ import {
   Truck,
   UserCog,
   ChevronDown,
+  HardHat,
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
@@ -79,6 +80,13 @@ const sections: NavSection[] = [
     items: [
       { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-purple-500/15 text-purple-300 group-hover:bg-purple-500/25 group-hover:text-purple-200' },
       { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-pink-500/15 text-pink-300 group-hover:bg-pink-500/25 group-hover:text-pink-200' },
+    ],
+  },
+  {
+    label: 'Serviço',
+    accent: 'hsl(38 92% 55%)',
+    items: [
+      { title: 'Controle de Serviço', url: '/servicos', icon: HardHat, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: 'bg-amber-500/15 text-amber-300 group-hover:bg-amber-500/25 group-hover:text-amber-200' },
     ],
   },
   {
