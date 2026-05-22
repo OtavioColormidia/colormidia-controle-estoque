@@ -118,6 +118,8 @@ export default function PurchaseOrderDialog({
       setEditingItemIndex(null);
       setIpi("");
       setFrete("");
+      setOrderDiscount("");
+      setOrderDiscountType("value");
       setFormFiles([]);
       setSupplierSearch("");
     }
