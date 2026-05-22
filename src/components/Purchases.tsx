@@ -413,7 +413,7 @@ export default function Purchases({
     discountType === "percent" ? itemsTotal * (discountInput / 100) : discountInput;
   const totalDiscount = itemsDiscountTotal + orderDiscountValue;
   const finalTotal = Math.max(0, itemsTotal - orderDiscountValue + ipiValue + freteValue);
-  const finalTotal = itemsTotal + ipiValue + freteValue;
+  
 
   // Filter purchases by supplier and product
   const filteredPurchases = useMemo(() => {
