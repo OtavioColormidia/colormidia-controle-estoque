@@ -93,6 +93,8 @@ export default function PurchaseOrderDialog({
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [ipi, setIpi] = useState("");
   const [frete, setFrete] = useState("");
+  const [orderDiscount, setOrderDiscount] = useState("");
+  const [orderDiscountType, setOrderDiscountType] = useState<"percent" | "value">("value");
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState("");
   const [formFiles, setFormFiles] = useState<File[]>([]);
@@ -116,6 +118,8 @@ export default function PurchaseOrderDialog({
       setEditingItemIndex(null);
       setIpi("");
       setFrete("");
+      setOrderDiscount("");
+      setOrderDiscountType("value");
       setFormFiles([]);
       setSupplierSearch("");
     }
@@ -180,10 +184,14 @@ export default function PurchaseOrderDialog({
   };
 
   const itemsTotal = items.reduce((s, i) => s + i.totalPrice, 0);
-  const totalDiscount = items.reduce((s, i) => s + (i.discountValue || 0), 0);
+  const itemsDiscountTotal = items.reduce((s, i) => s + (i.discountValue || 0), 0);
   const ipiValue = Number(ipi) || 0;
   const freteValue = Number(frete) || 0;
-  const finalTotal = itemsTotal + ipiValue + freteValue;
+  const orderDiscountInput = Number(orderDiscount) || 0;
+  const orderDiscountValue =
+    orderDiscountType === "percent" ? itemsTotal * (orderDiscountInput / 100) : orderDiscountInput;
+  const totalDiscount = itemsDiscountTotal + orderDiscountValue;
+  const finalTotal = Math.max(0, itemsTotal - orderDiscountValue + ipiValue + freteValue);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -544,10 +552,57 @@ export default function PurchaseOrderDialog({
                   />
                 </div>
 
-                {totalDiscount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm whitespace-nowrap">Desconto Total</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={orderDiscount}
+                    onChange={(e) => setOrderDiscount(e.target.value)}
+                    className="flex-1"
+                  />
+                  <div className="flex rounded-md border border-input overflow-hidden">
+                    <button
+                      type="button"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium transition-colors",
+                        orderDiscountType === "value"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background text-muted-foreground hover:bg-muted",
+                      )}
+                      onClick={() => setOrderDiscountType("value")}
+                    >
+                      R$
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium transition-colors",
+                        orderDiscountType === "percent"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background text-muted-foreground hover:bg-muted",
+                      )}
+                      onClick={() => setOrderDiscountType("percent")}
+                    >
+                      %
+                    </button>
+                  </div>
+                </div>
+
+                {itemsDiscountTotal > 0 && (
                   <div className="flex justify-between items-center text-sm p-2 bg-destructive/10 rounded">
-                    <span>DESCONTOS TOTAIS</span>
-                    <span className="text-destructive font-medium">- R$ {totalDiscount.toFixed(2)}</span>
+                    <span>DESCONTOS DOS ITENS</span>
+                    <span className="text-destructive font-medium">- R$ {itemsDiscountTotal.toFixed(2)}</span>
+                  </div>
+                )}
+                {orderDiscountValue > 0 && (
+                  <div className="flex justify-between items-center text-sm p-2 bg-destructive/10 rounded">
+                    <span>
+                      DESCONTO NO TOTAL
+                      {orderDiscountType === "percent" ? ` (${orderDiscountInput}%)` : ""}
+                    </span>
+                    <span className="text-destructive font-medium">- R$ {orderDiscountValue.toFixed(2)}</span>
                   </div>
                 )}
                 {ipiValue > 0 && (
