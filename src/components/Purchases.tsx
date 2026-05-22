@@ -299,6 +299,7 @@ export default function Purchases({
     });
     setPurchaseItems([]);
     setDiscount("");
+    setDiscountType("value");
     setIpi("");
     setFrete("");
     setEditingItemIndex(null);
