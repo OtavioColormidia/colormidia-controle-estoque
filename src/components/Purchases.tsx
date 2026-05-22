@@ -282,6 +282,7 @@ export default function Purchases({
     });
     setPurchaseItems(purchase.items);
     setDiscount((purchase.discount || 0).toString());
+    setDiscountType("value");
     setIpi((purchase.ipi || 0).toString());
     setFrete((purchase.frete || 0).toString());
   };
