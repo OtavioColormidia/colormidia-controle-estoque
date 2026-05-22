@@ -738,11 +738,50 @@ export default function Purchases({
                       className="flex-1"
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">Desconto</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={discount}
+                      onChange={(e) => setDiscount(e.target.value)}
+                      className="flex-1"
+                    />
+                    <div className="flex rounded-md border border-input overflow-hidden">
+                      <button
+                        type="button"
+                        className={cn(
+                          "px-3 py-2 text-sm font-medium transition-colors",
+                          discountType === "value"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                        onClick={() => setDiscountType("value")}
+                      >
+                        R$
+                      </button>
+                      <button
+                        type="button"
+                        className={cn(
+                          "px-3 py-2 text-sm font-medium transition-colors",
+                          discountType === "percent"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                        onClick={() => setDiscountType("percent")}
+                      >
+                        %
+                      </button>
+                    </div>
+                  </div>
 
-                  {totalDiscount > 0 && (
+                  {orderDiscountValue > 0 && (
                     <div className="flex justify-between items-center text-sm p-2 bg-destructive/10 rounded">
-                      <span>DESCONTOS TOTAIS</span>
-                      <span className="text-destructive font-medium">- R$ {totalDiscount.toFixed(2)}</span>
+                      <span>
+                        DESCONTO{discountType === "percent" ? ` (${discountInput}%)` : ""}
+                      </span>
+                      <span className="text-destructive font-medium">- R$ {orderDiscountValue.toFixed(2)}</span>
                     </div>
                   )}
                   {ipiValue > 0 && (
