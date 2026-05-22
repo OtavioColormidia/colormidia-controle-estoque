@@ -77,6 +77,7 @@ export default function Purchases({
   const [itemDiscount, setItemDiscount] = useState("");
   const [itemDiscountType, setItemDiscountType] = useState<"percent" | "value">("value");
   const [discount, setDiscount] = useState("");
+  const [discountType, setDiscountType] = useState<"percent" | "value">("value");
   const [ipi, setIpi] = useState("");
   const [frete, setFrete] = useState("");
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -281,6 +282,7 @@ export default function Purchases({
     });
     setPurchaseItems(purchase.items);
     setDiscount((purchase.discount || 0).toString());
+    setDiscountType("value");
     setIpi((purchase.ipi || 0).toString());
     setFrete((purchase.frete || 0).toString());
   };
@@ -297,6 +299,7 @@ export default function Purchases({
     });
     setPurchaseItems([]);
     setDiscount("");
+    setDiscountType("value");
     setIpi("");
     setFrete("");
     setEditingItemIndex(null);
@@ -332,11 +335,14 @@ export default function Purchases({
     }
 
     {
-      const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-      const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
+      const itemsTotalLocal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
+      const itemsDiscountLocal = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
       const ipiValue = Number(ipi) || 0;
       const freteValue = Number(frete) || 0;
-      const totalValue = itemsTotal + ipiValue + freteValue;
+      const discInput = Number(discount) || 0;
+      const orderDiscLocal = discountType === "percent" ? itemsTotalLocal * (discInput / 100) : discInput;
+      const totalDiscount = itemsDiscountLocal + orderDiscLocal;
+      const totalValue = Math.max(0, itemsTotalLocal - orderDiscLocal + ipiValue + freteValue);
 
       try {
         if (editingPurchaseId) {
@@ -392,6 +398,7 @@ export default function Purchases({
         });
         setPurchaseItems([]);
         setDiscount("");
+        setDiscountType("value");
         setIpi("");
         setFrete("");
         setEditingItemIndex(null);
@@ -404,10 +411,15 @@ export default function Purchases({
 
   // Calculate totals
   const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
+  const itemsDiscountTotal = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
   const ipiValue = Number(ipi) || 0;
   const freteValue = Number(frete) || 0;
-  const finalTotal = itemsTotal + ipiValue + freteValue;
+  const discountInput = Number(discount) || 0;
+  const orderDiscountValue =
+    discountType === "percent" ? itemsTotal * (discountInput / 100) : discountInput;
+  const totalDiscount = itemsDiscountTotal + orderDiscountValue;
+  const finalTotal = Math.max(0, itemsTotal - orderDiscountValue + ipiValue + freteValue);
+  
 
   // Filter purchases by supplier and product
   const filteredPurchases = useMemo(() => {
@@ -620,42 +632,8 @@ export default function Purchases({
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="Desconto"
-                    value={itemDiscount}
-                    onChange={(e) => setItemDiscount(e.target.value)}
-                    className="flex-1"
-                  />
-                  <div className="flex rounded-md border border-input overflow-hidden">
-                    <button
-                      type="button"
-                      className={cn(
-                        "px-3 py-2 text-sm font-medium transition-colors",
-                        itemDiscountType === "value"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-background text-muted-foreground hover:bg-muted",
-                      )}
-                      onClick={() => setItemDiscountType("value")}
-                    >
-                      R$
-                    </button>
-                    <button
-                      type="button"
-                      className={cn(
-                        "px-3 py-2 text-sm font-medium transition-colors",
-                        itemDiscountType === "percent"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-background text-muted-foreground hover:bg-muted",
-                      )}
-                      onClick={() => setItemDiscountType("percent")}
-                    >
-                      %
-                    </button>
-                  </div>
-                </div>
+
+
 
                 <Button
                   type="button"
@@ -760,11 +738,50 @@ export default function Purchases({
                       className="flex-1"
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">Desconto</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={discount}
+                      onChange={(e) => setDiscount(e.target.value)}
+                      className="flex-1"
+                    />
+                    <div className="flex rounded-md border border-input overflow-hidden">
+                      <button
+                        type="button"
+                        className={cn(
+                          "px-3 py-2 text-sm font-medium transition-colors",
+                          discountType === "value"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                        onClick={() => setDiscountType("value")}
+                      >
+                        R$
+                      </button>
+                      <button
+                        type="button"
+                        className={cn(
+                          "px-3 py-2 text-sm font-medium transition-colors",
+                          discountType === "percent"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                        onClick={() => setDiscountType("percent")}
+                      >
+                        %
+                      </button>
+                    </div>
+                  </div>
 
-                  {totalDiscount > 0 && (
+                  {orderDiscountValue > 0 && (
                     <div className="flex justify-between items-center text-sm p-2 bg-destructive/10 rounded">
-                      <span>DESCONTOS TOTAIS</span>
-                      <span className="text-destructive font-medium">- R$ {totalDiscount.toFixed(2)}</span>
+                      <span>
+                        DESCONTO{discountType === "percent" ? ` (${discountInput}%)` : ""}
+                      </span>
+                      <span className="text-destructive font-medium">- R$ {orderDiscountValue.toFixed(2)}</span>
                     </div>
                   )}
                   {ipiValue > 0 && (
