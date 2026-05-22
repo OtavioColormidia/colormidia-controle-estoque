@@ -77,6 +77,7 @@ export default function Purchases({
   const [itemDiscount, setItemDiscount] = useState("");
   const [itemDiscountType, setItemDiscountType] = useState<"percent" | "value">("value");
   const [discount, setDiscount] = useState("");
+  const [discountType, setDiscountType] = useState<"percent" | "value">("value");
   const [ipi, setIpi] = useState("");
   const [frete, setFrete] = useState("");
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
