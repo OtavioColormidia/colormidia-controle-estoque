@@ -405,9 +405,14 @@ export default function Purchases({
 
   // Calculate totals
   const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
+  const itemsDiscountTotal = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
   const ipiValue = Number(ipi) || 0;
   const freteValue = Number(frete) || 0;
+  const discountInput = Number(discount) || 0;
+  const orderDiscountValue =
+    discountType === "percent" ? itemsTotal * (discountInput / 100) : discountInput;
+  const totalDiscount = itemsDiscountTotal + orderDiscountValue;
+  const finalTotal = Math.max(0, itemsTotal - orderDiscountValue + ipiValue + freteValue);
   const finalTotal = itemsTotal + ipiValue + freteValue;
 
   // Filter purchases by supplier and product
