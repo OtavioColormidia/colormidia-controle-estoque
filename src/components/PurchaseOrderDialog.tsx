@@ -184,10 +184,14 @@ export default function PurchaseOrderDialog({
   };
 
   const itemsTotal = items.reduce((s, i) => s + i.totalPrice, 0);
-  const totalDiscount = items.reduce((s, i) => s + (i.discountValue || 0), 0);
+  const itemsDiscountTotal = items.reduce((s, i) => s + (i.discountValue || 0), 0);
   const ipiValue = Number(ipi) || 0;
   const freteValue = Number(frete) || 0;
-  const finalTotal = itemsTotal + ipiValue + freteValue;
+  const orderDiscountInput = Number(orderDiscount) || 0;
+  const orderDiscountValue =
+    orderDiscountType === "percent" ? itemsTotal * (orderDiscountInput / 100) : orderDiscountInput;
+  const totalDiscount = itemsDiscountTotal + orderDiscountValue;
+  const finalTotal = Math.max(0, itemsTotal - orderDiscountValue + ipiValue + freteValue);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
