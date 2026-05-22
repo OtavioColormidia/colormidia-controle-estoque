@@ -333,11 +333,14 @@ export default function Purchases({
     }
 
     {
-      const itemsTotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
-      const totalDiscount = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
+      const itemsTotalLocal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
+      const itemsDiscountLocal = purchaseItems.reduce((sum, item) => sum + (item.discountValue || 0), 0);
       const ipiValue = Number(ipi) || 0;
       const freteValue = Number(frete) || 0;
-      const totalValue = itemsTotal + ipiValue + freteValue;
+      const discInput = Number(discount) || 0;
+      const orderDiscLocal = discountType === "percent" ? itemsTotalLocal * (discInput / 100) : discInput;
+      const totalDiscount = itemsDiscountLocal + orderDiscLocal;
+      const totalValue = Math.max(0, itemsTotalLocal - orderDiscLocal + ipiValue + freteValue);
 
       try {
         if (editingPurchaseId) {
