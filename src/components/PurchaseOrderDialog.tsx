@@ -93,6 +93,8 @@ export default function PurchaseOrderDialog({
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [ipi, setIpi] = useState("");
   const [frete, setFrete] = useState("");
+  const [orderDiscount, setOrderDiscount] = useState("");
+  const [orderDiscountType, setOrderDiscountType] = useState<"percent" | "value">("value");
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState("");
   const [formFiles, setFormFiles] = useState<File[]>([]);
