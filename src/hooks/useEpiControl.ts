@@ -161,7 +161,7 @@ export function useEpiControl() {
       employee_role: string | null;
       delivery_date: string;
       notes: string | null;
-      items: { epi_id: string | null; epi_name: string; ca_number: string | null; size: string | null; quantity: number }[];
+      items: { epi_id: string | null; epi_name: string; ca_number: string | null; size: string | null; quantity: number; validity_months: number | null; expiration_date: string | null }[];
     },
   ) => {
     const { data: { session } } = await supabase.auth.getSession();
