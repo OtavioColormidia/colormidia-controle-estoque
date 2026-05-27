@@ -119,9 +119,11 @@ export type Database = {
           delivery_id: string
           epi_id: string | null
           epi_name: string
+          expiration_date: string | null
           id: string
           quantity: number
           size: string | null
+          validity_months: number | null
         }
         Insert: {
           ca_number?: string | null
@@ -129,9 +131,11 @@ export type Database = {
           delivery_id: string
           epi_id?: string | null
           epi_name: string
+          expiration_date?: string | null
           id?: string
           quantity?: number
           size?: string | null
+          validity_months?: number | null
         }
         Update: {
           ca_number?: string | null
@@ -139,9 +143,11 @@ export type Database = {
           delivery_id?: string
           epi_id?: string | null
           epi_name?: string
+          expiration_date?: string | null
           id?: string
           quantity?: number
           size?: string | null
+          validity_months?: number | null
         }
         Relationships: [
           {
@@ -167,6 +173,7 @@ export type Database = {
           category: string | null
           created_at: string
           created_by: string | null
+          default_validity_months: number | null
           description: string | null
           id: string
           name: string
@@ -179,6 +186,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           created_by?: string | null
+          default_validity_months?: number | null
           description?: string | null
           id?: string
           name: string
@@ -191,6 +199,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           created_by?: string | null
+          default_validity_months?: number | null
           description?: string | null
           id?: string
           name?: string

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { HardHat, Plus, Users, Shield, Trash2, FileDown, Search, Pencil, X } from 'lucide-react';
+import { HardHat, Plus, Users, Shield, Trash2, FileDown, Search, Pencil, X, CalendarClock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,15 @@ type DeliveryDraftItem = {
   ca_number: string | null;
   size: string;
   quantity: number;
+  validity_months: number | null;
+  expiration_date: string | null;
 };
+
+function addMonthsISO(dateISO: string, months: number): string {
+  const d = new Date(dateISO + 'T12:00:00');
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0, 10);
+}
 
 export default function EpiControl() {
   const {
@@ -40,7 +48,7 @@ export default function EpiControl() {
   } = useEpiControl();
 
   // tab + search
-  const [tab, setTab] = useState<'deliveries' | 'employees' | 'epis'>('deliveries');
+  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'employees' | 'epis'>('deliveries');
   const [search, setSearch] = useState('');
 
   // ---- Delivery dialog ----
@@ -66,16 +74,24 @@ export default function EpiControl() {
     const items: DeliveryDraftItem[] = suggested
       .map((name) => {
         const e = epis.find((x) => x.name === name);
-        return e
-          ? { epi_id: e.id, epi_name: e.name, ca_number: e.ca_number, size: '', quantity: 1 }
-          : null;
+        if (!e) return null;
+        const months = e.default_validity_months ?? null;
+        return {
+          epi_id: e.id,
+          epi_name: e.name,
+          ca_number: e.ca_number,
+          size: '',
+          quantity: 1,
+          validity_months: months,
+          expiration_date: months ? addMonthsISO(delDate, months) : null,
+        } as DeliveryDraftItem;
       })
       .filter((x): x is DeliveryDraftItem => !!x);
     setDelItems(items);
   };
 
   const addItemRow = () => {
-    setDelItems((prev) => [...prev, { epi_id: null, epi_name: '', ca_number: null, size: '', quantity: 1 }]);
+    setDelItems((prev) => [...prev, { epi_id: null, epi_name: '', ca_number: null, size: '', quantity: 1, validity_months: null, expiration_date: null }]);
   };
   const updateItem = (idx: number, patch: Partial<DeliveryDraftItem>) => {
     setDelItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
@@ -85,7 +101,22 @@ export default function EpiControl() {
   const onItemEpiChange = (idx: number, epiId: string) => {
     const e = epis.find((x) => x.id === epiId);
     if (!e) return;
-    updateItem(idx, { epi_id: e.id, epi_name: e.name, ca_number: e.ca_number });
+    const months = e.default_validity_months ?? null;
+    updateItem(idx, {
+      epi_id: e.id,
+      epi_name: e.name,
+      ca_number: e.ca_number,
+      validity_months: months,
+      expiration_date: months ? addMonthsISO(delDate, months) : null,
+    });
+  };
+
+  const onItemValidityChange = (idx: number, monthsStr: string) => {
+    const months = monthsStr === '' ? null : Number(monthsStr);
+    updateItem(idx, {
+      validity_months: months,
+      expiration_date: months && months > 0 ? addMonthsISO(delDate, months) : null,
+    });
   };
 
   const submitDelivery = async () => {
@@ -108,6 +139,8 @@ export default function EpiControl() {
         ca_number: it.ca_number,
         size: it.size || null,
         quantity: Number(it.quantity),
+        validity_months: it.validity_months,
+        expiration_date: it.expiration_date,
       })),
     });
     if (ok) setDeliveryOpen(false);
@@ -154,7 +187,7 @@ export default function EpiControl() {
 
   // ---- EPI dialog ----
   const [epiOpen, setEpiOpen] = useState(false);
-  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '' });
+  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' });
   const submitEpi = async () => {
     if (!epiForm.name.trim()) { toast.error('Informe o nome do EPI'); return; }
     const ok = await addEpi({
@@ -162,8 +195,9 @@ export default function EpiControl() {
       ca_number: epiForm.ca_number.trim() || null,
       category: epiForm.category.trim() || null,
       description: epiForm.description.trim() || null,
+      default_validity_months: epiForm.default_validity_months ? Number(epiForm.default_validity_months) : null,
     });
-    if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '' }); }
+    if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' }); }
   };
 
   // ---- Confirms ----
@@ -193,6 +227,64 @@ export default function EpiControl() {
       !q || e.name.toLowerCase().includes(q) || (e.category ?? '').toLowerCase().includes(q) || (e.ca_number ?? '').toLowerCase().includes(q),
     );
   }, [epis, search]);
+
+  // ---- Expirations ----
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
+  const expirationRows = useMemo(() => {
+    const rows: {
+      key: string;
+      employee_name: string;
+      employee_role: string | null;
+      epi_name: string;
+      ca_number: string | null;
+      size: string | null;
+      quantity: number;
+      delivery_date: string;
+      expiration_date: string;
+      daysLeft: number;
+      status: 'expired' | 'soon' | 'ok';
+    }[] = [];
+    deliveries.forEach((d) => {
+      (d.items ?? []).forEach((it) => {
+        if (!it.expiration_date) return;
+        const exp = new Date(it.expiration_date + 'T12:00:00');
+        const diff = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const status: 'expired' | 'soon' | 'ok' = diff < 0 ? 'expired' : diff <= 30 ? 'soon' : 'ok';
+        rows.push({
+          key: it.id,
+          employee_name: d.employee_name,
+          employee_role: d.employee_role,
+          epi_name: it.epi_name,
+          ca_number: it.ca_number,
+          size: it.size,
+          quantity: Number(it.quantity || 0),
+          delivery_date: d.delivery_date,
+          expiration_date: it.expiration_date,
+          daysLeft: diff,
+          status,
+        });
+      });
+    });
+    return rows.sort((a, b) => a.daysLeft - b.daysLeft);
+  }, [deliveries, today]);
+
+  const filteredExpirations = useMemo(() => {
+    const q = search.toLowerCase();
+    return expirationRows.filter((r) =>
+      !q ||
+      r.employee_name.toLowerCase().includes(q) ||
+      r.epi_name.toLowerCase().includes(q) ||
+      (r.employee_role ?? '').toLowerCase().includes(q),
+    );
+  }, [expirationRows, search]);
+
+  const expiredCount = expirationRows.filter((r) => r.status === 'expired').length;
+  const soonCount = expirationRows.filter((r) => r.status === 'soon').length;
 
   if (loading) return <LoadingState variant="page" />;
 
@@ -232,6 +324,14 @@ export default function EpiControl() {
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
         <TabsList>
           <TabsTrigger value="deliveries">Entregas</TabsTrigger>
+          <TabsTrigger value="expirations" className="gap-2">
+            Vencimentos
+            {expiredCount + soonCount > 0 && (
+              <Badge variant="outline" className={expiredCount > 0 ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
+                {expiredCount + soonCount}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="employees">Funcionários</TabsTrigger>
           <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
         </TabsList>
@@ -291,6 +391,72 @@ export default function EpiControl() {
                       </TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </TabsContent>
+
+        {/* ---------- EXPIRATIONS ---------- */}
+        <TabsContent value="expirations" className="mt-4">
+          <Card className="overflow-hidden">
+            {filteredExpirations.length === 0 ? (
+              <EmptyState
+                icon={CalendarClock}
+                title="Nenhum EPI com vencimento cadastrado"
+                description="Informe a validade (meses) ao registrar a entrega para acompanhar os vencimentos."
+              />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Funcionário</TableHead>
+                    <TableHead>EPI</TableHead>
+                    <TableHead>CA</TableHead>
+                    <TableHead>Entrega</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Situação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredExpirations.map((r) => {
+                    const label = r.status === 'expired'
+                      ? `Vencido há ${Math.abs(r.daysLeft)} d`
+                      : r.daysLeft === 0
+                        ? 'Vence hoje'
+                        : `${r.daysLeft} dias restantes`;
+                    const cls = r.status === 'expired'
+                      ? 'bg-destructive/15 text-destructive border-destructive/30'
+                      : r.status === 'soon'
+                        ? 'bg-warning/15 text-warning border-warning/30'
+                        : 'bg-success/15 text-success border-success/30';
+                    return (
+                      <TableRow key={r.key}>
+                        <TableCell className="font-medium">
+                          <div>{r.employee_name}</div>
+                          {r.employee_role && <div className="text-xs text-muted-foreground">{r.employee_role}</div>}
+                        </TableCell>
+                        <TableCell>
+                          {r.epi_name}
+                          {r.size && <span className="text-xs text-muted-foreground"> · {r.size}</span>}
+                          {r.quantity > 1 && <span className="text-xs text-muted-foreground"> ×{r.quantity}</span>}
+                        </TableCell>
+                        <TableCell><Badge variant="outline">{r.ca_number ?? '-'}</Badge></TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                          {new Date(r.delivery_date).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {new Date(r.expiration_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={cls}>
+                            {r.status === 'expired' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                            {label}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
@@ -364,6 +530,7 @@ export default function EpiControl() {
                   <TableHead>EPI</TableHead>
                   <TableHead>CA</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Validade padrão</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -374,6 +541,7 @@ export default function EpiControl() {
                     <TableCell className="font-medium">{e.name}</TableCell>
                     <TableCell><Badge variant="outline">{e.ca_number ?? '-'}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{e.category ?? '-'}</TableCell>
+                    <TableCell className="text-muted-foreground">{e.default_validity_months ? `${e.default_validity_months} meses` : '-'}</TableCell>
                     <TableCell className="text-muted-foreground max-w-md">{e.description ?? '-'}</TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -414,7 +582,14 @@ export default function EpiControl() {
               </div>
               <div>
                 <Label>Data da entrega *</Label>
-                <Input type="date" value={delDate} onChange={(e) => setDelDate(e.target.value)} />
+                <Input type="date" value={delDate} onChange={(e) => {
+                  const newDate = e.target.value;
+                  setDelDate(newDate);
+                  setDelItems((prev) => prev.map((it) => ({
+                    ...it,
+                    expiration_date: it.validity_months && it.validity_months > 0 ? addMonthsISO(newDate, it.validity_months) : it.expiration_date,
+                  })));
+                }} />
               </div>
             </div>
 
@@ -433,7 +608,7 @@ export default function EpiControl() {
                 <div className="space-y-2">
                   {delItems.map((it, idx) => (
                     <div key={idx} className="grid grid-cols-12 gap-2 items-end p-2 rounded-md border bg-muted/30">
-                      <div className="col-span-12 md:col-span-5">
+                      <div className="col-span-12 md:col-span-4">
                         <Label className="text-xs">EPI</Label>
                         <Select value={it.epi_id ?? ''} onValueChange={(v) => onItemEpiChange(idx, v)}>
                           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -457,13 +632,31 @@ export default function EpiControl() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="col-span-3 md:col-span-2">
+                      <div className="col-span-3 md:col-span-1">
                         <Label className="text-xs">Qtd.</Label>
                         <Input
                           type="number"
                           min={1}
                           value={it.quantity}
                           onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="col-span-4 md:col-span-1">
+                        <Label className="text-xs" title="Validade em meses">Val. (m)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="-"
+                          value={it.validity_months ?? ''}
+                          onChange={(e) => onItemValidityChange(idx, e.target.value)}
+                        />
+                      </div>
+                      <div className="col-span-4 md:col-span-1">
+                        <Label className="text-xs">Vence em</Label>
+                        <Input
+                          type="date"
+                          value={it.expiration_date ?? ''}
+                          onChange={(e) => updateItem(idx, { expiration_date: e.target.value || null })}
                         />
                       </div>
                       <div className="col-span-1 flex justify-end">
@@ -570,6 +763,19 @@ export default function EpiControl() {
             <div>
               <Label>Categoria</Label>
               <Input value={epiForm.category} onChange={(e) => setEpiForm({ ...epiForm, category: e.target.value })} />
+            </div>
+            <div className="md:col-span-2">
+              <Label>Validade padrão (meses)</Label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="Ex.: 6"
+                value={epiForm.default_validity_months}
+                onChange={(e) => setEpiForm({ ...epiForm, default_validity_months: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Sugerido automaticamente ao entregar este EPI para um funcionário.
+              </p>
             </div>
             <div className="md:col-span-2">
               <Label>Descrição</Label>

@@ -22,6 +22,7 @@ export interface Epi {
   ca_number: string | null;
   category: string | null;
   description: string | null;
+  default_validity_months: number | null;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -35,6 +36,8 @@ export interface EpiDeliveryItem {
   ca_number: string | null;
   size: string | null;
   quantity: number;
+  validity_months: number | null;
+  expiration_date: string | null;
 }
 
 export interface EpiDelivery {
@@ -135,6 +138,7 @@ export function useEpiControl() {
       ca_number: payload.ca_number,
       category: payload.category,
       description: payload.description,
+      default_validity_months: payload.default_validity_months ?? null,
       created_by: session?.user.id,
     });
     if (error) { toast.error('Erro ao cadastrar EPI: ' + error.message); return false; }
@@ -157,7 +161,7 @@ export function useEpiControl() {
       employee_role: string | null;
       delivery_date: string;
       notes: string | null;
-      items: { epi_id: string | null; epi_name: string; ca_number: string | null; size: string | null; quantity: number }[];
+      items: { epi_id: string | null; epi_name: string; ca_number: string | null; size: string | null; quantity: number; validity_months: number | null; expiration_date: string | null }[];
     },
   ) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -184,6 +188,8 @@ export function useEpiControl() {
           ca_number: it.ca_number,
           size: it.size,
           quantity: it.quantity,
+          validity_months: it.validity_months,
+          expiration_date: it.expiration_date,
         })),
       );
       if (itemsErr) { toast.error('Erro ao salvar itens da entrega: ' + itemsErr.message); return false; }
