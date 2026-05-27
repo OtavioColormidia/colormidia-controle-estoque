@@ -474,7 +474,7 @@ export default function EpiControl() {
                 <div className="space-y-2">
                   {delItems.map((it, idx) => (
                     <div key={idx} className="grid grid-cols-12 gap-2 items-end p-2 rounded-md border bg-muted/30">
-                      <div className="col-span-12 md:col-span-5">
+                      <div className="col-span-12 md:col-span-4">
                         <Label className="text-xs">EPI</Label>
                         <Select value={it.epi_id ?? ''} onValueChange={(v) => onItemEpiChange(idx, v)}>
                           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -498,13 +498,31 @@ export default function EpiControl() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="col-span-3 md:col-span-2">
+                      <div className="col-span-3 md:col-span-1">
                         <Label className="text-xs">Qtd.</Label>
                         <Input
                           type="number"
                           min={1}
                           value={it.quantity}
                           onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="col-span-4 md:col-span-1">
+                        <Label className="text-xs" title="Validade em meses">Val. (m)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="-"
+                          value={it.validity_months ?? ''}
+                          onChange={(e) => onItemValidityChange(idx, e.target.value)}
+                        />
+                      </div>
+                      <div className="col-span-4 md:col-span-1">
+                        <Label className="text-xs">Vence em</Label>
+                        <Input
+                          type="date"
+                          value={it.expiration_date ?? ''}
+                          onChange={(e) => updateItem(idx, { expiration_date: e.target.value || null })}
                         />
                       </div>
                       <div className="col-span-1 flex justify-end">
