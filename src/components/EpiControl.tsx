@@ -228,6 +228,64 @@ export default function EpiControl() {
     );
   }, [epis, search]);
 
+  // ---- Expirations ----
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
+  const expirationRows = useMemo(() => {
+    const rows: {
+      key: string;
+      employee_name: string;
+      employee_role: string | null;
+      epi_name: string;
+      ca_number: string | null;
+      size: string | null;
+      quantity: number;
+      delivery_date: string;
+      expiration_date: string;
+      daysLeft: number;
+      status: 'expired' | 'soon' | 'ok';
+    }[] = [];
+    deliveries.forEach((d) => {
+      (d.items ?? []).forEach((it) => {
+        if (!it.expiration_date) return;
+        const exp = new Date(it.expiration_date + 'T12:00:00');
+        const diff = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const status: 'expired' | 'soon' | 'ok' = diff < 0 ? 'expired' : diff <= 30 ? 'soon' : 'ok';
+        rows.push({
+          key: it.id,
+          employee_name: d.employee_name,
+          employee_role: d.employee_role,
+          epi_name: it.epi_name,
+          ca_number: it.ca_number,
+          size: it.size,
+          quantity: Number(it.quantity || 0),
+          delivery_date: d.delivery_date,
+          expiration_date: it.expiration_date,
+          daysLeft: diff,
+          status,
+        });
+      });
+    });
+    return rows.sort((a, b) => a.daysLeft - b.daysLeft);
+  }, [deliveries, today]);
+
+  const filteredExpirations = useMemo(() => {
+    const q = search.toLowerCase();
+    return expirationRows.filter((r) =>
+      !q ||
+      r.employee_name.toLowerCase().includes(q) ||
+      r.epi_name.toLowerCase().includes(q) ||
+      (r.employee_role ?? '').toLowerCase().includes(q),
+    );
+  }, [expirationRows, search]);
+
+  const expiredCount = expirationRows.filter((r) => r.status === 'expired').length;
+  const soonCount = expirationRows.filter((r) => r.status === 'soon').length;
+
   if (loading) return <LoadingState variant="page" />;
 
   const totalItems = deliveries.reduce((s, d) => s + (d.items ?? []).reduce((a, it) => a + Number(it.quantity || 0), 0), 0);
