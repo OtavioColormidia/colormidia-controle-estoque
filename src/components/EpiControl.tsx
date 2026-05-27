@@ -29,7 +29,15 @@ type DeliveryDraftItem = {
   ca_number: string | null;
   size: string;
   quantity: number;
+  validity_months: number | null;
+  expiration_date: string | null;
 };
+
+function addMonthsISO(dateISO: string, months: number): string {
+  const d = new Date(dateISO + 'T12:00:00');
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0, 10);
+}
 
 export default function EpiControl() {
   const {
