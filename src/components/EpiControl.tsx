@@ -139,6 +139,8 @@ export default function EpiControl() {
         ca_number: it.ca_number,
         size: it.size || null,
         quantity: Number(it.quantity),
+        validity_months: it.validity_months,
+        expiration_date: it.expiration_date,
       })),
     });
     if (ok) setDeliveryOpen(false);
