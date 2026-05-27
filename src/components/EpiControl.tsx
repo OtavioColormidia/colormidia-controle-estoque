@@ -324,6 +324,14 @@ export default function EpiControl() {
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
         <TabsList>
           <TabsTrigger value="deliveries">Entregas</TabsTrigger>
+          <TabsTrigger value="expirations" className="gap-2">
+            Vencimentos
+            {expiredCount + soonCount > 0 && (
+              <Badge variant="outline" className={expiredCount > 0 ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
+                {expiredCount + soonCount}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="employees">Funcionários</TabsTrigger>
           <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
         </TabsList>
