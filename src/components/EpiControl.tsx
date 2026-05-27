@@ -48,7 +48,7 @@ export default function EpiControl() {
   } = useEpiControl();
 
   // tab + search
-  const [tab, setTab] = useState<'deliveries' | 'employees' | 'epis'>('deliveries');
+  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'employees' | 'epis'>('deliveries');
   const [search, setSearch] = useState('');
 
   // ---- Delivery dialog ----
