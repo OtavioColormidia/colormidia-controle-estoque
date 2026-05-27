@@ -390,8 +390,13 @@ export function AppSidebar() {
                         const active = isActive(item.url);
                         const showStockBadge = item.url === '/estoque' && alertStockCount > 0;
                         const showPendingBadge = item.url === '/requisicoes' && pendingRequestsCount > 0;
-                        const showBadge = showStockBadge || showPendingBadge;
-                        const badgeValue = showPendingBadge ? pendingRequestsCount : alertStockCount;
+                        const showEpiBadge = item.url === '/epi' && epiExpiringCount > 0;
+                        const showBadge = showStockBadge || showPendingBadge || showEpiBadge;
+                        const badgeValue = showPendingBadge
+                          ? pendingRequestsCount
+                          : showEpiBadge
+                          ? epiExpiringCount
+                          : alertStockCount;
                         const isItemDragging =
                           draggingItem?.section === section.label && draggingItem.url === item.url;
 
