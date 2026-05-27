@@ -187,7 +187,7 @@ export default function EpiControl() {
 
   // ---- EPI dialog ----
   const [epiOpen, setEpiOpen] = useState(false);
-  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '' });
+  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' });
   const submitEpi = async () => {
     if (!epiForm.name.trim()) { toast.error('Informe o nome do EPI'); return; }
     const ok = await addEpi({
@@ -195,8 +195,9 @@ export default function EpiControl() {
       ca_number: epiForm.ca_number.trim() || null,
       category: epiForm.category.trim() || null,
       description: epiForm.description.trim() || null,
+      default_validity_months: epiForm.default_validity_months ? Number(epiForm.default_validity_months) : null,
     });
-    if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '' }); }
+    if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' }); }
   };
 
   // ---- Confirms ----
