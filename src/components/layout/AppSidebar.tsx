@@ -14,6 +14,7 @@ import {
   UserCog,
   ChevronDown,
   HardHat,
+  Shield,
   GripVertical,
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -88,6 +89,7 @@ const sections: NavSection[] = [
     accent: 'hsl(38 92% 55%)',
     items: [
       { title: 'Controle de Serviço', url: '/servicos', icon: HardHat, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: 'bg-amber-500/15 text-amber-300 group-hover:bg-amber-500/25 group-hover:text-amber-200' },
+      { title: 'Controle de EPI', url: '/epi', icon: Shield, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: 'bg-yellow-500/15 text-yellow-300 group-hover:bg-yellow-500/25 group-hover:text-yellow-200' },
     ],
   },
   {
