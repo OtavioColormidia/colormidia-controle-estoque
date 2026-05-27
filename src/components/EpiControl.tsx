@@ -633,6 +633,19 @@ export default function EpiControl() {
               <Input value={epiForm.category} onChange={(e) => setEpiForm({ ...epiForm, category: e.target.value })} />
             </div>
             <div className="md:col-span-2">
+              <Label>Validade padrão (meses)</Label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="Ex.: 6"
+                value={epiForm.default_validity_months}
+                onChange={(e) => setEpiForm({ ...epiForm, default_validity_months: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Sugerido automaticamente ao entregar este EPI para um funcionário.
+              </p>
+            </div>
+            <div className="md:col-span-2">
               <Label>Descrição</Label>
               <Textarea rows={2} value={epiForm.description} onChange={(e) => setEpiForm({ ...epiForm, description: e.target.value })} />
             </div>
