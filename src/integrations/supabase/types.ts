@@ -14,6 +14,191 @@ export type Database = {
   }
   public: {
     Tables: {
+      employees: {
+        Row: {
+          active: boolean
+          cpf: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          hire_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      epi_deliveries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delivery_date: string
+          employee_id: string | null
+          employee_name: string
+          employee_role: string | null
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delivery_date?: string
+          employee_id?: string | null
+          employee_name: string
+          employee_role?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delivery_date?: string
+          employee_id?: string | null
+          employee_name?: string
+          employee_role?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epi_deliveries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      epi_delivery_items: {
+        Row: {
+          ca_number: string | null
+          created_at: string
+          delivery_id: string
+          epi_id: string | null
+          epi_name: string
+          id: string
+          quantity: number
+          size: string | null
+        }
+        Insert: {
+          ca_number?: string | null
+          created_at?: string
+          delivery_id: string
+          epi_id?: string | null
+          epi_name: string
+          id?: string
+          quantity?: number
+          size?: string | null
+        }
+        Update: {
+          ca_number?: string | null
+          created_at?: string
+          delivery_id?: string
+          epi_id?: string | null
+          epi_name?: string
+          id?: string
+          quantity?: number
+          size?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epi_delivery_items_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "epi_deliveries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "epi_delivery_items_epi_id_fkey"
+            columns: ["epi_id"]
+            isOneToOne: false
+            referencedRelation: "epis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      epis: {
+        Row: {
+          active: boolean
+          ca_number: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          ca_number?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          ca_number?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       form_responses: {
         Row: {
           created_at: string

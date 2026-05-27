@@ -19,6 +19,7 @@ import {
   SupplierMaterialsPage,
   UsersPage,
   ServiceOrdersPage,
+  EpiControlPage,
 } from "./pages/RoutePages";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/fornecedores-materiais" element={<SupplierMaterialsPage />} />
             <Route path="/usuarios" element={<UsersPage />} />
             <Route path="/servicos" element={<ServiceOrdersPage />} />
+            <Route path="/epi" element={<EpiControlPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
