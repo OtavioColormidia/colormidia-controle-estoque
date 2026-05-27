@@ -10,12 +10,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import PageHeader from '@/components/shared/PageHeader';
 import StatCard from '@/components/shared/StatCard';
 import EmptyState from '@/components/shared/EmptyState';
 import LoadingState from '@/components/shared/LoadingState';
-import ConfirmDialog from '@/components/ConfirmDialog';
-import { useEpiControl, type Employee, type EpiDelivery } from '@/hooks/useEpiControl';
+import { useEpiControl, type Employee } from '@/hooks/useEpiControl';
 import { EMPLOYEE_ROLES, EPI_BY_ROLE, EPI_SIZES } from '@/lib/epiCatalog';
 import { exportEpiDeliveryPDF } from '@/lib/epiDeliveryPdf';
 import { toast } from 'sonner';
@@ -581,21 +584,31 @@ export default function EpiControl() {
       </Dialog>
 
       {/* ============ CONFIRM DELETE ============ */}
-      <ConfirmDialog
-        open={!!confirmDel}
-        onOpenChange={(o) => !o && setConfirmDel(null)}
-        title="Confirmar exclusão"
-        description={`Deseja realmente excluir ${confirmDel?.label}? Esta ação não pode ser desfeita.`}
-        confirmText="Excluir"
-        variant="destructive"
-        onConfirm={async () => {
-          if (!confirmDel) return;
-          if (confirmDel.kind === 'employee') await deleteEmployee(confirmDel.id);
-          if (confirmDel.kind === 'epi') await deleteEpi(confirmDel.id);
-          if (confirmDel.kind === 'delivery') await deleteDelivery(confirmDel.id);
-          setConfirmDel(null);
-        }}
-      />
+      <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja realmente excluir {confirmDel?.label}? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!confirmDel) return;
+                if (confirmDel.kind === 'employee') await deleteEmployee(confirmDel.id);
+                if (confirmDel.kind === 'epi') await deleteEpi(confirmDel.id);
+                if (confirmDel.kind === 'delivery') await deleteDelivery(confirmDel.id);
+                setConfirmDel(null);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
