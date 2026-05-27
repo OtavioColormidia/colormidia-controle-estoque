@@ -22,6 +22,7 @@ export interface Epi {
   ca_number: string | null;
   category: string | null;
   description: string | null;
+  default_validity_months: number | null;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -35,6 +36,8 @@ export interface EpiDeliveryItem {
   ca_number: string | null;
   size: string | null;
   quantity: number;
+  validity_months: number | null;
+  expiration_date: string | null;
 }
 
 export interface EpiDelivery {
