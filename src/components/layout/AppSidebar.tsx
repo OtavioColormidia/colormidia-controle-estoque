@@ -117,6 +117,7 @@ export function AppSidebar() {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [alertStockCount, setAlertStockCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [epiExpiringCount, setEpiExpiringCount] = useState(0);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [sectionOrder, setSectionOrder] = useState<string[]>(() => sections.map((s) => s.label));
   const [itemOrders, setItemOrders] = useState<Record<string, string[]>>(() =>
