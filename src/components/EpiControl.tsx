@@ -53,6 +53,7 @@ export default function EpiControl() {
     addEmployee, updateEmployee, deleteEmployee,
     addEpi, deleteEpi,
     addDelivery, deleteDelivery,
+    refresh,
   } = useEpiControl();
 
   // tab + search
