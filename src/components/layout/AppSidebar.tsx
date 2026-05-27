@@ -180,6 +180,18 @@ export function AppSidebar() {
       }
     };
 
+    const fetchEpiExpiring = async () => {
+      const limit = new Date();
+      limit.setDate(limit.getDate() + 30);
+      const limitISO = limit.toISOString().slice(0, 10);
+      const { count } = await supabase
+        .from('epi_delivery_items')
+        .select('*', { count: 'exact', head: true })
+        .not('expiration_date', 'is', null)
+        .lte('expiration_date', limitISO);
+      if (!cancelled) setEpiExpiringCount(count ?? 0);
+    };
+
     const loadRoles = async (userId: string) => {
       const { data } = await supabase.from('user_roles').select('role').eq('user_id', userId);
       if (!cancelled && data) setUserRoles(data.map((r) => r.role as UserRole));
