@@ -398,6 +398,7 @@ export default function EpiControl() {
                   <TableHead>EPI</TableHead>
                   <TableHead>CA</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Validade padrão</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -408,6 +409,7 @@ export default function EpiControl() {
                     <TableCell className="font-medium">{e.name}</TableCell>
                     <TableCell><Badge variant="outline">{e.ca_number ?? '-'}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{e.category ?? '-'}</TableCell>
+                    <TableCell className="text-muted-foreground">{e.default_validity_months ? `${e.default_validity_months} meses` : '-'}</TableCell>
                     <TableCell className="text-muted-foreground max-w-md">{e.description ?? '-'}</TableCell>
                     <TableCell className="text-right">
                       <Button
