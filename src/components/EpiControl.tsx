@@ -397,6 +397,72 @@ export default function EpiControl() {
           </Card>
         </TabsContent>
 
+        {/* ---------- EXPIRATIONS ---------- */}
+        <TabsContent value="expirations" className="mt-4">
+          <Card className="overflow-hidden">
+            {filteredExpirations.length === 0 ? (
+              <EmptyState
+                icon={CalendarClock}
+                title="Nenhum EPI com vencimento cadastrado"
+                description="Informe a validade (meses) ao registrar a entrega para acompanhar os vencimentos."
+              />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Funcionário</TableHead>
+                    <TableHead>EPI</TableHead>
+                    <TableHead>CA</TableHead>
+                    <TableHead>Entrega</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Situação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredExpirations.map((r) => {
+                    const label = r.status === 'expired'
+                      ? `Vencido há ${Math.abs(r.daysLeft)} d`
+                      : r.daysLeft === 0
+                        ? 'Vence hoje'
+                        : `${r.daysLeft} dias restantes`;
+                    const cls = r.status === 'expired'
+                      ? 'bg-destructive/15 text-destructive border-destructive/30'
+                      : r.status === 'soon'
+                        ? 'bg-warning/15 text-warning border-warning/30'
+                        : 'bg-success/15 text-success border-success/30';
+                    return (
+                      <TableRow key={r.key}>
+                        <TableCell className="font-medium">
+                          <div>{r.employee_name}</div>
+                          {r.employee_role && <div className="text-xs text-muted-foreground">{r.employee_role}</div>}
+                        </TableCell>
+                        <TableCell>
+                          {r.epi_name}
+                          {r.size && <span className="text-xs text-muted-foreground"> · {r.size}</span>}
+                          {r.quantity > 1 && <span className="text-xs text-muted-foreground"> ×{r.quantity}</span>}
+                        </TableCell>
+                        <TableCell><Badge variant="outline">{r.ca_number ?? '-'}</Badge></TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                          {new Date(r.delivery_date).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {new Date(r.expiration_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={cls}>
+                            {r.status === 'expired' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                            {label}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </TabsContent>
+
         {/* ---------- EMPLOYEES ---------- */}
         <TabsContent value="employees" className="mt-4">
           <div className="flex justify-end mb-3">
