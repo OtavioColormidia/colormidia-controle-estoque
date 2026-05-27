@@ -717,7 +717,12 @@ export default function EpiControl() {
             </div>
             <div>
               <Label>CPF</Label>
-              <Input value={empForm.cpf} onChange={(e) => setEmpForm({ ...empForm, cpf: e.target.value })} />
+              <Input
+                value={empForm.cpf}
+                onChange={(e) => setEmpForm({ ...empForm, cpf: formatCPF(e.target.value) })}
+                placeholder="000.000.000-00"
+                maxLength={14}
+              />
             </div>
             <div>
               <Label>Data de admissão</Label>
