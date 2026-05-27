@@ -74,16 +74,24 @@ export default function EpiControl() {
     const items: DeliveryDraftItem[] = suggested
       .map((name) => {
         const e = epis.find((x) => x.name === name);
-        return e
-          ? { epi_id: e.id, epi_name: e.name, ca_number: e.ca_number, size: '', quantity: 1 }
-          : null;
+        if (!e) return null;
+        const months = e.default_validity_months ?? null;
+        return {
+          epi_id: e.id,
+          epi_name: e.name,
+          ca_number: e.ca_number,
+          size: '',
+          quantity: 1,
+          validity_months: months,
+          expiration_date: months ? addMonthsISO(delDate, months) : null,
+        } as DeliveryDraftItem;
       })
       .filter((x): x is DeliveryDraftItem => !!x);
     setDelItems(items);
   };
 
   const addItemRow = () => {
-    setDelItems((prev) => [...prev, { epi_id: null, epi_name: '', ca_number: null, size: '', quantity: 1 }]);
+    setDelItems((prev) => [...prev, { epi_id: null, epi_name: '', ca_number: null, size: '', quantity: 1, validity_months: null, expiration_date: null }]);
   };
   const updateItem = (idx: number, patch: Partial<DeliveryDraftItem>) => {
     setDelItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
@@ -93,7 +101,22 @@ export default function EpiControl() {
   const onItemEpiChange = (idx: number, epiId: string) => {
     const e = epis.find((x) => x.id === epiId);
     if (!e) return;
-    updateItem(idx, { epi_id: e.id, epi_name: e.name, ca_number: e.ca_number });
+    const months = e.default_validity_months ?? null;
+    updateItem(idx, {
+      epi_id: e.id,
+      epi_name: e.name,
+      ca_number: e.ca_number,
+      validity_months: months,
+      expiration_date: months ? addMonthsISO(delDate, months) : null,
+    });
+  };
+
+  const onItemValidityChange = (idx: number, monthsStr: string) => {
+    const months = monthsStr === '' ? null : Number(monthsStr);
+    updateItem(idx, {
+      validity_months: months,
+      expiration_date: months && months > 0 ? addMonthsISO(delDate, months) : null,
+    });
   };
 
   const submitDelivery = async () => {
