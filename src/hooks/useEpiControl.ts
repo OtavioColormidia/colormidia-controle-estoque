@@ -138,6 +138,7 @@ export function useEpiControl() {
       ca_number: payload.ca_number,
       category: payload.category,
       description: payload.description,
+      default_validity_months: payload.default_validity_months ?? null,
       created_by: session?.user.id,
     });
     if (error) { toast.error('Erro ao cadastrar EPI: ' + error.message); return false; }
