@@ -448,7 +448,14 @@ export default function EpiControl() {
               </div>
               <div>
                 <Label>Data da entrega *</Label>
-                <Input type="date" value={delDate} onChange={(e) => setDelDate(e.target.value)} />
+                <Input type="date" value={delDate} onChange={(e) => {
+                  const newDate = e.target.value;
+                  setDelDate(newDate);
+                  setDelItems((prev) => prev.map((it) => ({
+                    ...it,
+                    expiration_date: it.validity_months && it.validity_months > 0 ? addMonthsISO(newDate, it.validity_months) : it.expiration_date,
+                  })));
+                }} />
               </div>
             </div>
 
