@@ -53,6 +53,7 @@ export default function EpiControl() {
     addEmployee, updateEmployee, deleteEmployee,
     addEpi, deleteEpi,
     addDelivery, deleteDelivery,
+    refresh,
   } = useEpiControl();
 
   // tab + search
@@ -151,7 +152,10 @@ export default function EpiControl() {
         expiration_date: it.expiration_date,
       })),
     });
-    if (ok) setDeliveryOpen(false);
+    if (ok) {
+      setDeliveryOpen(false);
+      await refresh();
+    }
   };
 
   // ---- Employee dialog ----

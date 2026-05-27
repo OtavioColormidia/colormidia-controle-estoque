@@ -112,6 +112,7 @@ export function useEpiControl() {
     });
     if (error) { toast.error('Erro ao cadastrar funcionário: ' + error.message); return false; }
     toast.success('Funcionário cadastrado');
+    await fetchAll();
     return true;
   };
 
@@ -120,6 +121,7 @@ export function useEpiControl() {
     const { error } = await supabase.from('employees').update({ ...payload, updated_by: session?.user.id }).eq('id', id);
     if (error) { toast.error('Erro ao atualizar funcionário: ' + error.message); return false; }
     toast.success('Funcionário atualizado');
+    await fetchAll();
     return true;
   };
 
@@ -127,6 +129,7 @@ export function useEpiControl() {
     const { error } = await supabase.from('employees').delete().eq('id', id);
     if (error) { toast.error('Erro ao excluir: ' + error.message); return false; }
     toast.success('Funcionário excluído');
+    await fetchAll();
     return true;
   };
 
@@ -143,6 +146,7 @@ export function useEpiControl() {
     });
     if (error) { toast.error('Erro ao cadastrar EPI: ' + error.message); return false; }
     toast.success('EPI cadastrado');
+    await fetchAll();
     return true;
   };
 
@@ -150,6 +154,7 @@ export function useEpiControl() {
     const { error } = await supabase.from('epis').delete().eq('id', id);
     if (error) { toast.error('Erro ao excluir EPI: ' + error.message); return false; }
     toast.success('EPI excluído');
+    await fetchAll();
     return true;
   };
 
@@ -177,8 +182,8 @@ export function useEpiControl() {
         created_by: session?.user.id,
       })
       .select()
-      .single();
-    if (error || !data) { toast.error('Erro ao registrar entrega: ' + error?.message); return false; }
+      .maybeSingle();
+    if (error || !data) { toast.error('Erro ao registrar entrega: ' + (error?.message ?? 'sem retorno')); return false; }
     if (payload.items.length) {
       const { error: itemsErr } = await supabase.from('epi_delivery_items').insert(
         payload.items.map((it) => ({
@@ -195,6 +200,7 @@ export function useEpiControl() {
       if (itemsErr) { toast.error('Erro ao salvar itens da entrega: ' + itemsErr.message); return false; }
     }
     toast.success('Entrega registrada');
+    await fetchAll();
     return true;
   };
 
@@ -202,6 +208,7 @@ export function useEpiControl() {
     const { error } = await supabase.from('epi_deliveries').delete().eq('id', id);
     if (error) { toast.error('Erro ao excluir entrega: ' + error.message); return false; }
     toast.success('Entrega excluída');
+    await fetchAll();
     return true;
   };
 
