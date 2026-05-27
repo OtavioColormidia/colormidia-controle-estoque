@@ -188,6 +188,8 @@ export function useEpiControl() {
           ca_number: it.ca_number,
           size: it.size,
           quantity: it.quantity,
+          validity_months: it.validity_months,
+          expiration_date: it.expiration_date,
         })),
       );
       if (itemsErr) { toast.error('Erro ao salvar itens da entrega: ' + itemsErr.message); return false; }
