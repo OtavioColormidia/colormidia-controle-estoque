@@ -39,6 +39,14 @@ function addMonthsISO(dateISO: string, months: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+function formatCPF(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
 export default function EpiControl() {
   const {
     employees, epis, deliveries, loading,
@@ -709,7 +717,12 @@ export default function EpiControl() {
             </div>
             <div>
               <Label>CPF</Label>
-              <Input value={empForm.cpf} onChange={(e) => setEmpForm({ ...empForm, cpf: e.target.value })} />
+              <Input
+                value={empForm.cpf}
+                onChange={(e) => setEmpForm({ ...empForm, cpf: formatCPF(e.target.value) })}
+                placeholder="000.000.000-00"
+                maxLength={14}
+              />
             </div>
             <div>
               <Label>Data de admissão</Label>
