@@ -152,7 +152,10 @@ export default function EpiControl() {
         expiration_date: it.expiration_date,
       })),
     });
-    if (ok) setDeliveryOpen(false);
+    if (ok) {
+      setDeliveryOpen(false);
+      await refresh();
+    }
   };
 
   // ---- Employee dialog ----
