@@ -121,6 +121,7 @@ export function useEpiControl() {
     const { error } = await supabase.from('employees').update({ ...payload, updated_by: session?.user.id }).eq('id', id);
     if (error) { toast.error('Erro ao atualizar funcionário: ' + error.message); return false; }
     toast.success('Funcionário atualizado');
+    await fetchAll();
     return true;
   };
 
@@ -128,6 +129,7 @@ export function useEpiControl() {
     const { error } = await supabase.from('employees').delete().eq('id', id);
     if (error) { toast.error('Erro ao excluir: ' + error.message); return false; }
     toast.success('Funcionário excluído');
+    await fetchAll();
     return true;
   };
 
