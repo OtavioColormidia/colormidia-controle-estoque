@@ -234,6 +234,7 @@ export function AppSidebar() {
           loadRoles(session.user.id),
           fetchAlertStock(),
           fetchPendingCount(),
+          fetchEpiExpiring(),
           loadSidebarPrefs(session.user.id),
         ]);
         if (!channel) {
@@ -241,6 +242,7 @@ export function AppSidebar() {
             .channel('sidebar-counts')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'form_responses' }, fetchPendingCount)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, fetchAlertStock)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_delivery_items' }, fetchEpiExpiring)
             .subscribe();
         }
       }
