@@ -117,6 +117,7 @@ export function AppSidebar() {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [alertStockCount, setAlertStockCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [epiExpiringCount, setEpiExpiringCount] = useState(0);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [sectionOrder, setSectionOrder] = useState<string[]>(() => sections.map((s) => s.label));
   const [itemOrders, setItemOrders] = useState<Record<string, string[]>>(() =>
@@ -179,6 +180,18 @@ export function AppSidebar() {
       }
     };
 
+    const fetchEpiExpiring = async () => {
+      const limit = new Date();
+      limit.setDate(limit.getDate() + 30);
+      const limitISO = limit.toISOString().slice(0, 10);
+      const { count } = await supabase
+        .from('epi_delivery_items')
+        .select('*', { count: 'exact', head: true })
+        .not('expiration_date', 'is', null)
+        .lte('expiration_date', limitISO);
+      if (!cancelled) setEpiExpiringCount(count ?? 0);
+    };
+
     const loadRoles = async (userId: string) => {
       const { data } = await supabase.from('user_roles').select('role').eq('user_id', userId);
       if (!cancelled && data) setUserRoles(data.map((r) => r.role as UserRole));
@@ -221,6 +234,7 @@ export function AppSidebar() {
           loadRoles(session.user.id),
           fetchAlertStock(),
           fetchPendingCount(),
+          fetchEpiExpiring(),
           loadSidebarPrefs(session.user.id),
         ]);
         if (!channel) {
@@ -228,6 +242,7 @@ export function AppSidebar() {
             .channel('sidebar-counts')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'form_responses' }, fetchPendingCount)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, fetchAlertStock)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_delivery_items' }, fetchEpiExpiring)
             .subscribe();
         }
       }
@@ -375,8 +390,13 @@ export function AppSidebar() {
                         const active = isActive(item.url);
                         const showStockBadge = item.url === '/estoque' && alertStockCount > 0;
                         const showPendingBadge = item.url === '/requisicoes' && pendingRequestsCount > 0;
-                        const showBadge = showStockBadge || showPendingBadge;
-                        const badgeValue = showPendingBadge ? pendingRequestsCount : alertStockCount;
+                        const showEpiBadge = item.url === '/epi' && epiExpiringCount > 0;
+                        const showBadge = showStockBadge || showPendingBadge || showEpiBadge;
+                        const badgeValue = showPendingBadge
+                          ? pendingRequestsCount
+                          : showEpiBadge
+                          ? epiExpiringCount
+                          : alertStockCount;
                         const isItemDragging =
                           draggingItem?.section === section.label && draggingItem.url === item.url;
 
