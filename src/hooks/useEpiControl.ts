@@ -112,6 +112,7 @@ export function useEpiControl() {
     });
     if (error) { toast.error('Erro ao cadastrar funcionário: ' + error.message); return false; }
     toast.success('Funcionário cadastrado');
+    await fetchAll();
     return true;
   };
 
