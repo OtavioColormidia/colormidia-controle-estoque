@@ -58,7 +58,7 @@ export default function EpiControl() {
   } = useEpiControl();
 
   // tab + search
-  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'checklist' | 'employees' | 'epis'>('deliveries');
+  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'checklist' | 'by-epi' | 'employees' | 'epis'>('deliveries');
   const [search, setSearch] = useState('');
 
   // ---- Delivery dialog ----
@@ -356,6 +356,94 @@ export default function EpiControl() {
 
   const nonCompliantCount = checks.filter((c) => !c.is_using).length;
 
+  // ---- By EPI: agrupa entregas por nome do EPI -> usuários atuais ----
+  const byEpiGroups = useMemo(() => {
+    type UserRow = {
+      employee_id: string | null;
+      employee_name: string;
+      employee_role: string | null;
+      start_date: string;     // primeira entrega deste EPI ao funcionário
+      last_delivery: string;  // entrega mais recente
+      quantity: number;       // total acumulado
+      ca_number: string | null;
+      size: string | null;
+      expiration_date: string | null;
+      not_using: boolean;     // último checklist marcou como "não utiliza"
+    };
+    const map = new Map<string, { epi_name: string; users: Map<string, UserRow> }>();
+
+    deliveries.forEach((d) => {
+      (d.items ?? []).forEach((it) => {
+        const key = it.epi_name.trim();
+        if (!key) return;
+        if (!map.has(key)) map.set(key, { epi_name: key, users: new Map() });
+        const group = map.get(key)!;
+        const userKey = d.employee_id ?? d.employee_name;
+        const existing = group.users.get(userKey);
+        const deliveryDate = d.delivery_date;
+        if (!existing) {
+          group.users.set(userKey, {
+            employee_id: d.employee_id,
+            employee_name: d.employee_name,
+            employee_role: d.employee_role,
+            start_date: deliveryDate,
+            last_delivery: deliveryDate,
+            quantity: Number(it.quantity || 0),
+            ca_number: it.ca_number,
+            size: it.size,
+            expiration_date: it.expiration_date,
+            not_using: false,
+          });
+        } else {
+          if (new Date(deliveryDate) < new Date(existing.start_date)) existing.start_date = deliveryDate;
+          if (new Date(deliveryDate) > new Date(existing.last_delivery)) {
+            existing.last_delivery = deliveryDate;
+            existing.ca_number = it.ca_number ?? existing.ca_number;
+            existing.size = it.size ?? existing.size;
+            existing.expiration_date = it.expiration_date ?? existing.expiration_date;
+          }
+          existing.quantity += Number(it.quantity || 0);
+        }
+      });
+    });
+
+    // marca quem está como "não utiliza" no checklist mais recente
+    const lastCheckByPair = new Map<string, { date: string; is_using: boolean }>();
+    checks.forEach((c) => {
+      const k = `${(c.employee_id ?? c.employee_name)}::${c.epi_name.trim()}`;
+      const prev = lastCheckByPair.get(k);
+      if (!prev || new Date(c.check_date) > new Date(prev.date)) {
+        lastCheckByPair.set(k, { date: c.check_date, is_using: c.is_using });
+      }
+    });
+    map.forEach((g) => {
+      g.users.forEach((u, uk) => {
+        const k = `${uk}::${g.epi_name}`;
+        const last = lastCheckByPair.get(k);
+        if (last && !last.is_using) u.not_using = true;
+      });
+    });
+
+    return Array.from(map.values())
+      .map((g) => ({ epi_name: g.epi_name, users: Array.from(g.users.values()).sort((a, b) => a.employee_name.localeCompare(b.employee_name, 'pt-BR')) }))
+      .sort((a, b) => a.epi_name.localeCompare(b.epi_name, 'pt-BR'));
+  }, [deliveries, checks]);
+
+  const filteredByEpi = useMemo(() => {
+    const q = search.toLowerCase();
+    if (!q) return byEpiGroups;
+    return byEpiGroups
+      .map((g) => {
+        const epiMatch = g.epi_name.toLowerCase().includes(q);
+        const users = epiMatch ? g.users : g.users.filter((u) =>
+          u.employee_name.toLowerCase().includes(q) || (u.employee_role ?? '').toLowerCase().includes(q),
+        );
+        return { ...g, users };
+      })
+      .filter((g) => g.users.length > 0);
+  }, [byEpiGroups, search]);
+
+
   if (loading) return <LoadingState variant="page" />;
 
   const totalItems = deliveries.reduce((s, d) => s + (d.items ?? []).reduce((a, it) => a + Number(it.quantity || 0), 0), 0);
@@ -410,6 +498,7 @@ export default function EpiControl() {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="by-epi">Por EPI</TabsTrigger>
           <TabsTrigger value="employees">Funcionários</TabsTrigger>
           <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
         </TabsList>
@@ -595,6 +684,83 @@ export default function EpiControl() {
             )}
           </Card>
         </TabsContent>
+
+        {/* ---------- BY EPI ---------- */}
+        <TabsContent value="by-epi" className="mt-4 space-y-4">
+          {filteredByEpi.length === 0 ? (
+            <Card className="overflow-hidden">
+              <EmptyState
+                icon={Shield}
+                title="Nenhum EPI em uso"
+                description="Registre entregas para visualizar os funcionários que receberam cada EPI."
+              />
+            </Card>
+          ) : (
+            filteredByEpi.map((g) => (
+              <Card key={g.epi_name} className="overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-warning" />
+                    <h3 className="font-semibold">{g.epi_name}</h3>
+                  </div>
+                  <Badge variant="outline" className="gap-1">
+                    <Users className="h-3 w-3" /> {g.users.length} {g.users.length === 1 ? 'pessoa' : 'pessoas'}
+                  </Badge>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Funcionário</TableHead>
+                      <TableHead>Cargo</TableHead>
+                      <TableHead>Início de uso</TableHead>
+                      <TableHead>Última entrega</TableHead>
+                      <TableHead>Tempo de uso</TableHead>
+                      <TableHead>Qtd.</TableHead>
+                      <TableHead>Situação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {g.users.map((u) => {
+                      const start = new Date(u.start_date);
+                      const daysUsing = Math.max(0, Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+                      const tempo = daysUsing < 30
+                        ? `${daysUsing} d`
+                        : daysUsing < 365
+                          ? `${Math.floor(daysUsing / 30)} m`
+                          : `${Math.floor(daysUsing / 365)} a ${Math.floor((daysUsing % 365) / 30)} m`;
+                      return (
+                        <TableRow key={`${g.epi_name}-${u.employee_id ?? u.employee_name}`}>
+                          <TableCell className="font-medium">{u.employee_name}</TableCell>
+                          <TableCell><Badge variant="secondary">{u.employee_role ?? '-'}</Badge></TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {start.toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-muted-foreground">
+                            {new Date(u.last_delivery).toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{tempo}</TableCell>
+                          <TableCell>{u.quantity}</TableCell>
+                          <TableCell>
+                            {u.not_using ? (
+                              <Badge className="bg-destructive/15 text-destructive border-destructive/30 gap-1">
+                                <AlertTriangle className="h-3 w-3" /> Não utiliza
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-success/15 text-success border-success/30 gap-1">
+                                <Check className="h-3 w-3" /> Em uso
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </Card>
+            ))
+          )}
+        </TabsContent>
+
 
         {/* ---------- EPIS ---------- */}
         <TabsContent value="epis" className="mt-4">
