@@ -26,13 +26,14 @@ export default function Auth() {
     setError(null);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       const { error } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            display_name: displayName || email.split('@')[0],
+            display_name: displayName || normalizedEmail.split('@')[0],
           },
         },
       });
@@ -61,12 +62,18 @@ export default function Auth() {
     setError(null);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.toLowerCase().includes('invalid login credentials')) {
+          throw new Error('Email ou senha incorretos. Verifique se digitou o email corretamente (sem espaços ou letras maiúsculas).');
+        }
+        throw error;
+      }
 
       // Check if user is authorized
       const { data: profile, error: profileError } = await supabase

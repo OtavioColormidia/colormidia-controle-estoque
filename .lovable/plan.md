@@ -1,37 +1,29 @@
-## Objetivo
+## Problema
+Chris consegue logar no PC mas recebe "senha inválida" no celular usando a mesma senha. Senha foi validada colando o texto, então não é erro de digitação.
 
-Salvar a personalização da sidebar (ordem das seções, ordem dos itens dentro de cada seção e quais seções estão abertas/fechadas) **por usuário** no Supabase. Cada usuário vê seu próprio layout em qualquer dispositivo; usuários sem preferência salva continuam vendo o padrão original.
+## Causa provável
+O campo de email em `src/pages/Auth.tsx` não desativa autocorreção/autocapitalização e não normaliza o valor antes de enviar. Em teclados mobile (iOS e Android), a primeira letra do email é capitalizada automaticamente e às vezes um espaço é adicionado no final. O Supabase Auth trata `Chris@x.com` e `chris@x.com` como contas diferentes e retorna `Invalid login credentials`.
 
-## O que muda
+## Correção
+Ajustar apenas o formulário de login/cadastro em `src/pages/Auth.tsx`:
 
-### 1. Banco de dados (nova tabela)
+1. Nos `<Input type="email">` (login e signup), adicionar atributos mobile:
+   - `autoCapitalize="none"`
+   - `autoCorrect="off"`
+   - `spellCheck={false}`
+   - `inputMode="email"`
 
-Criar `user_sidebar_preferences`:
+2. No `handleSignIn` e `handleSignUp`, normalizar antes de chamar o Supabase:
+   ```ts
+   const normalizedEmail = email.trim().toLowerCase();
+   ```
+   e usar `normalizedEmail` no `signInWithPassword` / `signUp`.
 
-- `user_id` (uuid, único) — dono da preferência
-- `section_order` (jsonb) — array com a ordem das seções (ex: `["Principal","Compras","Serviço",...]`)
-- `item_orders` (jsonb) — objeto `{ "Principal": ["Dashboard"], "Compras": ["Compras","Requisição"], ... }`
-- `open_sections` (jsonb) — objeto `{ "Principal": true, "Compras": true, ... }`
-- timestamps padrão
+3. Melhorar a mensagem de erro quando o Supabase retornar "Invalid login credentials" para deixar claro que pode ser o email digitado errado (não só a senha).
 
-**RLS:** cada usuário só lê/escreve a própria linha (`auth.uid() = user_id`). Sem acesso de admin a preferências de outros — é dado pessoal de UI.
+## Verificação
+Pedir ao Chris para tentar novamente no celular após o deploy. Se ainda falhar, próximo passo é resetar a senha dele pelo painel admin (provavelmente a conta dele foi criada no PC com email em letra minúscula e algum login antigo no celular ficou cacheado).
 
-### 2. Frontend — `src/components/layout/AppSidebar.tsx`
-
-- Ao montar: buscar a linha do usuário em `user_sidebar_preferences`. Se existir, hidratar `sectionOrder`, `itemOrders` e `openSections` com os valores salvos. Se não existir, usar o padrão atual (comportamento de hoje para todo mundo).
-- Após qualquer reorder (seção ou item) ou toggle de abrir/fechar seção: fazer `upsert` na tabela com debounce (~500 ms) para não spammar.
-- Remover a persistência atual de `openSections` em `localStorage` (substituída pelo Supabase). Manter fallback de leitura única do localStorage só para migrar usuários que já tinham seções abertas/fechadas salvas.
-- Sem botão de reset (conforme escolhido).
-
-### Comportamento resultante
-
-- **Seu usuário** (após arrastar uma vez): layout fica salvo e aparece igual em qualquer PC/celular.
-- **Outros usuários**: como nunca tiveram nada salvo, abrem no padrão original. Se um dia arrastarem algo, salva só pra eles.
-- **Refresh**: agora respeita o salvo (antes voltava ao padrão). Isso muda a regra anterior de "ao atualizar a página volta ao padrão" — confirme se está OK, já que era exatamente o oposto do que foi pedido antes.
-
-## Detalhes técnicos
-
-- Tabela nova com RLS estrita por `auth.uid()`.
-- Upsert com `onConflict: 'user_id'`.
-- Debounce no salvamento via `setTimeout` + ref, evitando recarregar React Query (não há cache compartilhado aqui).
-- Sem mudanças em PDF, permissões de app, ou outras telas.
+## Fora de escopo
+- Não mexer em RLS, roles, edge functions ou em outras páginas.
+- Não alterar fluxo de autorização do `is_authorized`.
