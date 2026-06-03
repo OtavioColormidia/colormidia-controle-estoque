@@ -244,6 +244,11 @@ export default function Auth() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       disabled={loading}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      inputMode="email"
+                      autoComplete="email"
                       className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                   </div>
