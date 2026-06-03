@@ -49,15 +49,16 @@ function formatCPF(value: string): string {
 
 export default function EpiControl() {
   const {
-    employees, epis, deliveries, loading,
+    employees, epis, deliveries, checks, loading,
     addEmployee, updateEmployee, deleteEmployee,
     addEpi, deleteEpi,
     addDelivery, deleteDelivery,
+    addChecks, deleteCheck,
     refresh,
   } = useEpiControl();
 
   // tab + search
-  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'employees' | 'epis'>('deliveries');
+  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'checklist' | 'employees' | 'epis'>('deliveries');
   const [search, setSearch] = useState('');
 
   // ---- Delivery dialog ----
