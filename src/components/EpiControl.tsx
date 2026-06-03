@@ -498,6 +498,7 @@ export default function EpiControl() {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="by-epi">Por EPI</TabsTrigger>
           <TabsTrigger value="employees">Funcionários</TabsTrigger>
           <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
         </TabsList>
