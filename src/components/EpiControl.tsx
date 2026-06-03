@@ -213,8 +213,53 @@ export default function EpiControl() {
     if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' }); }
   };
 
+  // ---- Checklist dialog ----
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [chkEmpId, setChkEmpId] = useState<string>('');
+  const [chkDate, setChkDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [chkNotes, setChkNotes] = useState('');
+  const [chkItems, setChkItems] = useState<{ epi_name: string; is_using: boolean }[]>([]);
+
+  const openCheck = () => {
+    setChkEmpId('');
+    setChkDate(new Date().toISOString().slice(0, 10));
+    setChkNotes('');
+    setChkItems([]);
+    setCheckOpen(true);
+  };
+
+  const onCheckEmployeeSelect = (id: string) => {
+    setChkEmpId(id);
+    const emp = employees.find((e) => e.id === id);
+    if (!emp) return;
+    // Sugere EPIs já entregues a este funcionário, ou os EPIs padrão do cargo
+    const deliveredNames = new Set<string>();
+    deliveries
+      .filter((d) => d.employee_id === id)
+      .forEach((d) => (d.items ?? []).forEach((it) => deliveredNames.add(it.epi_name)));
+    const list = deliveredNames.size > 0
+      ? Array.from(deliveredNames)
+      : (EPI_BY_ROLE[emp.role] ?? []);
+    setChkItems(list.map((n) => ({ epi_name: n, is_using: true })));
+  };
+
+  const submitCheck = async () => {
+    const emp = employees.find((e) => e.id === chkEmpId);
+    if (!emp) { toast.error('Selecione o funcionário'); return; }
+    if (chkItems.length === 0) { toast.error('Adicione ao menos um EPI'); return; }
+    const ok = await addChecks({
+      check_date: chkDate,
+      employee_id: emp.id,
+      employee_name: emp.name,
+      employee_role: emp.role,
+      notes: chkNotes.trim() || null,
+      items: chkItems,
+    });
+    if (ok) setCheckOpen(false);
+  };
+
   // ---- Confirms ----
-  const [confirmDel, setConfirmDel] = useState<{ kind: 'employee' | 'epi' | 'delivery'; id: string; label: string } | null>(null);
+  const [confirmDel, setConfirmDel] = useState<{ kind: 'employee' | 'epi' | 'delivery' | 'check'; id: string; label: string } | null>(null);
 
   // ---- Filtering ----
   const filteredDeliveries = useMemo(() => {
