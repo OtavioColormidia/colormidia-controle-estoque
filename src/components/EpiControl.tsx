@@ -402,6 +402,14 @@ export default function EpiControl() {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="checklist" className="gap-2">
+            Checklist
+            {nonCompliantCount > 0 && (
+              <Badge variant="outline" className="border-destructive/40 text-destructive">
+                {nonCompliantCount}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="employees">Funcionários</TabsTrigger>
           <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
         </TabsList>
