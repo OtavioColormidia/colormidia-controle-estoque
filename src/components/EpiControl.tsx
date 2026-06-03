@@ -342,7 +342,7 @@ export default function EpiControl() {
   }, [expirationRows, search]);
 
   const expiredCount = expirationRows.filter((r) => r.status === 'expired').length;
-  const filteredChecks = useMemo(() => {
+  const soonCount = expirationRows.filter((r) => r.status === 'soon').length;
     const q = search.toLowerCase();
     return checks.filter((c) =>
       !q ||
