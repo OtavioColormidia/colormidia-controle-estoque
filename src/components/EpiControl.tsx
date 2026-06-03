@@ -893,6 +893,119 @@ export default function EpiControl() {
         </DialogContent>
       </Dialog>
 
+      {/* ============ CHECKLIST DIALOG ============ */}
+      <Dialog open={checkOpen} onOpenChange={setCheckOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Novo Checklist de Uso de EPI</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>Funcionário *</Label>
+                <Select value={chkEmpId} onValueChange={onCheckEmployeeSelect}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o funcionário" /></SelectTrigger>
+                  <SelectContent>
+                    {employees.filter((e) => e.active).map((e) => (
+                      <SelectItem key={e.id} value={e.id}>{e.name} — {e.role}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Data da verificação *</Label>
+                <Input type="date" value={chkDate} onChange={(e) => setChkDate(e.target.value)} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label>EPIs verificados</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setChkItems((prev) => [...prev, { epi_name: '', is_using: true }])}
+                  className="gap-1"
+                >
+                  <Plus className="h-3 w-3" /> Adicionar EPI
+                </Button>
+              </div>
+              {chkItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center border border-dashed rounded-md">
+                  Selecione um funcionário para sugerir os EPIs ou adicione manualmente.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {chkItems.map((it, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center p-2 rounded-md border bg-muted/30">
+                      <div className="col-span-12 md:col-span-7">
+                        <Select
+                          value={it.epi_name}
+                          onValueChange={(v) => setChkItems((prev) => prev.map((p, i) => i === idx ? { ...p, epi_name: v } : p))}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Selecione o EPI" /></SelectTrigger>
+                          <SelectContent>
+                            {epis.map((e) => (
+                              <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
+                            ))}
+                            {it.epi_name && !epis.some((e) => e.name === it.epi_name) && (
+                              <SelectItem value={it.epi_name}>{it.epi_name}</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-10 md:col-span-4 flex gap-1">
+                        <Button
+                          type="button"
+                          variant={it.is_using ? 'default' : 'outline'}
+                          size="sm"
+                          className={it.is_using ? 'flex-1 gap-1' : 'flex-1 gap-1'}
+                          onClick={() => setChkItems((prev) => prev.map((p, i) => i === idx ? { ...p, is_using: true } : p))}
+                        >
+                          <Check className="h-3 w-3" /> Usa
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={!it.is_using ? 'destructive' : 'outline'}
+                          size="sm"
+                          className="flex-1 gap-1"
+                          onClick={() => setChkItems((prev) => prev.map((p, i) => i === idx ? { ...p, is_using: false } : p))}
+                        >
+                          <X className="h-3 w-3" /> Não
+                        </Button>
+                      </div>
+                      <div className="col-span-2 md:col-span-1 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setChkItems((prev) => prev.filter((_, i) => i !== idx))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>Observações</Label>
+              <Textarea
+                rows={3}
+                value={chkNotes}
+                onChange={(e) => setChkNotes(e.target.value)}
+                placeholder="Anotações gerais sobre a verificação..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCheckOpen(false)}>Cancelar</Button>
+            <Button onClick={submitCheck}>Salvar checklist</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* ============ EPI DIALOG ============ */}
       <Dialog open={epiOpen} onOpenChange={setEpiOpen}>
         <DialogContent className="max-w-xl">
