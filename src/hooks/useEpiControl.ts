@@ -229,11 +229,51 @@ export function useEpiControl() {
     return true;
   };
 
+  // -------- Compliance Checks --------
+  const addChecks = async (
+    payload: {
+      check_date: string;
+      employee_id: string | null;
+      employee_name: string;
+      employee_role: string | null;
+      notes: string | null;
+      items: { epi_name: string; is_using: boolean }[];
+    },
+  ) => {
+    if (!payload.items.length) { toast.error('Adicione ao menos um EPI ao checklist'); return false; }
+    const { data: { session } } = await supabase.auth.getSession();
+    const rows = payload.items.map((it) => ({
+      check_date: payload.check_date,
+      employee_id: payload.employee_id,
+      employee_name: payload.employee_name,
+      employee_role: payload.employee_role,
+      epi_name: it.epi_name,
+      is_using: it.is_using,
+      notes: payload.notes,
+      created_by: session?.user.id,
+    }));
+    const { error } = await supabase.from('epi_compliance_checks').insert(rows);
+    if (error) { toast.error('Erro ao registrar checklist: ' + error.message); return false; }
+    toast.success('Checklist registrado');
+    await fetchAll();
+    return true;
+  };
+
+  const deleteCheck = async (id: string) => {
+    const { error } = await supabase.from('epi_compliance_checks').delete().eq('id', id);
+    if (error) { toast.error('Erro ao excluir: ' + error.message); return false; }
+    toast.success('Registro excluído');
+    await fetchAll();
+    return true;
+  };
+
   return {
-    employees, epis, deliveries, loading,
+    employees, epis, deliveries, checks, loading,
     addEmployee, updateEmployee, deleteEmployee,
     addEpi, deleteEpi,
     addDelivery, deleteDelivery,
+    addChecks, deleteCheck,
     refresh: fetchAll,
   };
 }
+
