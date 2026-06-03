@@ -685,6 +685,83 @@ export default function EpiControl() {
           </Card>
         </TabsContent>
 
+        {/* ---------- BY EPI ---------- */}
+        <TabsContent value="by-epi" className="mt-4 space-y-4">
+          {filteredByEpi.length === 0 ? (
+            <Card className="overflow-hidden">
+              <EmptyState
+                icon={Shield}
+                title="Nenhum EPI em uso"
+                description="Registre entregas para visualizar os funcionários que receberam cada EPI."
+              />
+            </Card>
+          ) : (
+            filteredByEpi.map((g) => (
+              <Card key={g.epi_name} className="overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-warning" />
+                    <h3 className="font-semibold">{g.epi_name}</h3>
+                  </div>
+                  <Badge variant="outline" className="gap-1">
+                    <Users className="h-3 w-3" /> {g.users.length} {g.users.length === 1 ? 'pessoa' : 'pessoas'}
+                  </Badge>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Funcionário</TableHead>
+                      <TableHead>Cargo</TableHead>
+                      <TableHead>Início de uso</TableHead>
+                      <TableHead>Última entrega</TableHead>
+                      <TableHead>Tempo de uso</TableHead>
+                      <TableHead>Qtd.</TableHead>
+                      <TableHead>Situação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {g.users.map((u) => {
+                      const start = new Date(u.start_date);
+                      const daysUsing = Math.max(0, Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+                      const tempo = daysUsing < 30
+                        ? `${daysUsing} d`
+                        : daysUsing < 365
+                          ? `${Math.floor(daysUsing / 30)} m`
+                          : `${Math.floor(daysUsing / 365)} a ${Math.floor((daysUsing % 365) / 30)} m`;
+                      return (
+                        <TableRow key={`${g.epi_name}-${u.employee_id ?? u.employee_name}`}>
+                          <TableCell className="font-medium">{u.employee_name}</TableCell>
+                          <TableCell><Badge variant="secondary">{u.employee_role ?? '-'}</Badge></TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {start.toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-muted-foreground">
+                            {new Date(u.last_delivery).toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{tempo}</TableCell>
+                          <TableCell>{u.quantity}</TableCell>
+                          <TableCell>
+                            {u.not_using ? (
+                              <Badge className="bg-destructive/15 text-destructive border-destructive/30 gap-1">
+                                <AlertTriangle className="h-3 w-3" /> Não utiliza
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-success/15 text-success border-success/30 gap-1">
+                                <Check className="h-3 w-3" /> Em uso
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </Card>
+            ))
+          )}
+        </TabsContent>
+
+
         {/* ---------- EPIS ---------- */}
         <TabsContent value="epis" className="mt-4">
           <div className="flex justify-end mb-3">
