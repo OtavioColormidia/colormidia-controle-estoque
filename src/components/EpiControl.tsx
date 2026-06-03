@@ -342,7 +342,17 @@ export default function EpiControl() {
   }, [expirationRows, search]);
 
   const expiredCount = expirationRows.filter((r) => r.status === 'expired').length;
-  const soonCount = expirationRows.filter((r) => r.status === 'soon').length;
+  const filteredChecks = useMemo(() => {
+    const q = search.toLowerCase();
+    return checks.filter((c) =>
+      !q ||
+      c.employee_name.toLowerCase().includes(q) ||
+      c.epi_name.toLowerCase().includes(q) ||
+      (c.employee_role ?? '').toLowerCase().includes(q),
+    );
+  }, [checks, search]);
+
+  const nonCompliantCount = checks.filter((c) => !c.is_using).length;
 
   if (loading) return <LoadingState variant="page" />;
 
