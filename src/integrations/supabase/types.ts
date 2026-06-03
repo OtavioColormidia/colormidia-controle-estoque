@@ -62,6 +62,51 @@ export type Database = {
         }
         Relationships: []
       }
+      epi_compliance_checks: {
+        Row: {
+          check_date: string
+          created_at: string
+          created_by: string | null
+          employee_id: string | null
+          employee_name: string
+          employee_role: string | null
+          epi_name: string
+          id: string
+          is_using: boolean
+          notes: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          check_date?: string
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          employee_name: string
+          employee_role?: string | null
+          epi_name: string
+          id?: string
+          is_using?: boolean
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          check_date?: string
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          employee_name?: string
+          employee_role?: string | null
+          epi_name?: string
+          id?: string
+          is_using?: boolean
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       epi_deliveries: {
         Row: {
           created_at: string
