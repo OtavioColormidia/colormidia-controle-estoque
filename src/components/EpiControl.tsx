@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { HardHat, Plus, Users, Shield, Trash2, FileDown, Search, Pencil, X, CalendarClock, AlertTriangle } from 'lucide-react';
+import { HardHat, Plus, Users, Shield, Trash2, FileDown, Search, Pencil, X, CalendarClock, AlertTriangle, ClipboardCheck, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -49,15 +49,16 @@ function formatCPF(value: string): string {
 
 export default function EpiControl() {
   const {
-    employees, epis, deliveries, loading,
+    employees, epis, deliveries, checks, loading,
     addEmployee, updateEmployee, deleteEmployee,
     addEpi, deleteEpi,
     addDelivery, deleteDelivery,
+    addChecks, deleteCheck,
     refresh,
   } = useEpiControl();
 
   // tab + search
-  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'employees' | 'epis'>('deliveries');
+  const [tab, setTab] = useState<'deliveries' | 'expirations' | 'checklist' | 'employees' | 'epis'>('deliveries');
   const [search, setSearch] = useState('');
 
   // ---- Delivery dialog ----
@@ -212,8 +213,53 @@ export default function EpiControl() {
     if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' }); }
   };
 
+  // ---- Checklist dialog ----
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [chkEmpId, setChkEmpId] = useState<string>('');
+  const [chkDate, setChkDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [chkNotes, setChkNotes] = useState('');
+  const [chkItems, setChkItems] = useState<{ epi_name: string; is_using: boolean }[]>([]);
+
+  const openCheck = () => {
+    setChkEmpId('');
+    setChkDate(new Date().toISOString().slice(0, 10));
+    setChkNotes('');
+    setChkItems([]);
+    setCheckOpen(true);
+  };
+
+  const onCheckEmployeeSelect = (id: string) => {
+    setChkEmpId(id);
+    const emp = employees.find((e) => e.id === id);
+    if (!emp) return;
+    // Sugere EPIs já entregues a este funcionário, ou os EPIs padrão do cargo
+    const deliveredNames = new Set<string>();
+    deliveries
+      .filter((d) => d.employee_id === id)
+      .forEach((d) => (d.items ?? []).forEach((it) => deliveredNames.add(it.epi_name)));
+    const list = deliveredNames.size > 0
+      ? Array.from(deliveredNames)
+      : (EPI_BY_ROLE[emp.role] ?? []);
+    setChkItems(list.map((n) => ({ epi_name: n, is_using: true })));
+  };
+
+  const submitCheck = async () => {
+    const emp = employees.find((e) => e.id === chkEmpId);
+    if (!emp) { toast.error('Selecione o funcionário'); return; }
+    if (chkItems.length === 0) { toast.error('Adicione ao menos um EPI'); return; }
+    const ok = await addChecks({
+      check_date: chkDate,
+      employee_id: emp.id,
+      employee_name: emp.name,
+      employee_role: emp.role,
+      notes: chkNotes.trim() || null,
+      items: chkItems,
+    });
+    if (ok) setCheckOpen(false);
+  };
+
   // ---- Confirms ----
-  const [confirmDel, setConfirmDel] = useState<{ kind: 'employee' | 'epi' | 'delivery'; id: string; label: string } | null>(null);
+  const [confirmDel, setConfirmDel] = useState<{ kind: 'employee' | 'epi' | 'delivery' | 'check'; id: string; label: string } | null>(null);
 
   // ---- Filtering ----
   const filteredDeliveries = useMemo(() => {
@@ -298,6 +344,18 @@ export default function EpiControl() {
   const expiredCount = expirationRows.filter((r) => r.status === 'expired').length;
   const soonCount = expirationRows.filter((r) => r.status === 'soon').length;
 
+  const filteredChecks = useMemo(() => {
+    const q = search.toLowerCase();
+    return checks.filter((c) =>
+      !q ||
+      c.employee_name.toLowerCase().includes(q) ||
+      c.epi_name.toLowerCase().includes(q) ||
+      (c.employee_role ?? '').toLowerCase().includes(q),
+    );
+  }, [checks, search]);
+
+  const nonCompliantCount = checks.filter((c) => !c.is_using).length;
+
   if (loading) return <LoadingState variant="page" />;
 
   const totalItems = deliveries.reduce((s, d) => s + (d.items ?? []).reduce((a, it) => a + Number(it.quantity || 0), 0), 0);
@@ -341,6 +399,14 @@ export default function EpiControl() {
             {expiredCount + soonCount > 0 && (
               <Badge variant="outline" className={expiredCount > 0 ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
                 {expiredCount + soonCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="checklist" className="gap-2">
+            Checklist
+            {nonCompliantCount > 0 && (
+              <Badge variant="outline" className="border-destructive/40 text-destructive">
+                {nonCompliantCount}
               </Badge>
             )}
           </TabsTrigger>
@@ -571,6 +637,71 @@ export default function EpiControl() {
             </Table>
           </Card>
         </TabsContent>
+
+        {/* ---------- CHECKLIST ---------- */}
+        <TabsContent value="checklist" className="mt-4">
+          <div className="flex justify-end mb-3">
+            <Button onClick={openCheck} className="gap-2"><Plus className="h-4 w-4" /> Novo checklist</Button>
+          </div>
+          <Card className="overflow-hidden">
+            {filteredChecks.length === 0 ? (
+              <EmptyState
+                icon={ClipboardCheck}
+                title="Nenhum checklist registrado"
+                description="Registre o uso diário dos EPIs por funcionário para acompanhar a conformidade."
+                action={<Button onClick={openCheck} className="gap-2"><Plus className="h-4 w-4" /> Novo checklist</Button>}
+              />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Funcionário</TableHead>
+                    <TableHead>Cargo</TableHead>
+                    <TableHead>EPI</TableHead>
+                    <TableHead>Uso</TableHead>
+                    <TableHead>Observações</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredChecks.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="whitespace-nowrap">
+                        {new Date(c.check_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell className="font-medium">{c.employee_name}</TableCell>
+                      <TableCell><Badge variant="secondary">{c.employee_role ?? '-'}</Badge></TableCell>
+                      <TableCell>{c.epi_name}</TableCell>
+                      <TableCell>
+                        {c.is_using ? (
+                          <Badge className="bg-success/15 text-success border-success/30 gap-1">
+                            <Check className="h-3 w-3" /> Utilizando
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-destructive/15 text-destructive border-destructive/30 gap-1">
+                            <AlertTriangle className="h-3 w-3" /> Não utiliza
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground max-w-xs truncate">{c.notes ?? '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setConfirmDel({ kind: 'check', id: c.id, label: `registro de ${c.employee_name} — ${c.epi_name}` })}
+                          title="Excluir"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* ============ DELIVERY DIALOG ============ */}
@@ -762,6 +893,119 @@ export default function EpiControl() {
         </DialogContent>
       </Dialog>
 
+      {/* ============ CHECKLIST DIALOG ============ */}
+      <Dialog open={checkOpen} onOpenChange={setCheckOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Novo Checklist de Uso de EPI</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>Funcionário *</Label>
+                <Select value={chkEmpId} onValueChange={onCheckEmployeeSelect}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o funcionário" /></SelectTrigger>
+                  <SelectContent>
+                    {employees.filter((e) => e.active).map((e) => (
+                      <SelectItem key={e.id} value={e.id}>{e.name} — {e.role}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Data da verificação *</Label>
+                <Input type="date" value={chkDate} onChange={(e) => setChkDate(e.target.value)} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label>EPIs verificados</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setChkItems((prev) => [...prev, { epi_name: '', is_using: true }])}
+                  className="gap-1"
+                >
+                  <Plus className="h-3 w-3" /> Adicionar EPI
+                </Button>
+              </div>
+              {chkItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center border border-dashed rounded-md">
+                  Selecione um funcionário para sugerir os EPIs ou adicione manualmente.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {chkItems.map((it, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center p-2 rounded-md border bg-muted/30">
+                      <div className="col-span-12 md:col-span-7">
+                        <Select
+                          value={it.epi_name}
+                          onValueChange={(v) => setChkItems((prev) => prev.map((p, i) => i === idx ? { ...p, epi_name: v } : p))}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Selecione o EPI" /></SelectTrigger>
+                          <SelectContent>
+                            {epis.map((e) => (
+                              <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>
+                            ))}
+                            {it.epi_name && !epis.some((e) => e.name === it.epi_name) && (
+                              <SelectItem value={it.epi_name}>{it.epi_name}</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-10 md:col-span-4 flex gap-1">
+                        <Button
+                          type="button"
+                          variant={it.is_using ? 'default' : 'outline'}
+                          size="sm"
+                          className={it.is_using ? 'flex-1 gap-1' : 'flex-1 gap-1'}
+                          onClick={() => setChkItems((prev) => prev.map((p, i) => i === idx ? { ...p, is_using: true } : p))}
+                        >
+                          <Check className="h-3 w-3" /> Usa
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={!it.is_using ? 'destructive' : 'outline'}
+                          size="sm"
+                          className="flex-1 gap-1"
+                          onClick={() => setChkItems((prev) => prev.map((p, i) => i === idx ? { ...p, is_using: false } : p))}
+                        >
+                          <X className="h-3 w-3" /> Não
+                        </Button>
+                      </div>
+                      <div className="col-span-2 md:col-span-1 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setChkItems((prev) => prev.filter((_, i) => i !== idx))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>Observações</Label>
+              <Textarea
+                rows={3}
+                value={chkNotes}
+                onChange={(e) => setChkNotes(e.target.value)}
+                placeholder="Anotações gerais sobre a verificação..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCheckOpen(false)}>Cancelar</Button>
+            <Button onClick={submitCheck}>Salvar checklist</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* ============ EPI DIALOG ============ */}
       <Dialog open={epiOpen} onOpenChange={setEpiOpen}>
         <DialogContent className="max-w-xl">
@@ -824,6 +1068,7 @@ export default function EpiControl() {
                 if (confirmDel.kind === 'employee') await deleteEmployee(confirmDel.id);
                 if (confirmDel.kind === 'epi') await deleteEpi(confirmDel.id);
                 if (confirmDel.kind === 'delivery') await deleteDelivery(confirmDel.id);
+                if (confirmDel.kind === 'check') await deleteCheck(confirmDel.id);
                 setConfirmDel(null);
               }}
             >

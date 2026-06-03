@@ -53,19 +53,35 @@ export interface EpiDelivery {
   items?: EpiDeliveryItem[];
 }
 
+export interface EpiComplianceCheck {
+  id: string;
+  check_date: string;
+  employee_id: string | null;
+  employee_name: string;
+  employee_role: string | null;
+  epi_name: string;
+  is_using: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export function useEpiControl() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [epis, setEpis] = useState<Epi[]>([]);
   const [deliveries, setDeliveries] = useState<EpiDelivery[]>([]);
+  const [checks, setChecks] = useState<EpiComplianceCheck[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = async () => {
-    const [emp, epiRows, del, items] = await Promise.all([
+    const [emp, epiRows, del, items, chk] = await Promise.all([
       supabase.from('employees').select('*').order('name'),
       supabase.from('epis').select('*').order('name'),
       supabase.from('epi_deliveries').select('*').order('delivery_date', { ascending: false }),
       supabase.from('epi_delivery_items').select('*'),
+      supabase.from('epi_compliance_checks').select('*').order('check_date', { ascending: false }),
     ]);
+    if (chk.data) setChecks(chk.data as EpiComplianceCheck[]);
     if (emp.data) setEmployees(emp.data as Employee[]);
     if (epiRows.data) setEpis(epiRows.data as Epi[]);
     if (del.data) {
@@ -90,6 +106,7 @@ export function useEpiControl() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'epis' }, fetchAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_deliveries' }, fetchAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_delivery_items' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_compliance_checks' }, fetchAll)
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
@@ -212,11 +229,51 @@ export function useEpiControl() {
     return true;
   };
 
+  // -------- Compliance Checks --------
+  const addChecks = async (
+    payload: {
+      check_date: string;
+      employee_id: string | null;
+      employee_name: string;
+      employee_role: string | null;
+      notes: string | null;
+      items: { epi_name: string; is_using: boolean }[];
+    },
+  ) => {
+    if (!payload.items.length) { toast.error('Adicione ao menos um EPI ao checklist'); return false; }
+    const { data: { session } } = await supabase.auth.getSession();
+    const rows = payload.items.map((it) => ({
+      check_date: payload.check_date,
+      employee_id: payload.employee_id,
+      employee_name: payload.employee_name,
+      employee_role: payload.employee_role,
+      epi_name: it.epi_name,
+      is_using: it.is_using,
+      notes: payload.notes,
+      created_by: session?.user.id,
+    }));
+    const { error } = await supabase.from('epi_compliance_checks').insert(rows);
+    if (error) { toast.error('Erro ao registrar checklist: ' + error.message); return false; }
+    toast.success('Checklist registrado');
+    await fetchAll();
+    return true;
+  };
+
+  const deleteCheck = async (id: string) => {
+    const { error } = await supabase.from('epi_compliance_checks').delete().eq('id', id);
+    if (error) { toast.error('Erro ao excluir: ' + error.message); return false; }
+    toast.success('Registro excluído');
+    await fetchAll();
+    return true;
+  };
+
   return {
-    employees, epis, deliveries, loading,
+    employees, epis, deliveries, checks, loading,
     addEmployee, updateEmployee, deleteEmployee,
     addEpi, deleteEpi,
     addDelivery, deleteDelivery,
+    addChecks, deleteCheck,
     refresh: fetchAll,
   };
 }
+
