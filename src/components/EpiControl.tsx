@@ -870,6 +870,7 @@ export default function EpiControl() {
                 if (confirmDel.kind === 'employee') await deleteEmployee(confirmDel.id);
                 if (confirmDel.kind === 'epi') await deleteEpi(confirmDel.id);
                 if (confirmDel.kind === 'delivery') await deleteDelivery(confirmDel.id);
+                if (confirmDel.kind === 'check') await deleteCheck(confirmDel.id);
                 setConfirmDel(null);
               }}
             >
