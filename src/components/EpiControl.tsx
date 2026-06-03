@@ -637,6 +637,71 @@ export default function EpiControl() {
             </Table>
           </Card>
         </TabsContent>
+
+        {/* ---------- CHECKLIST ---------- */}
+        <TabsContent value="checklist" className="mt-4">
+          <div className="flex justify-end mb-3">
+            <Button onClick={openCheck} className="gap-2"><Plus className="h-4 w-4" /> Novo checklist</Button>
+          </div>
+          <Card className="overflow-hidden">
+            {filteredChecks.length === 0 ? (
+              <EmptyState
+                icon={ClipboardCheck}
+                title="Nenhum checklist registrado"
+                description="Registre o uso diário dos EPIs por funcionário para acompanhar a conformidade."
+                action={<Button onClick={openCheck} className="gap-2"><Plus className="h-4 w-4" /> Novo checklist</Button>}
+              />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Funcionário</TableHead>
+                    <TableHead>Cargo</TableHead>
+                    <TableHead>EPI</TableHead>
+                    <TableHead>Uso</TableHead>
+                    <TableHead>Observações</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredChecks.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="whitespace-nowrap">
+                        {new Date(c.check_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell className="font-medium">{c.employee_name}</TableCell>
+                      <TableCell><Badge variant="secondary">{c.employee_role ?? '-'}</Badge></TableCell>
+                      <TableCell>{c.epi_name}</TableCell>
+                      <TableCell>
+                        {c.is_using ? (
+                          <Badge className="bg-success/15 text-success border-success/30 gap-1">
+                            <Check className="h-3 w-3" /> Utilizando
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-destructive/15 text-destructive border-destructive/30 gap-1">
+                            <AlertTriangle className="h-3 w-3" /> Não utiliza
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground max-w-xs truncate">{c.notes ?? '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setConfirmDel({ kind: 'check', id: c.id, label: `registro de ${c.employee_name} — ${c.epi_name}` })}
+                          title="Excluir"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* ============ DELIVERY DIALOG ============ */}
