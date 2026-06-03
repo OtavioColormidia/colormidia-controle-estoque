@@ -106,6 +106,7 @@ export function useEpiControl() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'epis' }, fetchAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_deliveries' }, fetchAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_delivery_items' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'epi_compliance_checks' }, fetchAll)
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
