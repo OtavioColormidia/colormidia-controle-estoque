@@ -53,19 +53,35 @@ export interface EpiDelivery {
   items?: EpiDeliveryItem[];
 }
 
+export interface EpiComplianceCheck {
+  id: string;
+  check_date: string;
+  employee_id: string | null;
+  employee_name: string;
+  employee_role: string | null;
+  epi_name: string;
+  is_using: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export function useEpiControl() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [epis, setEpis] = useState<Epi[]>([]);
   const [deliveries, setDeliveries] = useState<EpiDelivery[]>([]);
+  const [checks, setChecks] = useState<EpiComplianceCheck[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = async () => {
-    const [emp, epiRows, del, items] = await Promise.all([
+    const [emp, epiRows, del, items, chk] = await Promise.all([
       supabase.from('employees').select('*').order('name'),
       supabase.from('epis').select('*').order('name'),
       supabase.from('epi_deliveries').select('*').order('delivery_date', { ascending: false }),
       supabase.from('epi_delivery_items').select('*'),
+      supabase.from('epi_compliance_checks').select('*').order('check_date', { ascending: false }),
     ]);
+    if (chk.data) setChecks(chk.data as EpiComplianceCheck[]);
     if (emp.data) setEmployees(emp.data as Employee[]);
     if (epiRows.data) setEpis(epiRows.data as Epi[]);
     if (del.data) {
