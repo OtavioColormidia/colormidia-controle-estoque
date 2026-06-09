@@ -168,10 +168,10 @@ export default function Purchases({
         if (parsedItems.length > 0) setPurchaseItems((prev) => [...prev, ...parsedItems]);
       }
 
-      if (nf.ipi != null) setIpi(String(nf.ipi));
-      if (nf.frete != null) setFrete(String(nf.frete));
+      if (nf.ipi != null) setIpi((prev) => String((Number(prev) || 0) + (Number(nf.ipi) || 0)));
+      if (nf.frete != null) setFrete((prev) => String((Number(prev) || 0) + (Number(nf.frete) || 0)));
       if (nf.discount != null) {
-        setDiscount(String(nf.discount));
+        setDiscount((prev) => String((Number(prev) || 0) + (Number(nf.discount) || 0)));
         setDiscountType("value");
       }
 
