@@ -104,6 +104,10 @@ export default function PurchaseOrderDialog({
   const [formFiles, setFormFiles] = useState<File[]>([]);
   const formFileInputRef = useRef<HTMLInputElement | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [entryMode, setEntryMode] = useState<"manual" | "nf">("manual");
+  const [nfProcessing, setNfProcessing] = useState(false);
+  const nfFileInputRef = useRef<HTMLInputElement | null>(null);
+  const nfCameraInputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize when opening with new data
   useEffect(() => {
