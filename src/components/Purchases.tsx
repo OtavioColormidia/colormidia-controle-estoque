@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/shared/PageHeader";
+import ZoomableImage from "@/components/shared/ZoomableImage";
 import { purchaseHeaderSchema, purchaseItemSchema, firstError } from "@/lib/validation/schemas";
 
 import { toast } from "@/components/ui/use-toast";
