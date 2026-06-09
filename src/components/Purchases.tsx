@@ -569,6 +569,102 @@ export default function Purchases({
             )}
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!editingPurchaseId && (
+              <div className="space-y-2">
+                <Label>Modo de cadastro</Label>
+                <div className="flex rounded-md border border-input overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setEntryMode("manual")}
+                    className={cn(
+                      "flex-1 px-3 py-2 text-sm font-medium transition-colors",
+                      entryMode === "manual"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    Preencher manualmente
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEntryMode("nf")}
+                    className={cn(
+                      "flex-1 px-3 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1",
+                      entryMode === "nf"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Enviar NF (IA)
+                  </button>
+                </div>
+
+                {entryMode === "nf" && (
+                  <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Anexe a foto ou PDF da NF. A IA preencherá fornecedor, itens, IPI, frete, desconto e previsão.
+                      <br />
+                      <strong>Nº de OS</strong> e <strong>Forma de Recebimento</strong> devem ser informados manualmente.
+                    </p>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      ref={nfFileInputRef}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleNfFile(f);
+                        e.target.value = "";
+                      }}
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      ref={nfCameraInputRef}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleNfFile(f);
+                        e.target.value = "";
+                      }}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={nfProcessing}
+                        onClick={() => nfFileInputRef.current?.click()}
+                        className="gap-1"
+                      >
+                        <FileUp className="h-3.5 w-3.5" />
+                        Anexar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={nfProcessing}
+                        onClick={() => nfCameraInputRef.current?.click()}
+                        className="gap-1"
+                      >
+                        <Camera className="h-3.5 w-3.5" />
+                        Tirar foto
+                      </Button>
+                    </div>
+                    {nfProcessing && (
+                      <div className="flex items-center gap-2 text-xs text-primary">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Lendo NF com IA...
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Fornecedor</Label>
               <Popover open={supplierOpen} onOpenChange={setSupplierOpen}>
