@@ -9,12 +9,16 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Calendar } from "@/components/ui/calendar";
 import {
   CalendarIcon,
+  Camera,
   Check,
   ChevronsUpDown,
   FileText,
+  FileUp,
+  Loader2,
   Pencil,
   Plus,
   ShoppingCart,
+  Sparkles,
   Upload,
   X,
   XCircle,
@@ -100,6 +104,10 @@ export default function PurchaseOrderDialog({
   const [formFiles, setFormFiles] = useState<File[]>([]);
   const formFileInputRef = useRef<HTMLInputElement | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [entryMode, setEntryMode] = useState<"manual" | "nf">("manual");
+  const [nfProcessing, setNfProcessing] = useState(false);
+  const nfFileInputRef = useRef<HTMLInputElement | null>(null);
+  const nfCameraInputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize when opening with new data
   useEffect(() => {
@@ -122,9 +130,108 @@ export default function PurchaseOrderDialog({
       setOrderDiscountType("value");
       setFormFiles([]);
       setSupplierSearch("");
+      setEntryMode("manual");
+      setNfProcessing(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const onlyDigits = (s: string) => (s || "").replace(/\D+/g, "");
+
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const idx = result.indexOf(",");
+        resolve(idx >= 0 ? result.slice(idx + 1) : result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleNfFile = async (file: File | null) => {
+    if (!file) return;
+    setNfProcessing(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const { data, error } = await supabase.functions.invoke("parse-nf-invoice", {
+        body: { fileBase64: base64, mimeType: file.type || "application/octet-stream" },
+      });
+      if (error) throw new Error(error.message || "Falha ao processar NF");
+      const nf: any = data || {};
+
+      // Match supplier
+      const nfCnpjDigits = onlyDigits(nf.supplierCnpj || "");
+      let matched: Supplier | undefined;
+      if (nfCnpjDigits) {
+        matched = suppliers.find((s) => onlyDigits(s.cnpj) === nfCnpjDigits);
+      }
+      if (!matched && nf.supplierName) {
+        const nfName = String(nf.supplierName).toLowerCase();
+        matched = suppliers.find(
+          (s) =>
+            s.name.toLowerCase().includes(nfName) ||
+            nfName.includes(s.name.toLowerCase()) ||
+            (s.tradeName && s.tradeName.toLowerCase().includes(nfName)),
+        );
+      }
+      if (matched) {
+        setSupplierId(matched.id);
+        setSupplierName(matched.name);
+      } else if (nf.supplierName) {
+        toast({
+          title: "Fornecedor não encontrado",
+          description: `Cadastre "${nf.supplierName}" ou selecione manualmente.`,
+        });
+      }
+
+      if (nf.expectedDeliveryDate) {
+        const d = new Date(nf.expectedDeliveryDate + "T00:00:00");
+        if (!isNaN(d.getTime())) setExpectedDeliveryDate(d);
+      }
+
+      if (Array.isArray(nf.items) && nf.items.length > 0) {
+        const newItems: PurchaseItem[] = nf.items.map((it: any) => {
+          const qty = Number(it.quantity) || 0;
+          const price = Number(it.unitPrice) || 0;
+          return {
+            productId: "",
+            productName: String(it.productName || "").trim(),
+            quantity: qty,
+            unitPrice: price,
+            totalPrice: qty * price,
+            discountValue: 0,
+            discountType: "value" as const,
+            discountInput: 0,
+          };
+        }).filter((it: PurchaseItem) => it.productName);
+        setItems(newItems);
+      }
+
+      if (typeof nf.ipi === "number" && nf.ipi > 0) setIpi(String(nf.ipi));
+      if (typeof nf.frete === "number" && nf.frete > 0) setFrete(String(nf.frete));
+      if (typeof nf.discount === "number" && nf.discount > 0) {
+        setOrderDiscount(String(nf.discount));
+        setOrderDiscountType("value");
+      }
+
+      toast({
+        title: "NF processada",
+        description: "Confira os campos preenchidos antes de criar o pedido.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erro ao processar NF",
+        description: err?.message || "Tente novamente",
+        variant: "destructive",
+      });
+    } finally {
+      setNfProcessing(false);
+      if (nfFileInputRef.current) nfFileInputRef.current.value = "";
+      if (nfCameraInputRef.current) nfCameraInputRef.current.value = "";
+    }
+  };
 
   const filteredActiveSuppliers = useMemo(() => {
     return suppliers.filter((s) => {
@@ -259,6 +366,83 @@ export default function PurchaseOrderDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant={entryMode === "manual" ? "default" : "outline"}
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={() => setEntryMode("manual")}
+              >
+                <Pencil className="h-4 w-4" />
+                Preencher manualmente
+              </Button>
+              <Button
+                type="button"
+                variant={entryMode === "nf" ? "default" : "outline"}
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={() => setEntryMode("nf")}
+              >
+                <Sparkles className="h-4 w-4" />
+                Enviar NF (IA)
+              </Button>
+            </div>
+            {entryMode === "nf" && (
+              <div className="rounded-md border border-dashed p-3 space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Anexe ou tire foto da NF. A IA preencherá fornecedor, itens, IPI, frete e desconto. OS e Forma de Recebimento continuam manuais.
+                </p>
+                <input
+                  ref={nfFileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => handleNfFile(e.target.files?.[0] ?? null)}
+                />
+                <input
+                  ref={nfCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handleNfFile(e.target.files?.[0] ?? null)}
+                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => nfFileInputRef.current?.click()}
+                    disabled={nfProcessing}
+                  >
+                    <FileUp className="h-4 w-4" />
+                    Anexar arquivo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => nfCameraInputRef.current?.click()}
+                    disabled={nfProcessing}
+                  >
+                    <Camera className="h-4 w-4" />
+                    Tirar foto
+                  </Button>
+                </div>
+                {nfProcessing && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Processando NF com IA...
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Fornecedor</Label>
             <Popover open={supplierOpen} onOpenChange={setSupplierOpen}>
