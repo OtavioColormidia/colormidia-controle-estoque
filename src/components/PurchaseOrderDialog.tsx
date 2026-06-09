@@ -366,6 +366,83 @@ export default function PurchaseOrderDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant={entryMode === "manual" ? "default" : "outline"}
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={() => setEntryMode("manual")}
+              >
+                <Pencil className="h-4 w-4" />
+                Preencher manualmente
+              </Button>
+              <Button
+                type="button"
+                variant={entryMode === "nf" ? "default" : "outline"}
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={() => setEntryMode("nf")}
+              >
+                <Sparkles className="h-4 w-4" />
+                Enviar NF (IA)
+              </Button>
+            </div>
+            {entryMode === "nf" && (
+              <div className="rounded-md border border-dashed p-3 space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Anexe ou tire foto da NF. A IA preencherá fornecedor, itens, IPI, frete e desconto. OS e Forma de Recebimento continuam manuais.
+                </p>
+                <input
+                  ref={nfFileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => handleNfFile(e.target.files?.[0] ?? null)}
+                />
+                <input
+                  ref={nfCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handleNfFile(e.target.files?.[0] ?? null)}
+                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => nfFileInputRef.current?.click()}
+                    disabled={nfProcessing}
+                  >
+                    <FileUp className="h-4 w-4" />
+                    Anexar arquivo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => nfCameraInputRef.current?.click()}
+                    disabled={nfProcessing}
+                  >
+                    <Camera className="h-4 w-4" />
+                    Tirar foto
+                  </Button>
+                </div>
+                {nfProcessing && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Processando NF com IA...
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Fornecedor</Label>
             <Popover open={supplierOpen} onOpenChange={setSupplierOpen}>
