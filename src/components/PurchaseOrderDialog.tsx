@@ -9,12 +9,16 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Calendar } from "@/components/ui/calendar";
 import {
   CalendarIcon,
+  Camera,
   Check,
   ChevronsUpDown,
   FileText,
+  FileUp,
+  Loader2,
   Pencil,
   Plus,
   ShoppingCart,
+  Sparkles,
   Upload,
   X,
   XCircle,
