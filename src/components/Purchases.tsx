@@ -28,6 +28,9 @@ import {
   X,
   Loader2,
   Eye,
+  Camera,
+  Sparkles,
+  FileUp,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Purchase, Product, Supplier, PurchaseItem } from "@/types/inventory";
@@ -91,6 +94,106 @@ export default function Purchases({
   const [previewFileName, setPreviewFileName] = useState<string>("");
   const [formFiles, setFormFiles] = useState<File[]>([]);
   const formFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [entryMode, setEntryMode] = useState<"manual" | "nf">("manual");
+  const [nfProcessing, setNfProcessing] = useState(false);
+  const nfFileInputRef = useRef<HTMLInputElement | null>(null);
+  const nfCameraInputRef = useRef<HTMLInputElement | null>(null);
+
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(",")[1] || "");
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleNfFile = async (file: File) => {
+    setNfProcessing(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const { data, error } = await supabase.functions.invoke("parse-nf-invoice", {
+        body: { fileBase64: base64, mimeType: file.type || "image/jpeg" },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      const nf: any = data;
+
+      // Match supplier by CNPJ (digits) or name
+      const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
+      const nfCnpjDigits = onlyDigits(nf.supplierCnpj || "");
+      let matched: Supplier | undefined;
+      if (nfCnpjDigits) {
+        matched = suppliers.find((s) => onlyDigits(s.cnpj) === nfCnpjDigits);
+      }
+      if (!matched && nf.supplierName) {
+        const nfName = String(nf.supplierName).toLowerCase().trim();
+        matched = suppliers.find(
+          (s) =>
+            s.name.toLowerCase().includes(nfName) ||
+            nfName.includes(s.name.toLowerCase()) ||
+            (s.tradeName && s.tradeName.toLowerCase().includes(nfName)),
+        );
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        supplierId: matched?.id || prev.supplierId,
+        supplierName: matched?.name || nf.supplierName || prev.supplierName,
+        expectedDeliveryDate: nf.expectedDeliveryDate
+          ? new Date(nf.expectedDeliveryDate + "T00:00:00")
+          : prev.expectedDeliveryDate,
+      }));
+
+      if (Array.isArray(nf.items)) {
+        const parsedItems: PurchaseItem[] = nf.items
+          .filter((it: any) => it && it.productName)
+          .map((it: any) => {
+            const qty = Number(it.quantity) || 1;
+            const price = Number(it.unitPrice) || 0;
+            return {
+              productId: "",
+              productName: String(it.productName),
+              quantity: qty,
+              unitPrice: price,
+              totalPrice: qty * price,
+              discountValue: 0,
+              discountType: "value" as const,
+              discountInput: 0,
+            };
+          });
+        if (parsedItems.length > 0) setPurchaseItems(parsedItems);
+      }
+
+      if (nf.ipi != null) setIpi(String(nf.ipi));
+      if (nf.frete != null) setFrete(String(nf.frete));
+      if (nf.discount != null) {
+        setDiscount(String(nf.discount));
+        setDiscountType("value");
+      }
+
+      // Keep the NF file as attachment
+      setFormFiles((prev) => [...prev, file]);
+
+      toast({
+        title: "NF processada",
+        description: matched
+          ? "Dados preenchidos automaticamente."
+          : "Dados preenchidos. Confirme/selecione o fornecedor.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erro ao processar NF",
+        description: err?.message || "Tente novamente",
+        variant: "destructive",
+      });
+    } finally {
+      setNfProcessing(false);
+    }
+  };
 
   // Load attachments for all purchases
   const loadAttachments = async (purchaseId: string) => {
