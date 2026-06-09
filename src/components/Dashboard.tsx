@@ -282,7 +282,15 @@ export default function Dashboard({ products, movements, purchases, suppliers = 
             <DialogTitle className="truncate">{previewFileName}</DialogTitle>
           </DialogHeader>
           <div className="flex-1 min-h-0">
-            {previewUrl && <iframe src={previewUrl} className="w-full h-full rounded-lg border" title="Visualização do anexo" />}
+            {previewUrl && (
+              /\.(png|jpe?g|gif|webp|bmp|heic|heif)$/i.test(previewFileName) ? (
+                <div className="w-full h-full flex items-center justify-center overflow-auto rounded-lg border bg-muted/30 p-2">
+                  <img src={previewUrl} alt={previewFileName} className="max-w-full max-h-full object-contain" />
+                </div>
+              ) : (
+                <iframe src={previewUrl} className="w-full h-full rounded-lg border" title="Visualização do anexo" />
+              )
+            )}
           </div>
         </DialogContent>
       </Dialog>
