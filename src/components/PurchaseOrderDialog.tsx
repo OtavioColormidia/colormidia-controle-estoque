@@ -206,13 +206,13 @@ export default function PurchaseOrderDialog({
             discountInput: 0,
           };
         }).filter((it: PurchaseItem) => it.productName);
-        setItems(newItems);
+        setItems((prev) => [...prev, ...newItems]);
       }
 
-      if (typeof nf.ipi === "number" && nf.ipi > 0) setIpi(String(nf.ipi));
-      if (typeof nf.frete === "number" && nf.frete > 0) setFrete(String(nf.frete));
+      if (typeof nf.ipi === "number" && nf.ipi > 0) setIpi((prev) => String((Number(prev) || 0) + nf.ipi));
+      if (typeof nf.frete === "number" && nf.frete > 0) setFrete((prev) => String((Number(prev) || 0) + nf.frete));
       if (typeof nf.discount === "number" && nf.discount > 0) {
-        setOrderDiscount(String(nf.discount));
+        setOrderDiscount((prev) => String((Number(prev) || 0) + nf.discount));
         setOrderDiscountType("value");
       }
 
