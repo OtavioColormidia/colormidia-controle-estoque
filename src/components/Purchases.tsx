@@ -1300,7 +1300,7 @@ export default function Purchases({
           }
         }}
       >
-        <DialogContent className="max-w-6xl h-[90vh]">
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
@@ -1308,12 +1308,21 @@ export default function Purchases({
             </DialogTitle>
           </DialogHeader>
           {previewUrl && (
-            <iframe
-              src={previewUrl}
-              className="w-full flex-1 rounded border"
-              style={{ height: "calc(90vh - 80px)" }}
-              title={previewFileName}
-            />
+            /\.(png|jpe?g|gif|webp|bmp|heic|heif)$/i.test(previewFileName) ? (
+              <div className="flex-1 min-h-0 flex items-center justify-center overflow-auto rounded border bg-muted/30 p-2">
+                <img
+                  src={previewUrl}
+                  alt={previewFileName}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+            ) : (
+              <iframe
+                src={previewUrl}
+                className="w-full flex-1 rounded border"
+                title={previewFileName}
+              />
+            )
           )}
         </DialogContent>
       </Dialog>
