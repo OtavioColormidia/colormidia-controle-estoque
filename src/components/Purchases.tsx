@@ -165,7 +165,7 @@ export default function Purchases({
               discountInput: 0,
             };
           });
-        if (parsedItems.length > 0) setPurchaseItems(parsedItems);
+        if (parsedItems.length > 0) setPurchaseItems((prev) => [...prev, ...parsedItems]);
       }
 
       if (nf.ipi != null) setIpi(String(nf.ipi));
