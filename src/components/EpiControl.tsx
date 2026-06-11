@@ -507,7 +507,7 @@ export default function EpiControl() {
 
         {/* ---------- DELIVERIES ---------- */}
         <TabsContent value="deliveries" className="mt-4">
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredDeliveries.length === 0 ? (
               <EmptyState
                 icon={Shield}
@@ -568,7 +568,7 @@ export default function EpiControl() {
 
         {/* ---------- EXPIRATIONS ---------- */}
         <TabsContent value="expirations" className="mt-4">
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredExpirations.length === 0 ? (
               <EmptyState
                 icon={CalendarClock}
@@ -637,7 +637,7 @@ export default function EpiControl() {
           <div className="flex justify-end mb-3">
             <Button onClick={() => openEmp()} className="gap-2"><Plus className="h-4 w-4" /> Novo funcionário</Button>
           </div>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredEmployees.length === 0 ? (
               <EmptyState icon={Users} title="Nenhum funcionário" description="Cadastre os funcionários para vincular EPIs." />
             ) : (
@@ -690,7 +690,7 @@ export default function EpiControl() {
         {/* ---------- BY EPI ---------- */}
         <TabsContent value="by-epi" className="mt-4 space-y-4">
           {filteredByEpi.length === 0 ? (
-            <Card className="overflow-hidden">
+            <Card className="overflow-x-auto">
               <EmptyState
                 icon={Shield}
                 title="Nenhum EPI em uso"
@@ -769,7 +769,7 @@ export default function EpiControl() {
           <div className="flex justify-end mb-3">
             <Button onClick={() => setEpiOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Novo EPI</Button>
           </div>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -811,7 +811,7 @@ export default function EpiControl() {
           <div className="flex justify-end mb-3">
             <Button onClick={openCheck} className="gap-2"><Plus className="h-4 w-4" /> Novo checklist</Button>
           </div>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredChecks.length === 0 ? (
               <EmptyState
                 icon={ClipboardCheck}
