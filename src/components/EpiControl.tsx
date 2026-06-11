@@ -480,32 +480,34 @@ export default function EpiControl() {
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <TabsList>
-          <TabsTrigger value="deliveries">Entregas</TabsTrigger>
-          <TabsTrigger value="expirations" className="gap-2">
-            Vencimentos
-            {expiredCount + soonCount > 0 && (
-              <Badge variant="outline" className={expiredCount > 0 ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
-                {expiredCount + soonCount}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="checklist" className="gap-2">
-            Checklist
-            {nonCompliantCount > 0 && (
-              <Badge variant="outline" className="border-destructive/40 text-destructive">
-                {nonCompliantCount}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="by-epi">Por EPI</TabsTrigger>
-          <TabsTrigger value="employees">Funcionários</TabsTrigger>
-          <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-max">
+            <TabsTrigger value="deliveries">Entregas</TabsTrigger>
+            <TabsTrigger value="expirations" className="gap-2">
+              Vencimentos
+              {expiredCount + soonCount > 0 && (
+                <Badge variant="outline" className={expiredCount > 0 ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
+                  {expiredCount + soonCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="gap-2">
+              Checklist
+              {nonCompliantCount > 0 && (
+                <Badge variant="outline" className="border-destructive/40 text-destructive">
+                  {nonCompliantCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="by-epi">Por EPI</TabsTrigger>
+            <TabsTrigger value="employees">Funcionários</TabsTrigger>
+            <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ---------- DELIVERIES ---------- */}
         <TabsContent value="deliveries" className="mt-4">
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredDeliveries.length === 0 ? (
               <EmptyState
                 icon={Shield}
@@ -566,7 +568,7 @@ export default function EpiControl() {
 
         {/* ---------- EXPIRATIONS ---------- */}
         <TabsContent value="expirations" className="mt-4">
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredExpirations.length === 0 ? (
               <EmptyState
                 icon={CalendarClock}
@@ -635,7 +637,7 @@ export default function EpiControl() {
           <div className="flex justify-end mb-3">
             <Button onClick={() => openEmp()} className="gap-2"><Plus className="h-4 w-4" /> Novo funcionário</Button>
           </div>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredEmployees.length === 0 ? (
               <EmptyState icon={Users} title="Nenhum funcionário" description="Cadastre os funcionários para vincular EPIs." />
             ) : (
@@ -688,7 +690,7 @@ export default function EpiControl() {
         {/* ---------- BY EPI ---------- */}
         <TabsContent value="by-epi" className="mt-4 space-y-4">
           {filteredByEpi.length === 0 ? (
-            <Card className="overflow-hidden">
+            <Card className="overflow-x-auto">
               <EmptyState
                 icon={Shield}
                 title="Nenhum EPI em uso"
@@ -697,7 +699,7 @@ export default function EpiControl() {
             </Card>
           ) : (
             filteredByEpi.map((g) => (
-              <Card key={g.epi_name} className="overflow-hidden">
+              <Card key={g.epi_name} className="overflow-x-auto">
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-warning" />
@@ -767,7 +769,7 @@ export default function EpiControl() {
           <div className="flex justify-end mb-3">
             <Button onClick={() => setEpiOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Novo EPI</Button>
           </div>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -809,7 +811,7 @@ export default function EpiControl() {
           <div className="flex justify-end mb-3">
             <Button onClick={openCheck} className="gap-2"><Plus className="h-4 w-4" /> Novo checklist</Button>
           </div>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             {filteredChecks.length === 0 ? (
               <EmptyState
                 icon={ClipboardCheck}
