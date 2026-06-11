@@ -480,28 +480,30 @@ export default function EpiControl() {
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <TabsList>
-          <TabsTrigger value="deliveries">Entregas</TabsTrigger>
-          <TabsTrigger value="expirations" className="gap-2">
-            Vencimentos
-            {expiredCount + soonCount > 0 && (
-              <Badge variant="outline" className={expiredCount > 0 ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
-                {expiredCount + soonCount}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="checklist" className="gap-2">
-            Checklist
-            {nonCompliantCount > 0 && (
-              <Badge variant="outline" className="border-destructive/40 text-destructive">
-                {nonCompliantCount}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="by-epi">Por EPI</TabsTrigger>
-          <TabsTrigger value="employees">Funcionários</TabsTrigger>
-          <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-max">
+            <TabsTrigger value="deliveries">Entregas</TabsTrigger>
+            <TabsTrigger value="expirations" className="gap-2">
+              Vencimentos
+              {expiredCount + soonCount > 0 && (
+                <Badge variant="outline" className={expiredCount > 0 ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
+                  {expiredCount + soonCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="gap-2">
+              Checklist
+              {nonCompliantCount > 0 && (
+                <Badge variant="outline" className="border-destructive/40 text-destructive">
+                  {nonCompliantCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="by-epi">Por EPI</TabsTrigger>
+            <TabsTrigger value="employees">Funcionários</TabsTrigger>
+            <TabsTrigger value="epis">Catálogo de EPIs</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ---------- DELIVERIES ---------- */}
         <TabsContent value="deliveries" className="mt-4">
