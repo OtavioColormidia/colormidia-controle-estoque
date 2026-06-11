@@ -699,7 +699,7 @@ export default function EpiControl() {
             </Card>
           ) : (
             filteredByEpi.map((g) => (
-              <Card key={g.epi_name} className="overflow-hidden">
+              <Card key={g.epi_name} className="overflow-x-auto">
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-warning" />
