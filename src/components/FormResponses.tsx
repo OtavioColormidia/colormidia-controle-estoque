@@ -548,7 +548,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                       <TableHead className="whitespace-nowrap">
                         Status
                       </TableHead>
-                      {isAdmin && <TableHead className="w-12"></TableHead>}
+                      {canDelete && <TableHead className="w-12"></TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -593,7 +593,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                         <TableCell className="align-top">
                           {renderStatusCell(r)}
                         </TableCell>
-                        {isAdmin && (
+                        {canDelete && (
                           <TableCell className="align-top">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -649,7 +649,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                         <span className="text-xs text-muted-foreground">
                           {formatDate(r.submitted_at)}
                         </span>
-                        {isAdmin && (
+                        {canDelete && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
