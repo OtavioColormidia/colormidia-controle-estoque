@@ -51,7 +51,7 @@ export default function EpiControl() {
   const {
     employees, epis, deliveries, checks, loading,
     addEmployee, updateEmployee, deleteEmployee,
-    addEpi, deleteEpi,
+    addEpi, updateEpi, deleteEpi,
     addDelivery, deleteDelivery,
     addChecks, deleteCheck,
     refresh,
@@ -137,6 +137,20 @@ export default function EpiControl() {
       toast.error('Preencha todos os EPIs e quantidades');
       return;
     }
+    // Validate stock per EPI (sum quantities of same epi_id)
+    const totals = new Map<string, number>();
+    for (const it of delItems) {
+      if (!it.epi_id) continue;
+      totals.set(it.epi_id, (totals.get(it.epi_id) ?? 0) + Number(it.quantity));
+    }
+    for (const [epiId, qty] of totals.entries()) {
+      const e = epis.find((x) => x.id === epiId);
+      if (!e) continue;
+      if ((e.stock_quantity ?? 0) < qty) {
+        toast.error(`Estoque insuficiente para "${e.name}". Disponível: ${e.stock_quantity ?? 0}, solicitado: ${qty}.`);
+        return;
+      }
+    }
     const ok = await addDelivery({
       employee_id: emp.id,
       employee_name: emp.name,
@@ -200,17 +214,39 @@ export default function EpiControl() {
 
   // ---- EPI dialog ----
   const [epiOpen, setEpiOpen] = useState(false);
-  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' });
+  const [epiEditId, setEpiEditId] = useState<string | null>(null);
+  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '', default_validity_months: '', stock_quantity: '0' });
+  const openEpi = (id?: string) => {
+    if (id) {
+      const e = epis.find((x) => x.id === id);
+      if (!e) return;
+      setEpiEditId(id);
+      setEpiForm({
+        name: e.name,
+        ca_number: e.ca_number ?? '',
+        category: e.category ?? '',
+        description: e.description ?? '',
+        default_validity_months: e.default_validity_months ? String(e.default_validity_months) : '',
+        stock_quantity: String(e.stock_quantity ?? 0),
+      });
+    } else {
+      setEpiEditId(null);
+      setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '', stock_quantity: '0' });
+    }
+    setEpiOpen(true);
+  };
   const submitEpi = async () => {
     if (!epiForm.name.trim()) { toast.error('Informe o nome do EPI'); return; }
-    const ok = await addEpi({
+    const payload = {
       name: epiForm.name.trim(),
       ca_number: epiForm.ca_number.trim() || null,
       category: epiForm.category.trim() || null,
       description: epiForm.description.trim() || null,
       default_validity_months: epiForm.default_validity_months ? Number(epiForm.default_validity_months) : null,
-    });
-    if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' }); }
+      stock_quantity: epiForm.stock_quantity === '' ? 0 : Math.max(0, Number(epiForm.stock_quantity)),
+    };
+    const ok = epiEditId ? await updateEpi(epiEditId, payload) : await addEpi(payload);
+    if (ok) { setEpiOpen(false); setEpiEditId(null); }
   };
 
   // ---- Checklist dialog ----
@@ -767,7 +803,7 @@ export default function EpiControl() {
         {/* ---------- EPIS ---------- */}
         <TabsContent value="epis" className="mt-4">
           <div className="flex justify-end mb-3">
-            <Button onClick={() => setEpiOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Novo EPI</Button>
+            <Button onClick={() => openEpi()} className="gap-2"><Plus className="h-4 w-4" /> Novo EPI</Button>
           </div>
           <Card className="overflow-x-auto">
             <Table>
@@ -776,35 +812,51 @@ export default function EpiControl() {
                   <TableHead>EPI</TableHead>
                   <TableHead>CA</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Estoque</TableHead>
                   <TableHead>Validade padrão</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEpis.map((e) => (
-                  <TableRow key={e.id}>
-                    <TableCell className="font-medium">{e.name}</TableCell>
-                    <TableCell><Badge variant="outline">{e.ca_number ?? '-'}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{e.category ?? '-'}</TableCell>
-                    <TableCell className="text-muted-foreground">{e.default_validity_months ? `${e.default_validity_months} meses` : '-'}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-md">{e.description ?? '-'}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setConfirmDel({ kind: 'epi', id: e.id, label: e.name })}
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredEpis.map((e) => {
+                  const stock = e.stock_quantity ?? 0;
+                  const stockCls = stock <= 0
+                    ? 'bg-destructive/15 text-destructive border-destructive/30'
+                    : stock <= 3
+                      ? 'bg-warning/15 text-warning border-warning/30'
+                      : 'bg-success/15 text-success border-success/30';
+                  return (
+                    <TableRow key={e.id}>
+                      <TableCell className="font-medium">{e.name}</TableCell>
+                      <TableCell><Badge variant="outline">{e.ca_number ?? '-'}</Badge></TableCell>
+                      <TableCell className="text-muted-foreground">{e.category ?? '-'}</TableCell>
+                      <TableCell><Badge className={stockCls}>{stock} un</Badge></TableCell>
+                      <TableCell className="text-muted-foreground">{e.default_validity_months ? `${e.default_validity_months} meses` : '-'}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-md">{e.description ?? '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEpi(e.id)} title="Editar">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setConfirmDel({ kind: 'epi', id: e.id, label: e.name })}
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </Card>
         </TabsContent>
+
 
         {/* ---------- CHECKLIST ---------- */}
         <TabsContent value="checklist" className="mt-4">
@@ -1178,7 +1230,7 @@ export default function EpiControl() {
       <Dialog open={epiOpen} onOpenChange={setEpiOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Novo EPI</DialogTitle>
+            <DialogTitle>{epiEditId ? 'Editar EPI' : 'Novo EPI'}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2">
@@ -1193,7 +1245,20 @@ export default function EpiControl() {
               <Label>Categoria</Label>
               <Input value={epiForm.category} onChange={(e) => setEpiForm({ ...epiForm, category: e.target.value })} />
             </div>
-            <div className="md:col-span-2">
+            <div>
+              <Label>Estoque (unidades)</Label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="0"
+                value={epiForm.stock_quantity}
+                onChange={(e) => setEpiForm({ ...epiForm, stock_quantity: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Descontado automaticamente a cada entrega.
+              </p>
+            </div>
+            <div>
               <Label>Validade padrão (meses)</Label>
               <Input
                 type="number"
@@ -1202,9 +1267,6 @@ export default function EpiControl() {
                 value={epiForm.default_validity_months}
                 onChange={(e) => setEpiForm({ ...epiForm, default_validity_months: e.target.value })}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Sugerido automaticamente ao entregar este EPI para um funcionário.
-              </p>
             </div>
             <div className="md:col-span-2">
               <Label>Descrição</Label>
@@ -1213,7 +1275,7 @@ export default function EpiControl() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEpiOpen(false)}>Cancelar</Button>
-            <Button onClick={submitEpi}>Cadastrar</Button>
+            <Button onClick={submitEpi}>{epiEditId ? 'Salvar' : 'Cadastrar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
