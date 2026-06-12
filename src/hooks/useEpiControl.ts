@@ -236,11 +236,24 @@ export function useEpiControl() {
         })),
       );
       if (itemsErr) { toast.error('Erro ao salvar itens da entrega: ' + itemsErr.message); return false; }
+
+      // Decrement stock for each EPI delivered (per epi_id)
+      const totals = new Map<string, number>();
+      for (const it of payload.items) {
+        if (!it.epi_id) continue;
+        totals.set(it.epi_id, (totals.get(it.epi_id) ?? 0) + Number(it.quantity));
+      }
+      for (const [epiId, qty] of totals.entries()) {
+        const current = (epis ?? []).find((e) => e.id === epiId);
+        const newStock = Math.max(0, (current?.stock_quantity ?? 0) - qty);
+        await supabase.from('epis').update({ stock_quantity: newStock }).eq('id', epiId);
+      }
     }
     toast.success('Entrega registrada');
     await fetchAll();
     return true;
   };
+
 
   const deleteDelivery = async (id: string) => {
     const { error } = await supabase.from('epi_deliveries').delete().eq('id', id);
