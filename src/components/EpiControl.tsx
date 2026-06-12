@@ -1230,7 +1230,7 @@ export default function EpiControl() {
       <Dialog open={epiOpen} onOpenChange={setEpiOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Novo EPI</DialogTitle>
+            <DialogTitle>{epiEditId ? 'Editar EPI' : 'Novo EPI'}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2">
@@ -1245,7 +1245,20 @@ export default function EpiControl() {
               <Label>Categoria</Label>
               <Input value={epiForm.category} onChange={(e) => setEpiForm({ ...epiForm, category: e.target.value })} />
             </div>
-            <div className="md:col-span-2">
+            <div>
+              <Label>Estoque (unidades)</Label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="0"
+                value={epiForm.stock_quantity}
+                onChange={(e) => setEpiForm({ ...epiForm, stock_quantity: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Descontado automaticamente a cada entrega.
+              </p>
+            </div>
+            <div>
               <Label>Validade padrão (meses)</Label>
               <Input
                 type="number"
@@ -1254,9 +1267,6 @@ export default function EpiControl() {
                 value={epiForm.default_validity_months}
                 onChange={(e) => setEpiForm({ ...epiForm, default_validity_months: e.target.value })}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Sugerido automaticamente ao entregar este EPI para um funcionário.
-              </p>
             </div>
             <div className="md:col-span-2">
               <Label>Descrição</Label>
@@ -1265,7 +1275,7 @@ export default function EpiControl() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEpiOpen(false)}>Cancelar</Button>
-            <Button onClick={submitEpi}>Cadastrar</Button>
+            <Button onClick={submitEpi}>{epiEditId ? 'Salvar' : 'Cadastrar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
