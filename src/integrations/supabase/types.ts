@@ -222,6 +222,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          stock_quantity: number
           updated_at: string
           updated_by: string | null
         }
@@ -235,6 +236,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          stock_quantity?: number
           updated_at?: string
           updated_by?: string | null
         }
@@ -248,6 +250,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          stock_quantity?: number
           updated_at?: string
           updated_by?: string | null
         }
