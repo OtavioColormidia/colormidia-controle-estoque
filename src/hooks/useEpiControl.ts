@@ -304,7 +304,7 @@ export function useEpiControl() {
   return {
     employees, epis, deliveries, checks, loading,
     addEmployee, updateEmployee, deleteEmployee,
-    addEpi, deleteEpi,
+    addEpi, updateEpi, deleteEpi,
     addDelivery, deleteDelivery,
     addChecks, deleteCheck,
     refresh: fetchAll,
