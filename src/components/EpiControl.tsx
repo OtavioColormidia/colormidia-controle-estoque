@@ -803,7 +803,7 @@ export default function EpiControl() {
         {/* ---------- EPIS ---------- */}
         <TabsContent value="epis" className="mt-4">
           <div className="flex justify-end mb-3">
-            <Button onClick={() => setEpiOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Novo EPI</Button>
+            <Button onClick={() => openEpi()} className="gap-2"><Plus className="h-4 w-4" /> Novo EPI</Button>
           </div>
           <Card className="overflow-x-auto">
             <Table>
@@ -812,35 +812,51 @@ export default function EpiControl() {
                   <TableHead>EPI</TableHead>
                   <TableHead>CA</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Estoque</TableHead>
                   <TableHead>Validade padrão</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEpis.map((e) => (
-                  <TableRow key={e.id}>
-                    <TableCell className="font-medium">{e.name}</TableCell>
-                    <TableCell><Badge variant="outline">{e.ca_number ?? '-'}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{e.category ?? '-'}</TableCell>
-                    <TableCell className="text-muted-foreground">{e.default_validity_months ? `${e.default_validity_months} meses` : '-'}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-md">{e.description ?? '-'}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setConfirmDel({ kind: 'epi', id: e.id, label: e.name })}
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredEpis.map((e) => {
+                  const stock = e.stock_quantity ?? 0;
+                  const stockCls = stock <= 0
+                    ? 'bg-destructive/15 text-destructive border-destructive/30'
+                    : stock <= 3
+                      ? 'bg-warning/15 text-warning border-warning/30'
+                      : 'bg-success/15 text-success border-success/30';
+                  return (
+                    <TableRow key={e.id}>
+                      <TableCell className="font-medium">{e.name}</TableCell>
+                      <TableCell><Badge variant="outline">{e.ca_number ?? '-'}</Badge></TableCell>
+                      <TableCell className="text-muted-foreground">{e.category ?? '-'}</TableCell>
+                      <TableCell><Badge className={stockCls}>{stock} un</Badge></TableCell>
+                      <TableCell className="text-muted-foreground">{e.default_validity_months ? `${e.default_validity_months} meses` : '-'}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-md">{e.description ?? '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEpi(e.id)} title="Editar">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setConfirmDel({ kind: 'epi', id: e.id, label: e.name })}
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </Card>
         </TabsContent>
+
 
         {/* ---------- CHECKLIST ---------- */}
         <TabsContent value="checklist" className="mt-4">
