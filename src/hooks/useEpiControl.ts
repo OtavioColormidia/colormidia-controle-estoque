@@ -160,6 +160,7 @@ export function useEpiControl() {
       category: payload.category,
       description: payload.description,
       default_validity_months: payload.default_validity_months ?? null,
+      stock_quantity: payload.stock_quantity ?? 0,
       created_by: session?.user.id,
     });
     if (error) { toast.error('Erro ao cadastrar EPI: ' + error.message); return false; }
@@ -167,6 +168,25 @@ export function useEpiControl() {
     await fetchAll();
     return true;
   };
+
+  const updateEpi = async (id: string, payload: Partial<Epi>) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const { error } = await supabase.from('epis').update({
+      name: payload.name,
+      ca_number: payload.ca_number,
+      category: payload.category,
+      description: payload.description,
+      default_validity_months: payload.default_validity_months ?? null,
+      stock_quantity: payload.stock_quantity ?? 0,
+      updated_by: session?.user.id,
+    }).eq('id', id);
+    if (error) { toast.error('Erro ao atualizar EPI: ' + error.message); return false; }
+    toast.success('EPI atualizado');
+    await fetchAll();
+    return true;
+  };
+
+
 
   const deleteEpi = async (id: string) => {
     const { error } = await supabase.from('epis').delete().eq('id', id);
