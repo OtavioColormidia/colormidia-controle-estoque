@@ -214,17 +214,39 @@ export default function EpiControl() {
 
   // ---- EPI dialog ----
   const [epiOpen, setEpiOpen] = useState(false);
-  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' });
+  const [epiEditId, setEpiEditId] = useState<string | null>(null);
+  const [epiForm, setEpiForm] = useState({ name: '', ca_number: '', category: '', description: '', default_validity_months: '', stock_quantity: '0' });
+  const openEpi = (id?: string) => {
+    if (id) {
+      const e = epis.find((x) => x.id === id);
+      if (!e) return;
+      setEpiEditId(id);
+      setEpiForm({
+        name: e.name,
+        ca_number: e.ca_number ?? '',
+        category: e.category ?? '',
+        description: e.description ?? '',
+        default_validity_months: e.default_validity_months ? String(e.default_validity_months) : '',
+        stock_quantity: String(e.stock_quantity ?? 0),
+      });
+    } else {
+      setEpiEditId(null);
+      setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '', stock_quantity: '0' });
+    }
+    setEpiOpen(true);
+  };
   const submitEpi = async () => {
     if (!epiForm.name.trim()) { toast.error('Informe o nome do EPI'); return; }
-    const ok = await addEpi({
+    const payload = {
       name: epiForm.name.trim(),
       ca_number: epiForm.ca_number.trim() || null,
       category: epiForm.category.trim() || null,
       description: epiForm.description.trim() || null,
       default_validity_months: epiForm.default_validity_months ? Number(epiForm.default_validity_months) : null,
-    });
-    if (ok) { setEpiOpen(false); setEpiForm({ name: '', ca_number: '', category: '', description: '', default_validity_months: '' }); }
+      stock_quantity: epiForm.stock_quantity === '' ? 0 : Math.max(0, Number(epiForm.stock_quantity)),
+    };
+    const ok = epiEditId ? await updateEpi(epiEditId, payload) : await addEpi(payload);
+    if (ok) { setEpiOpen(false); setEpiEditId(null); }
   };
 
   // ---- Checklist dialog ----
