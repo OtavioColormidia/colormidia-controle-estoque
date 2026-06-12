@@ -129,6 +129,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const [requesterFilter, setRequesterFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [profilesById, setProfilesById] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -184,7 +185,9 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id);
-      setIsAdmin((data ?? []).some((r) => r.role === "admin"));
+      const roles = (data ?? []).map((r: any) => r.role);
+      setIsAdmin(roles.includes("admin"));
+      setCanDelete(roles.some((r: string) => ["admin", "compras", "almoxarife"].includes(r)));
     });
 
     const channel = supabase
@@ -545,7 +548,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                       <TableHead className="whitespace-nowrap">
                         Status
                       </TableHead>
-                      {isAdmin && <TableHead className="w-12"></TableHead>}
+                      {canDelete && <TableHead className="w-12"></TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -590,7 +593,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                         <TableCell className="align-top">
                           {renderStatusCell(r)}
                         </TableCell>
-                        {isAdmin && (
+                        {canDelete && (
                           <TableCell className="align-top">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -646,7 +649,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                         <span className="text-xs text-muted-foreground">
                           {formatDate(r.submitted_at)}
                         </span>
-                        {isAdmin && (
+                        {canDelete && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
