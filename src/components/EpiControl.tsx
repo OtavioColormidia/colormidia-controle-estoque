@@ -137,6 +137,20 @@ export default function EpiControl() {
       toast.error('Preencha todos os EPIs e quantidades');
       return;
     }
+    // Validate stock per EPI (sum quantities of same epi_id)
+    const totals = new Map<string, number>();
+    for (const it of delItems) {
+      if (!it.epi_id) continue;
+      totals.set(it.epi_id, (totals.get(it.epi_id) ?? 0) + Number(it.quantity));
+    }
+    for (const [epiId, qty] of totals.entries()) {
+      const e = epis.find((x) => x.id === epiId);
+      if (!e) continue;
+      if ((e.stock_quantity ?? 0) < qty) {
+        toast.error(`Estoque insuficiente para "${e.name}". Disponível: ${e.stock_quantity ?? 0}, solicitado: ${qty}.`);
+        return;
+      }
+    }
     const ok = await addDelivery({
       employee_id: emp.id,
       employee_name: emp.name,
