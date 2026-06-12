@@ -23,6 +23,7 @@ export interface Epi {
   category: string | null;
   description: string | null;
   default_validity_months: number | null;
+  stock_quantity: number;
   active: boolean;
   created_at: string;
   updated_at: string;
