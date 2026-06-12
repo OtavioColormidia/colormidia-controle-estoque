@@ -129,6 +129,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const [requesterFilter, setRequesterFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [profilesById, setProfilesById] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
