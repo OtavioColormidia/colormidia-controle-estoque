@@ -185,7 +185,9 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id);
-      setIsAdmin((data ?? []).some((r) => r.role === "admin"));
+      const roles = (data ?? []).map((r: any) => r.role);
+      setIsAdmin(roles.includes("admin"));
+      setCanDelete(roles.some((r: string) => ["admin", "compras", "almoxarife"].includes(r)));
     });
 
     const channel = supabase
