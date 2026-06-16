@@ -6,6 +6,8 @@ export const EMPLOYEE_ROLES: string[] = [
   'Pintor',
   'Operador de Máquina',
   'Montador',
+  '💼 Montador Nível 1',
+  '💼💼 Montador Nível 2',
   'Ajudante Montador',
   'Auxiliar de Estoque',
   'Auxiliar de Produção',
@@ -15,6 +17,9 @@ export const EMPLOYEE_ROLES: string[] = [
   'Vendedor',
   'Assistente de Marketing',
   'Arte Finalista',
+  // Cargos em branco para edição futura
+  'Cargo em Branco 1',
+  'Cargo em Branco 2',
 ];
 
 /**
@@ -60,6 +65,22 @@ export const EPI_BY_ROLE: Record<string, string[]> = {
     'Óculos de Segurança Incolor',
     'Protetor Auricular Plug ou Concha',
   ],
+  '💼 Montador Nível 1': [
+    'Luva PU Multitato',
+    'Capacete com Jugular',
+    'Cinto de Segurança com Talabarte',
+    'Bota de Segurança',
+    'Óculos de Segurança Incolor',
+    'Protetor Auricular Plug ou Concha',
+  ],
+  '💼💼 Montador Nível 2': [
+    'Luva PU Multitato',
+    'Capacete com Jugular',
+    'Cinto de Segurança com Talabarte',
+    'Bota de Segurança',
+    'Óculos de Segurança Incolor',
+    'Protetor Auricular Plug ou Concha',
+  ],
   'Ajudante Montador': [
     'Luva PU Multitato',
     'Capacete com Jugular',
@@ -97,6 +118,8 @@ export const EPI_BY_ROLE: Record<string, string[]> = {
   Vendedor: [],
   'Assistente de Marketing': [],
   'Arte Finalista': [],
+  'Cargo em Branco 1': [],
+  'Cargo em Branco 2': [],
 };
 
 export const EPI_SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', '36', '37', '38', '39', '40', '41', '42', '43', '44'];
