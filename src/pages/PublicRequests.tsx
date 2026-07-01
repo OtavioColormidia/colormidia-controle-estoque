@@ -134,7 +134,15 @@ export default function PublicRequests() {
 
   const grouped = useMemo(() => {
     const g: Record<Bucket, FormResponse[]> = { aberto: [], feito: [], concluido: [] };
-    filtered.forEach((r) => g[bucketOf(r)].push(r));
+    const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+    filtered.forEach((r) => {
+      const b = bucketOf(r);
+      if (b === "feito") {
+        const ref = r.ordered_at ? new Date(r.ordered_at).getTime() : new Date(r.submitted_at).getTime();
+        if (ref < fiveDaysAgo) return;
+      }
+      g[b].push(r);
+    });
     return g;
   }, [filtered]);
 
