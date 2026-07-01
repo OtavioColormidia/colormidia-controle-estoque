@@ -599,7 +599,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block rounded-md border overflow-x-auto">
+              <DoubleScroll className="hidden md:block rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
