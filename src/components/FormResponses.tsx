@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import PurchaseOrderDialog from "@/components/PurchaseOrderDialog";
 import { Purchase, Supplier } from "@/types/inventory";
 import PageHeader from "@/components/shared/PageHeader";
+import { DoubleScroll } from "@/components/shared/DoubleScroll";
 
 interface FormResponsesProps {
   suppliers: Supplier[];
