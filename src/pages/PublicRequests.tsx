@@ -308,7 +308,8 @@ export default function PublicRequests() {
                 );
               })}
             </div>
-          </div>
+            </div>
+          </>
         )}
       </main>
 
