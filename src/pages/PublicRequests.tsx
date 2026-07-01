@@ -92,6 +92,30 @@ export default function PublicRequests() {
   const [items, setItems] = useState<FormResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [innerWidth, setInnerWidth] = useState(0);
+
+  useEffect(() => {
+    if (!innerRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (innerRef.current) setInnerWidth(innerRef.current.scrollWidth);
+    });
+    ro.observe(innerRef.current);
+    return () => ro.disconnect();
+  }, [loading]);
+
+  const syncFromTop = () => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+  const syncFromBottom = () => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft;
+    }
+  };
 
   const load = async () => {
     const { data, error } = await supabase
