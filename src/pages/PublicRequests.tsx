@@ -181,95 +181,97 @@ export default function PublicRequests() {
             <Loader2 className="h-6 w-6 animate-spin mr-2" /> Carregando pedidos...
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {columns.map((col) => {
-              const list = grouped[col.id];
-              const Icon = col.icon;
-              return (
-                <section key={col.id} className="flex flex-col min-h-[400px]">
-                  <div
-                    className={cn(
-                      "rounded-t-xl border border-b-0 px-4 py-3 flex items-center justify-between bg-gradient-to-br",
-                      col.accent,
-                    )}
-                  >
-                    <div className="flex items-center gap-2 font-semibold uppercase tracking-wide text-sm">
-                      <Icon className="h-4 w-4" />
-                      {col.label}
-                    </div>
-                    <Badge variant="outline" className={cn("border", col.badge)}>
-                      {list.length}
-                    </Badge>
-                  </div>
-                  <div className="flex-1 border rounded-b-xl bg-card/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)]">
-                    {list.length === 0 ? (
-                      <div className="text-center text-sm text-muted-foreground py-10">
-                        Nenhum pedido nesta categoria.
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
+              {columns.map((col) => {
+                const list = grouped[col.id];
+                const Icon = col.icon;
+                return (
+                  <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
+                    <div
+                      className={cn(
+                        "rounded-t-xl border border-b-0 px-4 py-3 flex items-center justify-between bg-gradient-to-br",
+                        col.accent,
+                      )}
+                    >
+                      <div className="flex items-center gap-2 font-semibold uppercase tracking-wide text-sm">
+                        <Icon className="h-4 w-4" />
+                        {col.label}
                       </div>
-                    ) : (
-                      list.map((r) => {
-                        const materials = getField(r.data, "materia", "descri", "item");
-                        const os = getField(r.data, "o.s", "ordem");
-                        const solicitante = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante");
-                        const tipo = getField(r.data, "tipo");
-                        const qtd = getField(r.data, "quantidade", "qtd");
-                        const producao = getField(r.data, "produção", "producao", "prazo");
-                        const obs = getField(r.data, "observ");
-                        return (
-                          <Card
-                            key={r.id}
-                            className="border-border/60 hover:border-primary/40 transition-colors"
-                          >
-                            <CardHeader className="p-3 pb-2 space-y-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <CardTitle className="text-sm font-semibold truncate">
-                                  {solicitante || "Sem solicitante"}
-                                </CardTitle>
-                                {tipo && (
-                                  <Badge variant="secondary" className="text-[10px]">
-                                    {tipo}
-                                  </Badge>
+                      <Badge variant="outline" className={cn("border", col.badge)}>
+                        {list.length}
+                      </Badge>
+                    </div>
+                    <div className="flex-1 border rounded-b-xl bg-card/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)]">
+                      {list.length === 0 ? (
+                        <div className="text-center text-sm text-muted-foreground py-10">
+                          Nenhum pedido nesta categoria.
+                        </div>
+                      ) : (
+                        list.map((r) => {
+                          const materials = getField(r.data, "materia", "descri", "item");
+                          const os = getField(r.data, "o.s", "ordem");
+                          const solicitante = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante");
+                          const tipo = getField(r.data, "tipo");
+                          const qtd = getField(r.data, "quantidade", "qtd");
+                          const producao = getField(r.data, "produção", "producao", "prazo");
+                          const obs = getField(r.data, "observ");
+                          return (
+                            <Card
+                              key={r.id}
+                              className="border-border/60 hover:border-primary/40 transition-colors"
+                            >
+                              <CardHeader className="p-3 pb-2 space-y-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <CardTitle className="text-sm font-semibold truncate">
+                                    {solicitante || "Sem solicitante"}
+                                  </CardTitle>
+                                  {tipo && (
+                                    <Badge variant="secondary" className="text-[10px]">
+                                      {tipo}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-muted-foreground">
+                                  {formatDate(r.submitted_at)}
+                                  {os && <> · O.S. <span className="font-medium text-foreground">{os}</span></>}
+                                </div>
+                              </CardHeader>
+                              <CardContent className="p-3 pt-0 space-y-2 text-sm">
+                                {materials && (
+                                  <div className="whitespace-pre-wrap break-words leading-snug">
+                                    {materials}
+                                  </div>
                                 )}
-                              </div>
-                              <div className="text-[11px] text-muted-foreground">
-                                {formatDate(r.submitted_at)}
-                                {os && <> · O.S. <span className="font-medium text-foreground">{os}</span></>}
-                              </div>
-                            </CardHeader>
-                            <CardContent className="p-3 pt-0 space-y-2 text-sm">
-                              {materials && (
-                                <div className="whitespace-pre-wrap break-words leading-snug">
-                                  {materials}
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                  {qtd && <span><b className="text-foreground">Qtd:</b> {qtd}</span>}
+                                  {producao && <span><b className="text-foreground">Prazo:</b> {producao}</span>}
                                 </div>
-                              )}
-                              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                                {qtd && <span><b className="text-foreground">Qtd:</b> {qtd}</span>}
-                                {producao && <span><b className="text-foreground">Prazo:</b> {producao}</span>}
-                              </div>
-                              {obs && (
-                                <div className="text-xs text-muted-foreground border-t pt-2">
-                                  <b className="text-foreground">Obs:</b> {obs}
-                                </div>
-                              )}
-                              {col.id === "feito" && r.ordered_at && (
-                                <div className="text-[11px] text-primary/80">
-                                  Pedido feito em {formatDate(r.ordered_at)}
-                                </div>
-                              )}
-                              {col.id === "concluido" && r.completed_at && (
-                                <div className="text-[11px] text-success">
-                                  Concluído em {formatDate(r.completed_at)}
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })
-                    )}
-                  </div>
-                </section>
-              );
-            })}
+                                {obs && (
+                                  <div className="text-xs text-muted-foreground border-t pt-2">
+                                    <b className="text-foreground">Obs:</b> {obs}
+                                  </div>
+                                )}
+                                {col.id === "feito" && r.ordered_at && (
+                                  <div className="text-[11px] text-primary/80">
+                                    Pedido feito em {formatDate(r.ordered_at)}
+                                  </div>
+                                )}
+                                {col.id === "concluido" && r.completed_at && (
+                                  <div className="text-[11px] text-success">
+                                    Concluído em {formatDate(r.completed_at)}
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
           </div>
         )}
       </main>
