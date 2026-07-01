@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import PurchaseOrderDialog from "@/components/PurchaseOrderDialog";
 import { Purchase, Supplier } from "@/types/inventory";
 import PageHeader from "@/components/shared/PageHeader";
+import { DoubleScroll } from "@/components/shared/DoubleScroll";
 
 interface FormResponsesProps {
   suppliers: Supplier[];
@@ -599,7 +600,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block rounded-md border overflow-x-auto">
+              <DoubleScroll className="hidden md:block rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -696,7 +697,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </DoubleScroll>
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-3">
