@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +92,30 @@ export default function PublicRequests() {
   const [items, setItems] = useState<FormResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [innerWidth, setInnerWidth] = useState(0);
+
+  useEffect(() => {
+    if (!innerRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (innerRef.current) setInnerWidth(innerRef.current.scrollWidth);
+    });
+    ro.observe(innerRef.current);
+    return () => ro.disconnect();
+  }, [loading]);
+
+  const syncFromTop = () => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+  const syncFromBottom = () => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft;
+    }
+  };
 
   const load = async () => {
     const { data, error } = await supabase
@@ -181,8 +205,20 @@ export default function PublicRequests() {
             <Loader2 className="h-6 w-6 animate-spin mr-2" /> Carregando pedidos...
           </div>
         ) : (
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
+          <>
+            <div
+              ref={topScrollRef}
+              onScroll={syncFromTop}
+              className="overflow-x-auto sticky top-[76px] z-[5] bg-background/80 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 mb-2"
+            >
+              <div style={{ width: innerWidth || 1024, height: 1 }} />
+            </div>
+            <div
+              ref={bottomScrollRef}
+              onScroll={syncFromBottom}
+              className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6"
+            >
+              <div ref={innerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
               {columns.map((col) => {
                 const list = grouped[col.id];
                 const Icon = col.icon;
@@ -272,7 +308,8 @@ export default function PublicRequests() {
                 );
               })}
             </div>
-          </div>
+            </div>
+          </>
         )}
       </main>
 
