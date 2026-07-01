@@ -60,6 +60,8 @@ interface FormResponse {
   ordered: boolean;
   ordered_by: string | null;
   ordered_at: string | null;
+  completed?: boolean;
+  completed_at?: string | null;
 }
 
 const formatDate = (iso: string) => {
@@ -139,7 +141,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const loadResponses = async () => {
     const { data, error } = await supabase
       .from("form_responses")
-      .select("id, form_name, submitted_at, data, sheet_row, created_at, ordered, ordered_by, ordered_at")
+      .select("id, form_name, submitted_at, data, sheet_row, created_at, ordered, ordered_by, ordered_at, completed, completed_at")
       .order("submitted_at", { ascending: false })
       .limit(200);
 
@@ -332,6 +334,31 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
     }
   };
 
+  const markCompleted = async (r: FormResponse, newCompleted: boolean) => {
+    if (!currentUserId) return;
+    setUpdatingId(r.id);
+    const { error } = await supabase
+      .from("form_responses")
+      .update({
+        completed: newCompleted,
+        completed_at: newCompleted ? new Date().toISOString() : null,
+        completed_by: newCompleted ? currentUserId : null,
+      } as any)
+      .eq("id", r.id);
+    setUpdatingId(null);
+    if (error) {
+      toast({
+        title: "Erro ao atualizar conclusão",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: newCompleted ? "Pedido concluído" : "Conclusão removida",
+      });
+    }
+  };
+
   // Heuristic to find the materials text inside the response data
   const getMaterialsText = (r: FormResponse): string => {
     const data = r.data ?? {};
@@ -382,28 +409,65 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   };
 
   const renderStatusCell = (r: FormResponse) => {
+    if (r.completed) {
+      return (
+        <div className="flex flex-col gap-1.5">
+          <Badge variant="success" className="w-fit gap-1">
+            <CheckCircle2 className="h-3 w-3" />
+            Concluído
+          </Badge>
+          {r.completed_at && (
+            <span className="text-xs text-muted-foreground">
+              {formatDate(r.completed_at)}
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-fit px-2 text-xs"
+            onClick={() => markCompleted(r, false)}
+            disabled={updatingId === r.id}
+          >
+            <Undo2 className="h-3 w-3 mr-1" />
+            Reabrir
+          </Button>
+        </div>
+      );
+    }
     if (r.ordered) {
       const who = r.ordered_by ? profilesById[r.ordered_by] || "Usuário" : "—";
       const when = r.ordered_at ? formatDate(r.ordered_at) : "";
       return (
         <div className="flex flex-col gap-1.5">
-          <Badge variant="success" className="w-fit gap-1">
+          <Badge variant="secondary" className="w-fit gap-1">
             <CheckCircle2 className="h-3 w-3" />
             Pedido feito
           </Badge>
           <span className="text-xs text-muted-foreground">
             por {who} · {when}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-fit px-2 text-xs"
-            onClick={() => markOrdered(r, false)}
-            disabled={updatingId === r.id}
-          >
-            <Undo2 className="h-3 w-3 mr-1" />
-            Desmarcar
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-xs border-success/40 text-success hover:bg-success/10 hover:text-success"
+              onClick={() => markCompleted(r, true)}
+              disabled={updatingId === r.id}
+            >
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Concluir
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => markOrdered(r, false)}
+              disabled={updatingId === r.id}
+            >
+              <Undo2 className="h-3 w-3 mr-1" />
+              Desmarcar
+            </Button>
+          </div>
         </div>
       );
     }

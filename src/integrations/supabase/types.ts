@@ -258,6 +258,9 @@ export type Database = {
       }
       form_responses: {
         Row: {
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
           created_at: string
           data: Json
           form_name: string
@@ -269,6 +272,9 @@ export type Database = {
           submitted_at: string
         }
         Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           data?: Json
           form_name: string
@@ -280,6 +286,9 @@ export type Database = {
           submitted_at?: string
         }
         Update: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           data?: Json
           form_name?: string
