@@ -67,21 +67,21 @@ const columns: {
 }[] = [
   {
     id: "aberto",
-    label: "Pedido Aberto",
+    label: "Pedidos Pendentes",
     icon: Inbox,
     accent: "from-warning/20 to-warning/5 border-warning/40",
     badge: "bg-warning/15 text-warning border-warning/30",
   },
   {
     id: "feito",
-    label: "Pedido Feito",
+    label: "Pedidos Realizados",
     icon: PackageCheck,
     accent: "from-primary/20 to-primary/5 border-primary/40",
     badge: "bg-primary/15 text-primary border-primary/30",
   },
   {
     id: "concluido",
-    label: "Pedido Concluído",
+    label: "Pedidos Entregues",
     icon: CheckCircle2,
     accent: "from-success/20 to-success/5 border-success/40",
     badge: "bg-success/15 text-success border-success/30",
@@ -200,9 +200,9 @@ export default function PublicRequests() {
                       </div>
                     ) : (
                       list.map((r) => {
-                        const materials = getField(r.data, "material", "descri", "item");
-                        const os = getField(r.data, "o.s", "os", "ordem");
-                        const solicitante = getField(r.data, "solicit", "vendedor", "responsavel");
+                        const materials = getField(r.data, "materia", "descri", "item");
+                        const os = getField(r.data, "o.s", "ordem");
+                        const solicitante = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante");
                         const tipo = getField(r.data, "tipo");
                         const qtd = getField(r.data, "quantidade", "qtd");
                         const producao = getField(r.data, "produção", "producao", "prazo");
