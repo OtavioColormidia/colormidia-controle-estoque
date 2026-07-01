@@ -696,7 +696,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </DoubleScroll>
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-3">
