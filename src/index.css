@@ -10,65 +10,60 @@ All colors MUST be HSL.
   :root {
     /* Typography - Old school monospace/terminal */
     --font-sans: 'IBM Plex Mono', 'Courier New', monospace;
-    
-    /* Base colors - Warm cream paper */
-    --background: 42 30% 88%;
-    --foreground: 25 40% 12%;
 
-    /* Card colors - Aged paper */
-    --card: 42 35% 92%;
-    --card-foreground: 25 40% 12%;
+    /* Base - Newsprint monochrome */
+    --background: 0 0% 96%;
+    --foreground: 0 0% 8%;
 
-    /* Popover colors */
-    --popover: 42 35% 92%;
-    --popover-foreground: 25 40% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
 
-    /* Primary - Vintage rust/red */
-    --primary: 8 65% 38%;
-    --primary-foreground: 42 40% 94%;
-    --primary-hover: 8 65% 30%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
 
-    /* Secondary - Mustard yellow */
-    --secondary: 42 75% 45%;
-    --secondary-foreground: 25 40% 12%;
+    /* Primary - Ink black */
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 0 0% 20%;
 
-    /* Muted */
-    --muted: 42 25% 82%;
-    --muted-foreground: 25 25% 35%;
+    /* Secondary - Mid gray */
+    --secondary: 0 0% 75%;
+    --secondary-foreground: 0 0% 8%;
 
-    /* Accent - Olive/teal */
-    --accent: 170 30% 30%;
-    --accent-foreground: 42 40% 94%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 35%;
 
-    /* Status colors */
-    --success: 100 40% 30%;
-    --success-foreground: 42 40% 94%;
-    --warning: 35 85% 42%;
-    --warning-foreground: 25 40% 12%;
-    --danger: 8 65% 38%;
-    --danger-foreground: 42 40% 94%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
 
-    /* Destructive */
-    --destructive: 8 65% 38%;
-    --destructive-foreground: 42 40% 94%;
+    /* Status - kept subtle grayscale with minimal semantic tone */
+    --success: 0 0% 25%;
+    --success-foreground: 0 0% 98%;
+    --warning: 0 0% 45%;
+    --warning-foreground: 0 0% 98%;
+    --danger: 0 0% 10%;
+    --danger-foreground: 0 0% 98%;
 
-    /* Borders and inputs - Thick dark ink */
-    --border: 25 40% 20%;
-    --input: 25 40% 20%;
-    --ring: 8 65% 38%;
+    --destructive: 0 0% 10%;
+    --destructive-foreground: 0 0% 98%;
 
-    /* Radius - Sharp corners, old school */
+    /* Borders - thick ink */
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 0 0% 10%;
+
+    /* Sharp corners */
     --radius: 0;
 
-    /* Sidebar - Vintage terminal amber on dark */
-    --sidebar-background: 25 35% 10%;
-    --sidebar-foreground: 42 60% 78%;
-    --sidebar-primary: 35 90% 55%;
-    --sidebar-primary-foreground: 25 40% 8%;
-    --sidebar-accent: 25 30% 16%;
-    --sidebar-accent-foreground: 42 60% 78%;
-    --sidebar-border: 35 40% 35%;
-    --sidebar-ring: 35 90% 55%;
+    /* Sidebar - dark ink slab */
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 92%;
+    --sidebar-border: 0 0% 30%;
+    --sidebar-ring: 0 0% 98%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(217 91% 60%));
