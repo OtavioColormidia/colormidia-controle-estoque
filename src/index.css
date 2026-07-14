@@ -498,7 +498,7 @@ All colors MUST be HSL.
     box-shadow: 0 0 12px hsl(var(--sidebar-primary) / 0.7);
   }
   50% {
-    box-shadow: 0 0 20px hsl(var(--sidebar-primary) / 1), 0 0 30px hsl(217 91% 60% / 0.5);
+    box-shadow: 0 0 20px hsl(var(--sidebar-primary) / 1), 0 0 30px hsl(0 0% 70% / 0.5);
   }
 }
 
