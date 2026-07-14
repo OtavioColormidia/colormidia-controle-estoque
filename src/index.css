@@ -161,13 +161,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    background-image:
-      repeating-linear-gradient(0deg, hsl(0 0% 0% / 0.025) 0 1px, transparent 1px 4px);
+    font-feature-settings: "ss01", "cv11";
   }
 
   h1, h2, h3, h4 {
-    font-family: 'VT323', 'Courier New', monospace;
-    letter-spacing: 0.02em;
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+    font-weight: 600;
   }
 
   /* Custom scrollbar styling */
