@@ -421,7 +421,7 @@ All colors MUST be HSL.
     height: 60%;
     width: 3px;
     border-radius: 0 4px 4px 0;
-    background: linear-gradient(180deg, hsl(var(--sidebar-primary)), hsl(217 91% 60%));
+    background: linear-gradient(180deg, hsl(var(--sidebar-primary)), hsl(0 0% 70%));
     box-shadow: 0 0 12px hsl(var(--sidebar-primary) / 0.7);
     animation: indicatorPulse 2.4s ease-in-out infinite;
   }
@@ -484,7 +484,7 @@ All colors MUST be HSL.
     background: conic-gradient(
       from 0deg,
       hsl(var(--sidebar-primary)),
-      hsl(217 91% 60%),
+      hsl(0 0% 70%),
       hsl(var(--sidebar-primary))
     );
     z-index: -1;
