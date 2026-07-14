@@ -297,8 +297,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0">
       {/* Sidebar with gradient background + decorative orbs */}
       <div className="absolute inset-0 sidebar-gradient pointer-events-none" />
-      <div className="sidebar-orb h-40 w-40 -top-10 -left-10 bg-primary/40" />
-      <div className="sidebar-orb h-48 w-48 bottom-20 -right-16 bg-secondary/30" />
+      <div className="sidebar-orb h-40 w-40 -top-10 -left-10 bg-white/5" />
+      <div className="sidebar-orb h-48 w-48 bottom-20 -right-16 bg-white/5" />
 
       <SidebarHeader className="relative border-b border-sidebar-border/50 backdrop-blur-sm">
         <div className="flex items-center gap-3 px-2 py-2">
@@ -308,7 +308,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <h1 className="text-sm font-bold text-sidebar-foreground truncate tracking-tight">
-                Color<span className="bg-gradient-to-r from-secondary to-orange-300 bg-clip-text text-transparent">Mídia</span>
+                Color<span className="text-sidebar-foreground/90">Mídia</span>
               </h1>
               <p className="text-[10px] text-sidebar-foreground/50 truncate uppercase tracking-wider">Controle de Estoque</p>
             </div>
