@@ -398,8 +398,8 @@ All colors MUST be HSL.
   /* Gradient background applied to the sidebar surface */
   .sidebar-gradient {
     background:
-      radial-gradient(circle at 20% 0%, hsl(217 91% 25% / 0.45), transparent 50%),
-      radial-gradient(circle at 90% 100%, hsl(24 95% 45% / 0.18), transparent 55%),
+      radial-gradient(circle at 20% 0%, hsl(0 0% 25% / 0.35), transparent 50%),
+      radial-gradient(circle at 90% 100%, hsl(0 0% 15% / 0.25), transparent 55%),
       var(--gradient-sidebar);
   }
 
