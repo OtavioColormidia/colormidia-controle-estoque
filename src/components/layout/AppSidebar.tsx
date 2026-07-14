@@ -464,14 +464,14 @@ export function AppSidebar() {
                                 <span className="truncate text-sm">{item.title}</span>
                                 {showBadge && !collapsed && (
                                   <Badge
-                                    variant="warning"
-                                    className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle shadow-[0_0_10px_hsl(var(--warning)/0.5)]"
+                                    variant="secondary"
+                                    className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 bg-sidebar-foreground/15 text-sidebar-foreground border-none"
                                   >
                                     {badgeValue}
                                   </Badge>
                                 )}
                                 {showBadge && collapsed && (
-                                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse shadow-[0_0_8px_hsl(var(--warning))]" />
+                                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-sidebar-foreground/60" />
                                 )}
                               </NavLink>
                             </SidebarMenuButton>
