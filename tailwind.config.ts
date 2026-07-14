@@ -14,7 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['IBM Plex Mono', 'Courier New', 'monospace'],
+        mono: ['IBM Plex Mono', 'Courier New', 'monospace'],
+        display: ['VT323', 'Courier New', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",

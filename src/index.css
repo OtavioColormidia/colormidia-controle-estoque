@@ -8,67 +8,67 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Typography */
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Typography - Old school monospace/terminal */
+    --font-sans: 'IBM Plex Mono', 'Courier New', monospace;
     
-    /* Base colors - Light gray background */
-    --background: 220 14% 94%;
-    --foreground: 222 47% 11%;
+    /* Base colors - Warm cream paper */
+    --background: 42 30% 88%;
+    --foreground: 25 40% 12%;
 
-    /* Card colors */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    /* Card colors - Aged paper */
+    --card: 42 35% 92%;
+    --card-foreground: 25 40% 12%;
 
     /* Popover colors */
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 42 35% 92%;
+    --popover-foreground: 25 40% 12%;
 
-    /* Primary - Professional Blue */
-    --primary: 217 91% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 42%;
+    /* Primary - Vintage rust/red */
+    --primary: 8 65% 38%;
+    --primary-foreground: 42 40% 94%;
+    --primary-hover: 8 65% 30%;
 
-    /* Secondary - Warm Orange */
-    --secondary: 24 95% 53%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Mustard yellow */
+    --secondary: 42 75% 45%;
+    --secondary-foreground: 25 40% 12%;
 
-    /* Muted colors */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    /* Muted */
+    --muted: 42 25% 82%;
+    --muted-foreground: 25 25% 35%;
 
-    /* Accent - Soft Blue */
-    --accent: 217 91% 96%;
-    --accent-foreground: 217 91% 50%;
+    /* Accent - Olive/teal */
+    --accent: 170 30% 30%;
+    --accent-foreground: 42 40% 94%;
 
     /* Status colors */
-    --success: 152 69% 31%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --danger: 0 72% 51%;
-    --danger-foreground: 0 0% 100%;
+    --success: 100 40% 30%;
+    --success-foreground: 42 40% 94%;
+    --warning: 35 85% 42%;
+    --warning-foreground: 25 40% 12%;
+    --danger: 8 65% 38%;
+    --danger-foreground: 42 40% 94%;
 
     /* Destructive */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 8 65% 38%;
+    --destructive-foreground: 42 40% 94%;
 
-    /* Borders and inputs */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 50%;
+    /* Borders and inputs - Thick dark ink */
+    --border: 25 40% 20%;
+    --input: 25 40% 20%;
+    --ring: 8 65% 38%;
 
-    /* Radius */
-    --radius: 0.75rem;
+    /* Radius - Sharp corners, old school */
+    --radius: 0;
 
-    /* Sidebar specific */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 24 95% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 16%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 222 30% 22%;
-    --sidebar-ring: 217 91% 50%;
+    /* Sidebar - Vintage terminal amber on dark */
+    --sidebar-background: 25 35% 10%;
+    --sidebar-foreground: 42 60% 78%;
+    --sidebar-primary: 35 90% 55%;
+    --sidebar-primary-foreground: 25 40% 8%;
+    --sidebar-accent: 25 30% 16%;
+    --sidebar-accent-foreground: 42 60% 78%;
+    --sidebar-border: 35 40% 35%;
+    --sidebar-ring: 35 90% 55%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(217 91% 60%));
@@ -164,7 +164,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-image:
+      repeating-linear-gradient(0deg, hsl(25 40% 12% / 0.03) 0 1px, transparent 1px 4px);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'VT323', 'Courier New', monospace;
+    letter-spacing: 0.02em;
   }
 
   /* Custom scrollbar styling */
