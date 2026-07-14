@@ -8,62 +8,64 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Typography - Old school monospace/terminal */
-    --font-sans: 'IBM Plex Mono', 'Courier New', monospace;
+    /* Typography - Editorial elegance */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', 'Georgia', serif;
 
-    /* Base - Newsprint monochrome */
-    --background: 0 0% 96%;
-    --foreground: 0 0% 8%;
+    /* Base - Warm off-white paper */
+    --background: 40 20% 96%;
+    --foreground: 25 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card-foreground: 25 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover-foreground: 25 15% 15%;
 
-    /* Primary - Ink black */
-    --primary: 0 0% 10%;
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 0 0% 20%;
+    /* Primary - Deep burgundy */
+    --primary: 350 55% 30%;
+    --primary-foreground: 40 30% 96%;
+    --primary-hover: 350 55% 24%;
 
-    /* Secondary - Mid gray */
-    --secondary: 0 0% 75%;
-    --secondary-foreground: 0 0% 8%;
+    /* Secondary - Warm taupe */
+    --secondary: 30 15% 82%;
+    --secondary-foreground: 25 15% 15%;
 
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 35%;
+    --muted: 40 15% 92%;
+    --muted-foreground: 25 10% 40%;
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    /* Accent - Antique gold */
+    --accent: 38 45% 48%;
+    --accent-foreground: 25 15% 15%;
 
-    /* Status - kept subtle grayscale with minimal semantic tone */
-    --success: 0 0% 25%;
-    --success-foreground: 0 0% 98%;
-    --warning: 0 0% 45%;
-    --warning-foreground: 0 0% 98%;
-    --danger: 0 0% 10%;
-    --danger-foreground: 0 0% 98%;
+    /* Status */
+    --success: 145 35% 30%;
+    --success-foreground: 40 30% 96%;
+    --warning: 32 75% 45%;
+    --warning-foreground: 40 30% 96%;
+    --danger: 350 55% 40%;
+    --danger-foreground: 40 30% 96%;
 
-    --destructive: 0 0% 10%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 350 55% 40%;
+    --destructive-foreground: 40 30% 96%;
 
-    /* Borders - thick ink */
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 0 0% 10%;
+    /* Borders - subtle warm gray */
+    --border: 30 12% 82%;
+    --input: 30 12% 82%;
+    --ring: 350 55% 30%;
 
-    /* Sharp corners */
-    --radius: 0;
+    /* Slightly rounded */
+    --radius: 0.25rem;
 
-    /* Sidebar - dark ink slab */
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 0 0% 8%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-border: 0 0% 30%;
-    --sidebar-ring: 0 0% 98%;
+    /* Sidebar - deep espresso */
+    --sidebar-background: 25 20% 14%;
+    --sidebar-foreground: 40 25% 88%;
+    --sidebar-primary: 38 55% 55%;
+    --sidebar-primary-foreground: 25 20% 10%;
+    --sidebar-accent: 25 18% 20%;
+    --sidebar-accent-foreground: 40 25% 88%;
+    --sidebar-border: 25 15% 28%;
+    --sidebar-ring: 38 55% 55%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(217 91% 60%));
