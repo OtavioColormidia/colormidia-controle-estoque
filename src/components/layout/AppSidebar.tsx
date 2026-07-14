@@ -52,60 +52,62 @@ interface NavSection {
   items: NavItem[];
 }
 
+const sidebarIconClass = 'bg-white/10 text-sidebar-foreground/80 group-hover:bg-white/18 group-hover:text-sidebar-foreground';
+
 const sections: NavSection[] = [
   {
     label: 'Principal',
-    accent: 'hsl(217 91% 60%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'compras', 'almoxarife', 'visualizador'], iconClass: 'bg-blue-500/15 text-blue-300 group-hover:bg-blue-500/25 group-hover:text-blue-200' },
+      { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'compras', 'almoxarife', 'visualizador'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Estoque',
-    accent: 'hsl(152 69% 45%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Controle de Estoque', url: '/estoque', icon: Boxes, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-emerald-500/15 text-emerald-300 group-hover:bg-emerald-500/25 group-hover:text-emerald-200' },
-      { title: 'Controle de Treliça', url: '/trelica', icon: LayoutGrid, roles: ['admin', 'almoxarife'], iconClass: 'bg-cyan-500/15 text-cyan-300 group-hover:bg-cyan-500/25 group-hover:text-cyan-200' },
+      { title: 'Controle de Estoque', url: '/estoque', icon: Boxes, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Controle de Treliça', url: '/trelica', icon: LayoutGrid, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Movimentações',
-    accent: 'hsl(24 95% 55%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Entrada de Material', url: '/entradas', icon: PackagePlus, roles: ['admin', 'almoxarife'], iconClass: 'bg-green-500/15 text-green-300 group-hover:bg-green-500/25 group-hover:text-green-200' },
-      { title: 'Saída de Material', url: '/saidas', icon: PackageMinus, roles: ['admin', 'almoxarife'], iconClass: 'bg-orange-500/15 text-orange-300 group-hover:bg-orange-500/25 group-hover:text-orange-200' },
+      { title: 'Entrada de Material', url: '/entradas', icon: PackagePlus, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Saída de Material', url: '/saidas', icon: PackageMinus, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Compras',
-    accent: 'hsl(280 80% 65%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-purple-500/15 text-purple-300 group-hover:bg-purple-500/25 group-hover:text-purple-200' },
-      { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-pink-500/15 text-pink-300 group-hover:bg-pink-500/25 group-hover:text-pink-200' },
+      { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Serviço',
-    accent: 'hsl(38 92% 55%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Controle de Serviço', url: '/servicos', icon: HardHat, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: 'bg-amber-500/15 text-amber-300 group-hover:bg-amber-500/25 group-hover:text-amber-200' },
-      { title: 'Controle de EPI', url: '/epi', icon: Shield, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: 'bg-yellow-500/15 text-yellow-300 group-hover:bg-yellow-500/25 group-hover:text-yellow-200' },
+      { title: 'Controle de Serviço', url: '/servicos', icon: HardHat, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: sidebarIconClass },
+      { title: 'Controle de EPI', url: '/epi', icon: Shield, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Cadastros',
-    accent: 'hsl(190 90% 55%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Produtos', url: '/produtos', icon: Tag, roles: ['admin', 'almoxarife'], iconClass: 'bg-sky-500/15 text-sky-300 group-hover:bg-sky-500/25 group-hover:text-sky-200' },
-      { title: 'Fornecedores', url: '/fornecedores', icon: Building2, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-teal-500/15 text-teal-300 group-hover:bg-teal-500/25 group-hover:text-teal-200' },
-      { title: 'Fornecedores / Material', url: '/fornecedores-materiais', icon: Truck, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-indigo-500/15 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:text-indigo-200' },
+      { title: 'Produtos', url: '/produtos', icon: Tag, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Fornecedores', url: '/fornecedores', icon: Building2, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Fornecedores / Material', url: '/fornecedores-materiais', icon: Truck, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Administração',
-    accent: 'hsl(0 72% 58%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Usuários', url: '/usuarios', icon: UserCog, roles: ['admin'], iconClass: 'bg-rose-500/15 text-rose-300 group-hover:bg-rose-500/25 group-hover:text-rose-200' },
+      { title: 'Usuários', url: '/usuarios', icon: UserCog, roles: ['admin'], iconClass: sidebarIconClass },
     ],
   },
 ];
