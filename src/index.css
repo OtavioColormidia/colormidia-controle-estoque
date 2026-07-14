@@ -8,9 +8,10 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Typography - Editorial elegance */
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-serif: 'Playfair Display', 'Georgia', serif;
+    /* Typography - Technical/Industrial */
+    --font-sans: 'Work Sans', system-ui, -apple-system, sans-serif;
+    --font-serif: 'JetBrains Mono', 'Courier New', monospace;
+    --font-display: 'JetBrains Mono', 'Courier New', monospace;
 
     /* Base - Warm off-white paper */
     --background: 40 20% 96%;
