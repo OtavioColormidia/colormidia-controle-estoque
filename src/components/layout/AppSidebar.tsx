@@ -52,60 +52,62 @@ interface NavSection {
   items: NavItem[];
 }
 
+const sidebarIconClass = 'bg-white/10 text-sidebar-foreground/80 group-hover:bg-white/18 group-hover:text-sidebar-foreground';
+
 const sections: NavSection[] = [
   {
     label: 'Principal',
-    accent: 'hsl(217 91% 60%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'compras', 'almoxarife', 'visualizador'], iconClass: 'bg-blue-500/15 text-blue-300 group-hover:bg-blue-500/25 group-hover:text-blue-200' },
+      { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'compras', 'almoxarife', 'visualizador'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Estoque',
-    accent: 'hsl(152 69% 45%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Controle de Estoque', url: '/estoque', icon: Boxes, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-emerald-500/15 text-emerald-300 group-hover:bg-emerald-500/25 group-hover:text-emerald-200' },
-      { title: 'Controle de Treliça', url: '/trelica', icon: LayoutGrid, roles: ['admin', 'almoxarife'], iconClass: 'bg-cyan-500/15 text-cyan-300 group-hover:bg-cyan-500/25 group-hover:text-cyan-200' },
+      { title: 'Controle de Estoque', url: '/estoque', icon: Boxes, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Controle de Treliça', url: '/trelica', icon: LayoutGrid, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Movimentações',
-    accent: 'hsl(24 95% 55%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Entrada de Material', url: '/entradas', icon: PackagePlus, roles: ['admin', 'almoxarife'], iconClass: 'bg-green-500/15 text-green-300 group-hover:bg-green-500/25 group-hover:text-green-200' },
-      { title: 'Saída de Material', url: '/saidas', icon: PackageMinus, roles: ['admin', 'almoxarife'], iconClass: 'bg-orange-500/15 text-orange-300 group-hover:bg-orange-500/25 group-hover:text-orange-200' },
+      { title: 'Entrada de Material', url: '/entradas', icon: PackagePlus, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Saída de Material', url: '/saidas', icon: PackageMinus, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Compras',
-    accent: 'hsl(280 80% 65%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-purple-500/15 text-purple-300 group-hover:bg-purple-500/25 group-hover:text-purple-200' },
-      { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-pink-500/15 text-pink-300 group-hover:bg-pink-500/25 group-hover:text-pink-200' },
+      { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Serviço',
-    accent: 'hsl(38 92% 55%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Controle de Serviço', url: '/servicos', icon: HardHat, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: 'bg-amber-500/15 text-amber-300 group-hover:bg-amber-500/25 group-hover:text-amber-200' },
-      { title: 'Controle de EPI', url: '/epi', icon: Shield, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: 'bg-yellow-500/15 text-yellow-300 group-hover:bg-yellow-500/25 group-hover:text-yellow-200' },
+      { title: 'Controle de Serviço', url: '/servicos', icon: HardHat, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: sidebarIconClass },
+      { title: 'Controle de EPI', url: '/epi', icon: Shield, roles: ['admin', 'almoxarife', 'compras', 'visualizador'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Cadastros',
-    accent: 'hsl(190 90% 55%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Produtos', url: '/produtos', icon: Tag, roles: ['admin', 'almoxarife'], iconClass: 'bg-sky-500/15 text-sky-300 group-hover:bg-sky-500/25 group-hover:text-sky-200' },
-      { title: 'Fornecedores', url: '/fornecedores', icon: Building2, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-teal-500/15 text-teal-300 group-hover:bg-teal-500/25 group-hover:text-teal-200' },
-      { title: 'Fornecedores / Material', url: '/fornecedores-materiais', icon: Truck, roles: ['admin', 'compras', 'almoxarife'], iconClass: 'bg-indigo-500/15 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:text-indigo-200' },
+      { title: 'Produtos', url: '/produtos', icon: Tag, roles: ['admin', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Fornecedores', url: '/fornecedores', icon: Building2, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Fornecedores / Material', url: '/fornecedores-materiais', icon: Truck, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
     ],
   },
   {
     label: 'Administração',
-    accent: 'hsl(0 72% 58%)',
+    accent: 'hsl(0 0% 55%)',
     items: [
-      { title: 'Usuários', url: '/usuarios', icon: UserCog, roles: ['admin'], iconClass: 'bg-rose-500/15 text-rose-300 group-hover:bg-rose-500/25 group-hover:text-rose-200' },
+      { title: 'Usuários', url: '/usuarios', icon: UserCog, roles: ['admin'], iconClass: sidebarIconClass },
     ],
   },
 ];
@@ -295,8 +297,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0">
       {/* Sidebar with gradient background + decorative orbs */}
       <div className="absolute inset-0 sidebar-gradient pointer-events-none" />
-      <div className="sidebar-orb h-40 w-40 -top-10 -left-10 bg-primary/40" />
-      <div className="sidebar-orb h-48 w-48 bottom-20 -right-16 bg-secondary/30" />
+      <div className="sidebar-orb h-40 w-40 -top-10 -left-10 bg-white/5" />
+      <div className="sidebar-orb h-48 w-48 bottom-20 -right-16 bg-white/5" />
 
       <SidebarHeader className="relative border-b border-sidebar-border/50 backdrop-blur-sm">
         <div className="flex items-center gap-3 px-2 py-2">
@@ -306,7 +308,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <h1 className="text-sm font-bold text-sidebar-foreground truncate tracking-tight">
-                Color<span className="bg-gradient-to-r from-secondary to-orange-300 bg-clip-text text-transparent">Mídia</span>
+                Color<span className="text-sidebar-foreground/90">Mídia</span>
               </h1>
               <p className="text-[10px] text-sidebar-foreground/50 truncate uppercase tracking-wider">Controle de Estoque</p>
             </div>
@@ -462,14 +464,14 @@ export function AppSidebar() {
                                 <span className="truncate text-sm">{item.title}</span>
                                 {showBadge && !collapsed && (
                                   <Badge
-                                    variant="warning"
-                                    className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 animate-pulse-subtle shadow-[0_0_10px_hsl(var(--warning)/0.5)]"
+                                    variant="secondary"
+                                    className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] px-1.5 bg-sidebar-foreground/15 text-sidebar-foreground border-none"
                                   >
                                     {badgeValue}
                                   </Badge>
                                 )}
                                 {showBadge && collapsed && (
-                                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning animate-pulse shadow-[0_0_8px_hsl(var(--warning))]" />
+                                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-sidebar-foreground/60" />
                                 )}
                               </NavLink>
                             </SidebarMenuButton>
