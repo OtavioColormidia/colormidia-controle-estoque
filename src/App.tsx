@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PublicRequests from "./pages/PublicRequests";
+import OAuthConsent from "./pages/OAuthConsent";
 import AppLayout from "./components/layout/AppLayout";
 import {
   DashboardPage,
@@ -34,6 +35,7 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/pedidos" element={<PublicRequests />} />
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route element={<AppLayout />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
