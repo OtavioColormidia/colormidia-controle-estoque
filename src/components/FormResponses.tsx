@@ -42,9 +42,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import PurchaseOrderDialog from "@/components/PurchaseOrderDialog";
-import { Purchase, Supplier } from "@/types/inventory";
+import { Purchase, PurchaseItem, Supplier } from "@/types/inventory";
 import PageHeader from "@/components/shared/PageHeader";
 import { DoubleScroll } from "@/components/shared/DoubleScroll";
+import { summarizePurchaseItems } from "@/lib/abbreviateItems";
 
 interface FormResponsesProps {
   suppliers: Supplier[];
@@ -310,16 +311,26 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
     }
   };
 
-  const markOrdered = async (r: FormResponse, newOrdered: boolean) => {
+  const markOrdered = async (
+    r: FormResponse,
+    newOrdered: boolean,
+    summary?: string,
+  ) => {
     if (!currentUserId) return;
     setUpdatingId(r.id);
+    const update: Record<string, any> = {
+      ordered: newOrdered,
+      ordered_by: newOrdered ? currentUserId : null,
+      ordered_at: newOrdered ? new Date().toISOString() : null,
+    };
+    if (newOrdered && summary !== undefined) {
+      update.ordered_summary = summary || null;
+    } else if (!newOrdered) {
+      update.ordered_summary = null;
+    }
     const { error } = await supabase
       .from("form_responses")
-      .update({
-        ordered: newOrdered,
-        ordered_by: newOrdered ? currentUserId : null,
-        ordered_at: newOrdered ? new Date().toISOString() : null,
-      })
+      .update(update)
       .eq("id", r.id);
     setUpdatingId(null);
     if (error) {
@@ -786,8 +797,11 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         initialDocumentNumber={activeResponse ? getOsNumber(activeResponse) : ""}
         requesterName={activeResponse ? getRequesterName(activeResponse) : ""}
         onAddPurchase={onAddPurchase}
-        onCreated={async () => {
-          if (activeResponse) await markOrdered(activeResponse, true);
+        onCreated={async (info) => {
+          if (activeResponse) {
+            const summary = summarizePurchaseItems(info?.items ?? []);
+            await markOrdered(activeResponse, true, summary);
+          }
         }}
       />
     </div>
