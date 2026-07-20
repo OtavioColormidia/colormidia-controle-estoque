@@ -16,6 +16,7 @@ interface FormResponse {
   ordered_at: string | null;
   completed: boolean;
   completed_at: string | null;
+  ordered_summary: string | null;
 }
 
 type Bucket = "aberto" | "feito" | "concluido";
@@ -120,7 +121,7 @@ export default function PublicRequests() {
   const load = async () => {
     const { data, error } = await supabase
       .from("form_responses")
-      .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at")
+      .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary")
       .order("submitted_at", { ascending: false })
       .limit(500);
     if (!error && data) setItems(data as FormResponse[]);
@@ -245,7 +246,9 @@ export default function PublicRequests() {
                         </div>
                       ) : (
                         list.map((r) => {
-                          const materials = getField(r.data, "materia", "descri", "item");
+                          const rawMaterials = getField(r.data, "materia", "descri", "item");
+                          const showSummary = (col.id === "feito" || col.id === "concluido") && !!r.ordered_summary;
+                          const materials = showSummary ? (r.ordered_summary as string) : rawMaterials;
                           const os = getField(r.data, "o.s", "ordem");
                           const solicitante = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante");
                           const tipo = getField(r.data, "tipo");

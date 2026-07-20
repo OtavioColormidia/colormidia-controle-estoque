@@ -268,6 +268,7 @@ export type Database = {
           ordered: boolean
           ordered_at: string | null
           ordered_by: string | null
+          ordered_summary: string | null
           sheet_row: number | null
           submitted_at: string
         }
@@ -282,6 +283,7 @@ export type Database = {
           ordered?: boolean
           ordered_at?: string | null
           ordered_by?: string | null
+          ordered_summary?: string | null
           sheet_row?: number | null
           submitted_at?: string
         }
@@ -296,6 +298,7 @@ export type Database = {
           ordered?: boolean
           ordered_at?: string | null
           ordered_by?: string | null
+          ordered_summary?: string | null
           sheet_row?: number | null
           submitted_at?: string
         }
