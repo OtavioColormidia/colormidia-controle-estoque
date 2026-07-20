@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import PublicRequests from "./pages/PublicRequests";
 import OAuthConsent from "./pages/OAuthConsent";
 import AppLayout from "./components/layout/AppLayout";
+import UpdateNotifier from "./components/UpdateNotifier";
 import {
   DashboardPage,
   InventoryPage,
@@ -31,6 +32,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <UpdateNotifier />
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
