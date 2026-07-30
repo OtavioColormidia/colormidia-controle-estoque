@@ -129,17 +129,56 @@ export default function PublicRequests() {
   };
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let disposed = false;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+
+    const subscribe = () => {
+      if (disposed) return;
+      if (channel) supabase.removeChannel(channel);
+      channel = supabase
+        .channel(`public-form-responses-${Date.now()}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "form_responses" },
+          () => load(),
+        )
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            load();
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (retry) clearTimeout(retry);
+            retry = setTimeout(subscribe, 3000);
+          }
+        });
+    };
+
     load();
-    const channel = supabase
-      .channel("public-form-responses")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "form_responses" },
-        () => load(),
-      )
-      .subscribe();
+    subscribe();
+
+    // Fallback: polling periódico caso o websocket falhe
+    const poll = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 20000);
+
+    const onWake = () => {
+      if (document.visibilityState === "visible") {
+        load();
+        subscribe();
+      }
+    };
+    document.addEventListener("visibilitychange", onWake);
+    window.addEventListener("focus", onWake);
+    window.addEventListener("online", onWake);
+
     return () => {
-      supabase.removeChannel(channel);
+      disposed = true;
+      if (retry) clearTimeout(retry);
+      clearInterval(poll);
+      document.removeEventListener("visibilitychange", onWake);
+      window.removeEventListener("focus", onWake);
+      window.removeEventListener("online", onWake);
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
