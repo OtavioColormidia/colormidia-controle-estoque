@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ClipboardList, Search, Loader2, Inbox, PackageCheck, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { abbreviateProductName } from "@/lib/abbreviateItems";
 
 interface FormResponse {
   id: string;
@@ -17,6 +18,15 @@ interface FormResponse {
   completed: boolean;
   completed_at: string | null;
   ordered_summary: string | null;
+}
+
+interface PurchaseCard {
+  id: string;
+  date: string;
+  created_at: string;
+  supplier_name: string | null;
+  document_number: string | null;
+  items_summary: string | null;
 }
 
 type Bucket = "aberto" | "feito" | "concluido";
@@ -91,6 +101,7 @@ const columns: {
 
 export default function PublicRequests() {
   const [items, setItems] = useState<FormResponse[]>([]);
+  const [purchases, setPurchases] = useState<PurchaseCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -119,14 +130,23 @@ export default function PublicRequests() {
   };
 
   const load = async () => {
-    const { data, error } = await supabase
-      .from("form_responses")
-      .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary")
-      .order("submitted_at", { ascending: false })
-      .limit(500);
+    const [{ data, error }, purchasesRes] = await Promise.all([
+      supabase
+        .from("form_responses")
+        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary")
+        .order("submitted_at", { ascending: false })
+        .limit(500),
+      (supabase as any)
+        .from("public_recent_purchases")
+        .select("id, date, created_at, supplier_name, document_number, items_summary")
+        .order("date", { ascending: false })
+        .limit(200),
+    ]);
     if (!error && data) setItems(data as FormResponse[]);
+    if (!purchasesRes.error && purchasesRes.data) setPurchases(purchasesRes.data as PurchaseCard[]);
     setLoading(false);
   };
+
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -210,6 +230,33 @@ export default function PublicRequests() {
     return g;
   }, [filtered]);
 
+  // Compras lançadas direto na aba Compras (manual ou via NF) que não vieram de uma requisição
+  const extraPurchases = useMemo(() => {
+    const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+    // O.S. já representadas por requisições marcadas como "pedido feito"
+    const usedOs = new Set<string>();
+    items.forEach((r) => {
+      if (!r.ordered) return;
+      const os = getField(r.data, "o.s", "ordem");
+      (os.match(/\d{4,}/g) || []).forEach((n) => usedOs.add(n));
+    });
+    const q = search.trim().toLowerCase();
+    return purchases
+      .filter((p) => new Date(p.date).getTime() >= fiveDaysAgo)
+      .filter((p) => {
+        const nums = (p.document_number || "").match(/\d{4,}/g) || [];
+        return !nums.some((n) => usedOs.has(n));
+      })
+      .filter((p) => {
+        if (!q) return true;
+        return [p.supplier_name, p.document_number, p.items_summary]
+          .join(" ")
+          .toLowerCase()
+          .includes(q);
+      });
+  }, [purchases, items, search]);
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
       <header className="border-b border-border/60 bg-card/60 backdrop-blur-md sticky top-0 z-10">
@@ -261,6 +308,7 @@ export default function PublicRequests() {
               <div ref={innerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
               {columns.map((col) => {
                 const list = grouped[col.id];
+                const extras = col.id === "feito" ? extraPurchases : [];
                 const Icon = col.icon;
                 return (
                   <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
@@ -275,13 +323,14 @@ export default function PublicRequests() {
                         {col.label}
                       </div>
                       <Badge variant="outline" className={cn("border", col.badge)}>
-                        {list.length}
+                        {list.length + extras.length}
                       </Badge>
                     </div>
                     <div className="flex-1 border rounded-b-xl bg-card/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)]">
-                      {list.length === 0 ? (
+                      {list.length === 0 && extras.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground py-10">
                           Nenhum pedido nesta categoria.
+
                         </div>
                       ) : (
                         list.map((r) => {
@@ -345,6 +394,43 @@ export default function PublicRequests() {
                           );
                         })
                       )}
+                      {extras.map((p) => {
+                        const lines = (p.items_summary || "")
+                          .split("\n")
+                          .map((l) => {
+                            const m = l.match(/^([\d.,]+)x\s+(.*)$/);
+                            return m ? `${m[1]}x ${abbreviateProductName(m[2])}` : abbreviateProductName(l);
+                          })
+                          .filter(Boolean)
+                          .join("\n");
+                        return (
+                          <Card key={p.id} className="border-border/60 hover:border-primary/40 transition-colors">
+                            <CardHeader className="p-3 pb-2 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <CardTitle className="text-sm font-semibold truncate">
+                                  {p.supplier_name || "Compra"}
+                                </CardTitle>
+                                <Badge variant="secondary" className="text-[10px]">Compras</Badge>
+                              </div>
+                              <div className="text-[11px] text-muted-foreground">
+                                {formatDate(p.date)}
+                                {p.document_number && (
+                                  <> · <span className="font-medium text-foreground">{p.document_number}</span></>
+                                )}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-0 space-y-2 text-sm">
+                              {lines && (
+                                <div className="whitespace-pre-wrap break-words leading-snug">{lines}</div>
+                              )}
+                              <div className="text-[11px] text-primary/80">
+                                Pedido feito em {formatDate(p.date)}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+
                     </div>
                   </section>
                 );

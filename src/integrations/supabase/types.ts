@@ -440,6 +440,13 @@ export type Database = {
             foreignKeyName: "purchase_items_purchase_id_fkey"
             columns: ["purchase_id"]
             isOneToOne: false
+            referencedRelation: "public_recent_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_items_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
             referencedRelation: "purchases"
             referencedColumns: ["id"]
           },
@@ -1031,7 +1038,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_recent_purchases: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          document_number: string | null
+          id: string | null
+          items_summary: string | null
+          status: string | null
+          supplier_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          document_number?: string | null
+          id?: string | null
+          items_summary?: never
+          status?: string | null
+          supplier_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          document_number?: string | null
+          id?: string | null
+          items_summary?: never
+          status?: string | null
+          supplier_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
