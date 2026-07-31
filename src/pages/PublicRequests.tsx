@@ -276,8 +276,12 @@ export default function PublicRequests() {
         return !nums.some((n) => usedOs.has(n));
       })
       .filter((p) => {
+        if (solicitanteFilter === "todos") return true;
+        return (p.creator_name || "").trim().toLowerCase() === solicitanteFilter.toLowerCase();
+      })
+      .filter((p) => {
         if (!q) return true;
-        return [p.supplier_name, p.document_number, p.items_summary]
+        return [p.creator_name, p.supplier_name, p.document_number, p.items_summary]
           .join(" ")
           .toLowerCase()
           .includes(q);
