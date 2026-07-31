@@ -229,6 +229,33 @@ export default function PublicRequests() {
     return g;
   }, [filtered]);
 
+  // Compras lançadas direto na aba Compras (manual ou via NF) que não vieram de uma requisição
+  const extraPurchases = useMemo(() => {
+    const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+    // O.S. já representadas por requisições marcadas como "pedido feito"
+    const usedOs = new Set<string>();
+    items.forEach((r) => {
+      if (!r.ordered) return;
+      const os = getField(r.data, "o.s", "ordem");
+      (os.match(/\d{4,}/g) || []).forEach((n) => usedOs.add(n));
+    });
+    const q = search.trim().toLowerCase();
+    return purchases
+      .filter((p) => new Date(p.date).getTime() >= fiveDaysAgo)
+      .filter((p) => {
+        const nums = (p.document_number || "").match(/\d{4,}/g) || [];
+        return !nums.some((n) => usedOs.has(n));
+      })
+      .filter((p) => {
+        if (!q) return true;
+        return [p.supplier_name, p.document_number, p.items_summary]
+          .join(" ")
+          .toLowerCase()
+          .includes(q);
+      });
+  }, [purchases, items, search]);
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
       <header className="border-b border-border/60 bg-card/60 backdrop-blur-md sticky top-0 z-10">
