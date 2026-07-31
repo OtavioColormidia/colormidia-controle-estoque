@@ -269,6 +269,7 @@ export type Database = {
           ordered_at: string | null
           ordered_by: string | null
           ordered_summary: string | null
+          purchase_id: string | null
           sheet_row: number | null
           submitted_at: string
         }
@@ -284,6 +285,7 @@ export type Database = {
           ordered_at?: string | null
           ordered_by?: string | null
           ordered_summary?: string | null
+          purchase_id?: string | null
           sheet_row?: number | null
           submitted_at?: string
         }
@@ -299,6 +301,7 @@ export type Database = {
           ordered_at?: string | null
           ordered_by?: string | null
           ordered_summary?: string | null
+          purchase_id?: string | null
           sheet_row?: number | null
           submitted_at?: string
         }
@@ -461,6 +464,7 @@ export type Database = {
           document_number: string | null
           expected_delivery_date: string | null
           frete: number | null
+          hidden_from_public: boolean
           id: string
           ipi: number | null
           notes: string | null
@@ -478,6 +482,7 @@ export type Database = {
           document_number?: string | null
           expected_delivery_date?: string | null
           frete?: number | null
+          hidden_from_public?: boolean
           id?: string
           ipi?: number | null
           notes?: string | null
@@ -495,6 +500,7 @@ export type Database = {
           document_number?: string | null
           expected_delivery_date?: string | null
           frete?: number | null
+          hidden_from_public?: boolean
           id?: string
           ipi?: number | null
           notes?: string | null
@@ -1040,30 +1046,24 @@ export type Database = {
     Views: {
       public_recent_purchases: {
         Row: {
-          created_at: string | null
           date: string | null
           document_number: string | null
           id: string | null
-          items_summary: string | null
-          status: string | null
+          items: Json | null
           supplier_name: string | null
         }
         Insert: {
-          created_at?: string | null
           date?: string | null
           document_number?: string | null
           id?: string | null
-          items_summary?: never
-          status?: string | null
+          items?: never
           supplier_name?: string | null
         }
         Update: {
-          created_at?: string | null
           date?: string | null
           document_number?: string | null
           id?: string | null
-          items_summary?: never
-          status?: string | null
+          items?: never
           supplier_name?: string | null
         }
         Relationships: []
