@@ -307,6 +307,7 @@ export default function PublicRequests() {
               <div ref={innerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
               {columns.map((col) => {
                 const list = grouped[col.id];
+                const extras = col.id === "feito" ? extraPurchases : [];
                 const Icon = col.icon;
                 return (
                   <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
@@ -321,13 +322,14 @@ export default function PublicRequests() {
                         {col.label}
                       </div>
                       <Badge variant="outline" className={cn("border", col.badge)}>
-                        {list.length}
+                        {list.length + extras.length}
                       </Badge>
                     </div>
                     <div className="flex-1 border rounded-b-xl bg-card/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)]">
-                      {list.length === 0 ? (
+                      {list.length === 0 && extras.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground py-10">
                           Nenhum pedido nesta categoria.
+
                         </div>
                       ) : (
                         list.map((r) => {
