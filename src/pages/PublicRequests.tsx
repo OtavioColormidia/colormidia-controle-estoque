@@ -104,6 +104,8 @@ export default function PublicRequests() {
   const [purchases, setPurchases] = useState<PurchaseCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [tipoFilter, setTipoFilter] = useState<string>("todos");
+  const [solicitanteFilter, setSolicitanteFilter] = useState<string>("todos");
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
