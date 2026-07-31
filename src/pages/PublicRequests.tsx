@@ -222,8 +222,12 @@ export default function PublicRequests() {
       const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
       if (n) s.add(n);
     });
+    purchases.forEach((p) => {
+      const n = (p.creator_name || "").trim();
+      if (n) s.add(n);
+    });
     return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [items]);
+  }, [items, purchases]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -468,7 +472,7 @@ export default function PublicRequests() {
                             <CardHeader className="p-3 pb-2 space-y-1">
                               <div className="flex items-center justify-between gap-2">
                                 <CardTitle className="text-sm font-semibold truncate">
-                                  {p.supplier_name || "Compra"}
+                                  {p.creator_name || p.supplier_name || "Compra"}
                                 </CardTitle>
                                 <Badge variant="secondary" className="text-[10px]">Compras</Badge>
                               </div>
