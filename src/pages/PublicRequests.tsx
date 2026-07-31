@@ -302,15 +302,40 @@ export default function PublicRequests() {
               </p>
             </div>
           </div>
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por material, O.S., solicitante..."
-              className="pl-9"
-            />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por material, O.S., solicitante..."
+                className="pl-9"
+              />
+            </div>
+            <Select value={tipoFilter} onValueChange={setTipoFilter}>
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="todos">Todos os tipos</SelectItem>
+                {tipoOptions.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={solicitanteFilter} onValueChange={setSolicitanteFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Solicitante" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50 max-h-72">
+                <SelectItem value="todos">Todos os solicitantes</SelectItem>
+                {solicitanteOptions.map((n) => (
+                  <SelectItem key={n} value={n}>{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
         </div>
       </header>
 
