@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ClipboardList, Search, Loader2, Inbox, PackageCheck, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { abbreviateProductName } from "@/lib/abbreviateItems";
 
 interface FormResponse {
   id: string;
