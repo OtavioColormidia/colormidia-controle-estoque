@@ -393,6 +393,43 @@ export default function PublicRequests() {
                           );
                         })
                       )}
+                      {extras.map((p) => {
+                        const lines = (p.items_summary || "")
+                          .split("\n")
+                          .map((l) => {
+                            const m = l.match(/^([\d.,]+)x\s+(.*)$/);
+                            return m ? `${m[1]}x ${abbreviateProductName(m[2])}` : abbreviateProductName(l);
+                          })
+                          .filter(Boolean)
+                          .join("\n");
+                        return (
+                          <Card key={p.id} className="border-border/60 hover:border-primary/40 transition-colors">
+                            <CardHeader className="p-3 pb-2 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <CardTitle className="text-sm font-semibold truncate">
+                                  {p.supplier_name || "Compra"}
+                                </CardTitle>
+                                <Badge variant="secondary" className="text-[10px]">Compras</Badge>
+                              </div>
+                              <div className="text-[11px] text-muted-foreground">
+                                {formatDate(p.date)}
+                                {p.document_number && (
+                                  <> · <span className="font-medium text-foreground">{p.document_number}</span></>
+                                )}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-0 space-y-2 text-sm">
+                              {lines && (
+                                <div className="whitespace-pre-wrap break-words leading-snug">{lines}</div>
+                              )}
+                              <div className="text-[11px] text-primary/80">
+                                Pedido feito em {formatDate(p.date)}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+
                     </div>
                   </section>
                 );
