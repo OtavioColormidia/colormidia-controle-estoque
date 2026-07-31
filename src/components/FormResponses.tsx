@@ -806,7 +806,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         onCreated={async (info) => {
           if (activeResponse) {
             const summary = summarizePurchaseItems(info?.items ?? []);
-            await markOrdered(activeResponse, true, summary);
+            await markOrdered(activeResponse, true, summary, info?.purchaseId);
           }
         }}
       />
