@@ -19,6 +19,15 @@ interface FormResponse {
   ordered_summary: string | null;
 }
 
+interface PurchaseCard {
+  id: string;
+  date: string;
+  created_at: string;
+  supplier_name: string | null;
+  document_number: string | null;
+  items_summary: string | null;
+}
+
 type Bucket = "aberto" | "feito" | "concluido";
 
 const formatDate = (iso: string | null) => {
