@@ -129,14 +129,23 @@ export default function PublicRequests() {
   };
 
   const load = async () => {
-    const { data, error } = await supabase
-      .from("form_responses")
-      .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary")
-      .order("submitted_at", { ascending: false })
-      .limit(500);
+    const [{ data, error }, purchasesRes] = await Promise.all([
+      supabase
+        .from("form_responses")
+        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary")
+        .order("submitted_at", { ascending: false })
+        .limit(500),
+      (supabase as any)
+        .from("public_recent_purchases")
+        .select("id, date, created_at, supplier_name, document_number, items_summary")
+        .order("date", { ascending: false })
+        .limit(200),
+    ]);
     if (!error && data) setItems(data as FormResponse[]);
+    if (!purchasesRes.error && purchasesRes.data) setPurchases(purchasesRes.data as PurchaseCard[]);
     setLoading(false);
   };
+
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
