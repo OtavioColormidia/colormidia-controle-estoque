@@ -266,6 +266,8 @@ export default function PublicRequests() {
       (os.match(/\d{4,}/g) || []).forEach((n) => usedOs.add(n));
     });
     const q = search.trim().toLowerCase();
+    if (solicitanteFilter !== "todos") return [];
+    if (tipoFilter !== "todos" && tipoFilter !== "Compras") return [];
     return purchases
       .filter((p) => new Date(p.date).getTime() >= fiveDaysAgo)
       .filter((p) => {
@@ -279,7 +281,8 @@ export default function PublicRequests() {
           .toLowerCase()
           .includes(q);
       });
-  }, [purchases, items, search]);
+  }, [purchases, items, search, tipoFilter, solicitanteFilter]);
+
 
 
   return (
