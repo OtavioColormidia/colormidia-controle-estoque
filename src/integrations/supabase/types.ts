@@ -1047,27 +1047,12 @@ export type Database = {
       public_recent_purchases: {
         Row: {
           created_at: string | null
+          creator_name: string | null
           date: string | null
           document_number: string | null
           id: string | null
           items_summary: string | null
           supplier_name: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          date?: string | null
-          document_number?: string | null
-          id?: string | null
-          items_summary?: never
-          supplier_name?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          date?: string | null
-          document_number?: string | null
-          id?: string | null
-          items_summary?: never
-          supplier_name?: string | null
         }
         Relationships: []
       }

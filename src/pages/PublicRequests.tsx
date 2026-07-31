@@ -26,6 +26,7 @@ interface PurchaseCard {
   date: string;
   created_at: string;
   supplier_name: string | null;
+  creator_name: string | null;
   document_number: string | null;
   items_summary: string | null;
 }
@@ -141,7 +142,7 @@ export default function PublicRequests() {
         .limit(500),
       (supabase as any)
         .from("public_recent_purchases")
-        .select("id, date, created_at, supplier_name, document_number, items_summary")
+        .select("id, date, created_at, supplier_name, creator_name, document_number, items_summary")
         .order("date", { ascending: false })
         .limit(200),
     ]);
@@ -221,8 +222,12 @@ export default function PublicRequests() {
       const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
       if (n) s.add(n);
     });
+    purchases.forEach((p) => {
+      const n = (p.creator_name || "").trim();
+      if (n) s.add(n);
+    });
     return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [items]);
+  }, [items, purchases]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -267,7 +272,6 @@ export default function PublicRequests() {
       (os.match(/\d{4,}/g) || []).forEach((n) => usedOs.add(n));
     });
     const q = search.trim().toLowerCase();
-    if (solicitanteFilter !== "todos") return [];
     if (tipoFilter !== "todos" && tipoFilter !== "Compras") return [];
     return purchases
       .filter((p) => new Date(p.date).getTime() >= fiveDaysAgo)
@@ -276,8 +280,12 @@ export default function PublicRequests() {
         return !nums.some((n) => usedOs.has(n));
       })
       .filter((p) => {
+        if (solicitanteFilter === "todos") return true;
+        return (p.creator_name || "").trim().toLowerCase() === solicitanteFilter.toLowerCase();
+      })
+      .filter((p) => {
         if (!q) return true;
-        return [p.supplier_name, p.document_number, p.items_summary]
+        return [p.creator_name, p.supplier_name, p.document_number, p.items_summary]
           .join(" ")
           .toLowerCase()
           .includes(q);
@@ -464,7 +472,7 @@ export default function PublicRequests() {
                             <CardHeader className="p-3 pb-2 space-y-1">
                               <div className="flex items-center justify-between gap-2">
                                 <CardTitle className="text-sm font-semibold truncate">
-                                  {p.supplier_name || "Compra"}
+                                  {p.creator_name || p.supplier_name || "Compra"}
                                 </CardTitle>
                                 <Badge variant="secondary" className="text-[10px]">Compras</Badge>
                               </div>
