@@ -204,19 +204,42 @@ export default function PublicRequests() {
     };
   }, []);
 
+  const tipoOptions = useMemo(() => {
+    const s = new Set<string>();
+    items.forEach((r) => {
+      const t = getField(r.data, "tipo").trim();
+      if (t) s.add(t);
+    });
+    if (purchases.length) s.add("Compras");
+    return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [items, purchases]);
+
+  const solicitanteOptions = useMemo(() => {
+    const s = new Set<string>();
+    items.forEach((r) => {
+      const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
+      if (n) s.add(n);
+    });
+    return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [items]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return items;
     return items.filter((r) => {
-      const hay = [
-        r.form_name,
-        JSON.stringify(r.data ?? {}),
-      ]
-        .join(" ")
-        .toLowerCase();
+      if (tipoFilter !== "todos") {
+        if (tipoFilter === "Compras") return false;
+        if (getField(r.data, "tipo").trim().toLowerCase() !== tipoFilter.toLowerCase()) return false;
+      }
+      if (solicitanteFilter !== "todos") {
+        const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
+        if (n.toLowerCase() !== solicitanteFilter.toLowerCase()) return false;
+      }
+      if (!q) return true;
+      const hay = [r.form_name, JSON.stringify(r.data ?? {})].join(" ").toLowerCase();
       return hay.includes(q);
     });
-  }, [items, search]);
+  }, [items, search, tipoFilter, solicitanteFilter]);
+
 
   const grouped = useMemo(() => {
     const g: Record<Bucket, FormResponse[]> = { aberto: [], feito: [], concluido: [] };
