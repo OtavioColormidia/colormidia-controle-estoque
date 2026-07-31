@@ -337,7 +337,7 @@ export default function PurchaseOrderDialog({
         title: "Pedido criado",
         description: "Pedido de compra criado com sucesso",
       });
-      await onCreated?.({ items });
+      await onCreated?.({ items, purchaseId: typeof newId === "string" ? newId : undefined });
       onOpenChange(false);
     } catch (err: any) {
       toast({
