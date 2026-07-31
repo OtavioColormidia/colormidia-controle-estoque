@@ -100,6 +100,7 @@ const columns: {
 
 export default function PublicRequests() {
   const [items, setItems] = useState<FormResponse[]>([]);
+  const [purchases, setPurchases] = useState<PurchaseCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const topScrollRef = useRef<HTMLDivElement>(null);
