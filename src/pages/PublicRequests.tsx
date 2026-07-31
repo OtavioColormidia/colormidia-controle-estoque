@@ -26,6 +26,7 @@ interface PurchaseCard {
   date: string;
   created_at: string;
   supplier_name: string | null;
+  creator_name: string | null;
   document_number: string | null;
   items_summary: string | null;
 }
@@ -141,7 +142,7 @@ export default function PublicRequests() {
         .limit(500),
       (supabase as any)
         .from("public_recent_purchases")
-        .select("id, date, created_at, supplier_name, document_number, items_summary")
+        .select("id, date, created_at, supplier_name, creator_name, document_number, items_summary")
         .order("date", { ascending: false })
         .limit(200),
     ]);
@@ -267,7 +268,6 @@ export default function PublicRequests() {
       (os.match(/\d{4,}/g) || []).forEach((n) => usedOs.add(n));
     });
     const q = search.trim().toLowerCase();
-    if (solicitanteFilter !== "todos") return [];
     if (tipoFilter !== "todos" && tipoFilter !== "Compras") return [];
     return purchases
       .filter((p) => new Date(p.date).getTime() >= fiveDaysAgo)
