@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ClipboardList, Search, Loader2, Inbox, PackageCheck, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { abbreviateProductName } from "@/lib/abbreviateItems";
@@ -104,6 +105,8 @@ export default function PublicRequests() {
   const [purchases, setPurchases] = useState<PurchaseCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [tipoFilter, setTipoFilter] = useState<string>("todos");
+  const [solicitanteFilter, setSolicitanteFilter] = useState<string>("todos");
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -202,19 +205,42 @@ export default function PublicRequests() {
     };
   }, []);
 
+  const tipoOptions = useMemo(() => {
+    const s = new Set<string>();
+    items.forEach((r) => {
+      const t = getField(r.data, "tipo").trim();
+      if (t) s.add(t);
+    });
+    if (purchases.length) s.add("Compras");
+    return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [items, purchases]);
+
+  const solicitanteOptions = useMemo(() => {
+    const s = new Set<string>();
+    items.forEach((r) => {
+      const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
+      if (n) s.add(n);
+    });
+    return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [items]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return items;
     return items.filter((r) => {
-      const hay = [
-        r.form_name,
-        JSON.stringify(r.data ?? {}),
-      ]
-        .join(" ")
-        .toLowerCase();
+      if (tipoFilter !== "todos") {
+        if (tipoFilter === "Compras") return false;
+        if (getField(r.data, "tipo").trim().toLowerCase() !== tipoFilter.toLowerCase()) return false;
+      }
+      if (solicitanteFilter !== "todos") {
+        const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
+        if (n.toLowerCase() !== solicitanteFilter.toLowerCase()) return false;
+      }
+      if (!q) return true;
+      const hay = [r.form_name, JSON.stringify(r.data ?? {})].join(" ").toLowerCase();
       return hay.includes(q);
     });
-  }, [items, search]);
+  }, [items, search, tipoFilter, solicitanteFilter]);
+
 
   const grouped = useMemo(() => {
     const g: Record<Bucket, FormResponse[]> = { aberto: [], feito: [], concluido: [] };
@@ -241,6 +267,8 @@ export default function PublicRequests() {
       (os.match(/\d{4,}/g) || []).forEach((n) => usedOs.add(n));
     });
     const q = search.trim().toLowerCase();
+    if (solicitanteFilter !== "todos") return [];
+    if (tipoFilter !== "todos" && tipoFilter !== "Compras") return [];
     return purchases
       .filter((p) => new Date(p.date).getTime() >= fiveDaysAgo)
       .filter((p) => {
@@ -254,7 +282,8 @@ export default function PublicRequests() {
           .toLowerCase()
           .includes(q);
       });
-  }, [purchases, items, search]);
+  }, [purchases, items, search, tipoFilter, solicitanteFilter]);
+
 
 
   return (
@@ -274,15 +303,40 @@ export default function PublicRequests() {
               </p>
             </div>
           </div>
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por material, O.S., solicitante..."
-              className="pl-9"
-            />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por material, O.S., solicitante..."
+                className="pl-9"
+              />
+            </div>
+            <Select value={tipoFilter} onValueChange={setTipoFilter}>
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="todos">Todos os tipos</SelectItem>
+                {tipoOptions.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={solicitanteFilter} onValueChange={setSolicitanteFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Solicitante" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50 max-h-72">
+                <SelectItem value="todos">Todos os solicitantes</SelectItem>
+                {solicitanteOptions.map((n) => (
+                  <SelectItem key={n} value={n}>{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
         </div>
       </header>
 
