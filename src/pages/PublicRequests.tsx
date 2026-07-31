@@ -399,7 +399,9 @@ export default function PublicRequests() {
                           .split("\n")
                           .map((l) => {
                             const m = l.match(/^([\d.,]+)x\s+(.*)$/);
-                            return m ? `${m[1]}x ${abbreviateProductName(m[2])}` : abbreviateProductName(l);
+                            if (!m) return abbreviateProductName(l);
+                            const qty = m[1].replace(/[.,]+$/, "");
+                            return `${qty}x ${abbreviateProductName(m[2])}`;
                           })
                           .filter(Boolean)
                           .join("\n");
