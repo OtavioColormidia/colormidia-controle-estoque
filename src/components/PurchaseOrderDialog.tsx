@@ -38,7 +38,7 @@ interface PurchaseOrderDialogProps {
   initialDocumentNumber?: string;
   requesterName?: string;
   onAddPurchase: (purchase: Omit<Purchase, "id">) => Promise<string | void>;
-  onCreated?: (info?: { items: PurchaseItem[] }) => void | Promise<void>;
+  onCreated?: (info?: { items: PurchaseItem[]; purchaseId?: string }) => void | Promise<void>;
 }
 
 // Parse free-text materials (one per line) into rough items
@@ -337,7 +337,7 @@ export default function PurchaseOrderDialog({
         title: "Pedido criado",
         description: "Pedido de compra criado com sucesso",
       });
-      await onCreated?.({ items });
+      await onCreated?.({ items, purchaseId: typeof newId === "string" ? newId : undefined });
       onOpenChange(false);
     } catch (err: any) {
       toast({

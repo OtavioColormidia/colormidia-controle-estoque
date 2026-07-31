@@ -315,6 +315,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
     r: FormResponse,
     newOrdered: boolean,
     summary?: string,
+    purchaseId?: string,
   ) => {
     if (!currentUserId) return;
     setUpdatingId(r.id);
@@ -323,6 +324,11 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
       ordered_by: newOrdered ? currentUserId : null,
       ordered_at: newOrdered ? new Date().toISOString() : null,
     };
+    if (newOrdered && purchaseId) {
+      update.purchase_id = purchaseId;
+    } else if (!newOrdered) {
+      update.purchase_id = null;
+    }
     if (newOrdered && summary !== undefined) {
       update.ordered_summary = summary || null;
     } else if (!newOrdered) {
@@ -800,7 +806,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         onCreated={async (info) => {
           if (activeResponse) {
             const summary = summarizePurchaseItems(info?.items ?? []);
-            await markOrdered(activeResponse, true, summary);
+            await markOrdered(activeResponse, true, summary, info?.purchaseId);
           }
         }}
       />

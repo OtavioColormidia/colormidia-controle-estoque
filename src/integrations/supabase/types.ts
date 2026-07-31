@@ -1046,24 +1046,27 @@ export type Database = {
     Views: {
       public_recent_purchases: {
         Row: {
+          created_at: string | null
           date: string | null
           document_number: string | null
           id: string | null
-          items: Json | null
+          items_summary: string | null
           supplier_name: string | null
         }
         Insert: {
+          created_at?: string | null
           date?: string | null
           document_number?: string | null
           id?: string | null
-          items?: never
+          items_summary?: never
           supplier_name?: string | null
         }
         Update: {
+          created_at?: string | null
           date?: string | null
           document_number?: string | null
           id?: string | null
-          items?: never
+          items_summary?: never
           supplier_name?: string | null
         }
         Relationships: []
