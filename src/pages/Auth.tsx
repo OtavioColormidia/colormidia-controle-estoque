@@ -56,7 +56,32 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    setError(null);
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setError("Digite seu email acima para receber o link de redefinição.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({
+        title: "Email enviado!",
+        description: "Verifique sua caixa de entrada (e o spam) para redefinir a senha.",
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
+
     e.preventDefault();
     setLoading(true);
     setError(null);
