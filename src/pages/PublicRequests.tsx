@@ -293,6 +293,9 @@ export default function PublicRequests() {
       });
   }, [purchases, items, search, tipoFilter, solicitanteFilter]);
 
+  const openPurchases = useMemo(() => extraPurchases.filter((p) => !p.delivered_at), [extraPurchases]);
+  const deliveredPurchases = useMemo(() => extraPurchases.filter((p) => !!p.delivered_at), [extraPurchases]);
+
 
 
   return (
