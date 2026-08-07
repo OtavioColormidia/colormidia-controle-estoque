@@ -217,6 +217,17 @@ export default function Auth() {
                       className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                   </div>
+                  <div className="flex justify-end -mt-1">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={loading}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+
                   {error && (
                     <Alert variant="destructive" className="animate-scale-in">
                       <AlertCircle className="h-4 w-4" />
