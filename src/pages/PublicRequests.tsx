@@ -25,6 +25,7 @@ interface PurchaseCard {
   id: string;
   date: string;
   created_at: string;
+  delivered_at: string | null;
   supplier_name: string | null;
   creator_name: string | null;
   document_number: string | null;
@@ -142,7 +143,7 @@ export default function PublicRequests() {
         .limit(500),
       (supabase as any)
         .from("public_recent_purchases")
-        .select("id, date, created_at, supplier_name, creator_name, document_number, items_summary")
+        .select("id, date, created_at, delivered_at, supplier_name, creator_name, document_number, items_summary")
         .order("date", { ascending: false })
         .limit(200),
     ]);
@@ -292,6 +293,9 @@ export default function PublicRequests() {
       });
   }, [purchases, items, search, tipoFilter, solicitanteFilter]);
 
+  const openPurchases = useMemo(() => extraPurchases.filter((p) => !p.delivered_at), [extraPurchases]);
+  const deliveredPurchases = useMemo(() => extraPurchases.filter((p) => !!p.delivered_at), [extraPurchases]);
+
 
 
   return (
@@ -370,7 +374,7 @@ export default function PublicRequests() {
               <div ref={innerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
               {columns.map((col) => {
                 const list = grouped[col.id];
-                const extras = col.id === "feito" ? extraPurchases : [];
+                const extras = col.id === "feito" ? openPurchases : col.id === "concluido" ? deliveredPurchases : [];
                 const Icon = col.icon;
                 return (
                   <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
@@ -490,6 +494,11 @@ export default function PublicRequests() {
                               <div className="text-[11px] text-primary/80">
                                 Pedido feito em {formatDate(p.date)}
                               </div>
+                              {p.delivered_at && (
+                                <div className="text-[11px] text-success">
+                                  Entregue em {formatDate(p.delivered_at)}
+                                </div>
+                              )}
                             </CardContent>
                           </Card>
                         );
