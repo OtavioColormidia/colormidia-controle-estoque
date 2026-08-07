@@ -1052,6 +1052,7 @@ export type Database = {
           created_at: string | null
           creator_name: string | null
           date: string | null
+          delivered_at: string | null
           document_number: string | null
           id: string | null
           items_summary: string | null
