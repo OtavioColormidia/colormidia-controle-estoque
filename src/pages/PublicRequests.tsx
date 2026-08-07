@@ -494,6 +494,11 @@ export default function PublicRequests() {
                               <div className="text-[11px] text-primary/80">
                                 Pedido feito em {formatDate(p.date)}
                               </div>
+                              {p.delivered_at && (
+                                <div className="text-[11px] text-success">
+                                  Entregue em {formatDate(p.delivered_at)}
+                                </div>
+                              )}
                             </CardContent>
                           </Card>
                         );
