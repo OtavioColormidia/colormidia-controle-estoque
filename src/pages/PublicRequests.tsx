@@ -374,7 +374,7 @@ export default function PublicRequests() {
               <div ref={innerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
               {columns.map((col) => {
                 const list = grouped[col.id];
-                const extras = col.id === "feito" ? extraPurchases : [];
+                const extras = col.id === "feito" ? openPurchases : col.id === "concluido" ? deliveredPurchases : [];
                 const Icon = col.icon;
                 return (
                   <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
