@@ -460,6 +460,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string
+          delivered_at: string | null
           discount: number | null
           document_number: string | null
           expected_delivery_date: string | null
@@ -478,6 +479,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          delivered_at?: string | null
           discount?: number | null
           document_number?: string | null
           expected_delivery_date?: string | null
@@ -496,6 +498,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          delivered_at?: string | null
           discount?: number | null
           document_number?: string | null
           expected_delivery_date?: string | null
@@ -1049,6 +1052,7 @@ export type Database = {
           created_at: string | null
           creator_name: string | null
           date: string | null
+          delivered_at: string | null
           document_number: string | null
           id: string | null
           items_summary: string | null
