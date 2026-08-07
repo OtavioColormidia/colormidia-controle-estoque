@@ -56,7 +56,32 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    setError(null);
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setError("Digite seu email acima para receber o link de redefinição.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({
+        title: "Email enviado!",
+        description: "Verifique sua caixa de entrada (e o spam) para redefinir a senha.",
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
+
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -192,6 +217,17 @@ export default function Auth() {
                       className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                   </div>
+                  <div className="flex justify-end -mt-1">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={loading}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+
                   {error && (
                     <Alert variant="destructive" className="animate-scale-in">
                       <AlertCircle className="h-4 w-4" />
