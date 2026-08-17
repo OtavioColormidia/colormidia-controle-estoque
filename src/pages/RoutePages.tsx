@@ -12,6 +12,8 @@ import UserManagement from '@/components/UserManagement';
 import FormResponses from '@/components/FormResponses';
 import ServiceOrders from '@/components/ServiceOrders';
 import EpiControl from '@/components/EpiControl';
+import PurchaseDeliveries from '@/components/PurchaseDeliveries';
+
 import LoadingState from '@/components/shared/LoadingState';
 import { useSupabaseDataContext } from '@/contexts/SupabaseDataContext';
 
@@ -158,3 +160,8 @@ export function ServiceOrdersPage() {
 export function EpiControlPage() {
   return <EpiControl />;
 }
+
+export function PurchaseDeliveriesPage() {
+  return <PurchaseDeliveries />;
+}
+
