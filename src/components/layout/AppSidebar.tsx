@@ -84,6 +84,7 @@ const sections: NavSection[] = [
     items: [
       { title: 'Compras', url: '/compras', icon: ShoppingCart, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
       { title: 'Requisição de Materiais', url: '/requisicoes', icon: FileText, roles: ['admin', 'compras', 'almoxarife'], iconClass: sidebarIconClass },
+      { title: 'Recebimento de Pedidos', url: '/recebimentos', icon: PackageCheck, roles: ['admin'], iconClass: sidebarIconClass },
     ],
   },
   {
