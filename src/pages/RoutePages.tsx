@@ -158,3 +158,8 @@ export function ServiceOrdersPage() {
 export function EpiControlPage() {
   return <EpiControl />;
 }
+
+export function PurchaseDeliveriesPage() {
+  return <PurchaseDeliveries />;
+}
+
