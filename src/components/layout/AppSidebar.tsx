@@ -7,6 +7,7 @@ import {
   PackagePlus,
   PackageMinus,
   ShoppingCart,
+  PackageCheck,
   FileText,
   Tag,
   Building2,
