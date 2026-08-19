@@ -128,13 +128,26 @@ export default function PurchaseDeliveries() {
     setWhen(toLocalInput(new Date()));
   };
 
+  // Sync the linked form_response (if any) so the Pedidos tab reflects the delivery date
+  const syncLinkedRequest = async (purchaseId: string, deliveredAt: string | null) => {
+    const patch = deliveredAt
+      ? { completed: true, completed_at: deliveredAt, completed_by: currentUserId }
+      : { completed: false, completed_at: null, completed_by: null };
+    await supabase
+      .from('form_responses')
+      .update(patch as any)
+      .eq('purchase_id', purchaseId);
+  };
+
   const confirmMark = async () => {
     if (!target) return;
     setSaving(true);
+    const deliveredIso = new Date(when).toISOString();
     const { error } = await supabase
       .from('purchases')
-      .update({ delivered_at: new Date(when).toISOString(), status: 'delivered' })
+      .update({ delivered_at: deliveredIso, status: 'delivered' })
       .eq('id', target.id);
+    if (!error) await syncLinkedRequest(target.id, deliveredIso);
     setSaving(false);
     if (error) {
       toast({ title: 'Erro ao marcar entrega', description: error.message, variant: 'destructive' });
@@ -150,6 +163,7 @@ export default function PurchaseDeliveries() {
       .from('purchases')
       .update({ delivered_at: null, status: 'approved' })
       .eq('id', p.id);
+    if (!error) await syncLinkedRequest(p.id, null);
     if (error) {
       toast({ title: 'Erro ao desfazer', description: error.message, variant: 'destructive' });
       return;
