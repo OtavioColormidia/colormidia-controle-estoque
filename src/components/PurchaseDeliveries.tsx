@@ -41,6 +41,7 @@ function toLocalInput(d: Date) {
 export default function PurchaseDeliveries() {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchases, setPurchases] = useState<DeliveryPurchase[]>([]);
   const [search, setSearch] = useState('');
@@ -53,6 +54,7 @@ export default function PurchaseDeliveries() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return setIsAdmin(false);
+      setCurrentUserId(user.id);
       const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
       setIsAdmin(!!data?.some((r) => r.role === 'admin'));
     })();
