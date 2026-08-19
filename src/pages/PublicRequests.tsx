@@ -452,9 +452,10 @@ export default function PublicRequests() {
                                 )}
                                 {col.id === "concluido" && r.completed_at && (
                                   <div className="text-[11px] text-success">
-                                    Concluído em {formatDate(r.completed_at)}
+                                    Entregue em {formatDate(r.completed_at)}
                                   </div>
                                 )}
+
                               </CardContent>
                             </Card>
                           );
