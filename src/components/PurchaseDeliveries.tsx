@@ -209,9 +209,10 @@ export default function PurchaseDeliveries() {
           {filtered.map((p) => (
             <Card key={p.id}>
               <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-4">
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold truncate">{p.supplier_name || 'Fornecedor não informado'}</span>
+                <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                    <span className="font-semibold break-words min-w-0">{p.supplier_name || 'Fornecedor não informado'}</span>
+
                     {p.creator_name && <Badge variant="outline">{p.creator_name}</Badge>}
                     {p.document_number && <Badge variant="secondary">NF {p.document_number}</Badge>}
                     {p.delivered_at && (
