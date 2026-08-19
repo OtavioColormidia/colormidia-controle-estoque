@@ -34,6 +34,7 @@ const routeLabels: Record<string, string> = {
   saidas: 'Saída de Material',
   compras: 'Compras',
   requisicoes: 'Requisição de Materiais',
+  recebimentos: 'Recebimento de Pedidos',
   produtos: 'Produtos',
   fornecedores: 'Fornecedores',
   'fornecedores-materiais': 'Fornecedores / Material',
