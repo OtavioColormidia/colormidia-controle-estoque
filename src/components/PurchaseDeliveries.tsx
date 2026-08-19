@@ -227,26 +227,27 @@ export default function PurchaseDeliveries() {
                   </p>
                   <ul className="text-sm text-muted-foreground">
                     {p.items.slice(0, 4).map((i, idx) => (
-                      <li key={idx} className="truncate">
+                      <li key={idx} className="break-words">
                         {i.quantity}x {i.name}
                       </li>
                     ))}
                     {p.items.length > 4 && <li className="text-xs">+{p.items.length - 4} item(ns)</li>}
                   </ul>
                 </div>
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 w-full md:w-auto">
                   {p.delivered_at ? (
-                    <Button variant="outline" size="sm" onClick={() => undo(p)}>
+                    <Button variant="outline" size="sm" className="w-full md:w-auto" onClick={() => undo(p)}>
                       <Undo2 className="h-4 w-4 mr-2" />
                       Desfazer
                     </Button>
                   ) : (
-                    <Button size="sm" onClick={() => openMark(p)}>
+                    <Button size="sm" className="w-full md:w-auto" onClick={() => openMark(p)}>
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       Marcar como entregue
                     </Button>
                   )}
                 </div>
+
               </CardContent>
             </Card>
           ))}
