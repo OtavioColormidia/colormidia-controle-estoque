@@ -509,20 +509,35 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
       );
     }
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-8 gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
-        onClick={() => handleOpenOrderDialog(r)}
-        disabled={updatingId === r.id}
-      >
-        {updatingId === r.id ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <CheckCircle2 className="h-3.5 w-3.5" />
+      <div className="flex flex-col gap-1.5">
+        {r.order_partial && (
+          <>
+            <Badge variant="outline" className="w-fit gap-1 border-warning/50 text-warning">
+              <CheckCircle2 className="h-3 w-3" />
+              Pedido incompleto
+            </Badge>
+            {r.order_note && (
+              <span className="text-xs text-muted-foreground max-w-[220px] whitespace-pre-wrap break-words">
+                {r.order_note}
+              </span>
+            )}
+          </>
         )}
-        Marcar pedido feito
-      </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success w-fit"
+          onClick={() => handleOpenOrderDialog(r)}
+          disabled={updatingId === r.id}
+        >
+          {updatingId === r.id ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <CheckCircle2 className="h-3.5 w-3.5" />
+          )}
+          {r.order_partial ? "Pedir restante" : "Marcar pedido feito"}
+        </Button>
+      </div>
     );
   };
 
