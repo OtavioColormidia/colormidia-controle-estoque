@@ -41,7 +41,6 @@ function toLocalInput(d: Date) {
 export default function PurchaseDeliveries() {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchases, setPurchases] = useState<DeliveryPurchase[]>([]);
   const [search, setSearch] = useState('');
