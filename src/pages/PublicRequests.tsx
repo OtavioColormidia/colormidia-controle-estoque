@@ -285,18 +285,6 @@ export default function PublicRequests() {
       }
       g[b].push(r);
     });
-    // Sort each bucket by its most relevant timestamp (most recent first)
-    g.aberto.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
-    g.feito.sort((a, b) => {
-      const ta = a.ordered_at ? new Date(a.ordered_at).getTime() : new Date(a.submitted_at).getTime();
-      const tb = b.ordered_at ? new Date(b.ordered_at).getTime() : new Date(b.submitted_at).getTime();
-      return tb - ta;
-    });
-    g.concluido.sort((a, b) => {
-      const ta = a.completed_at ? new Date(a.completed_at).getTime() : new Date(a.submitted_at).getTime();
-      const tb = b.completed_at ? new Date(b.completed_at).getTime() : new Date(b.submitted_at).getTime();
-      return tb - ta;
-    });
     return g;
   }, [filtered]);
 
@@ -331,16 +319,40 @@ export default function PublicRequests() {
       });
   }, [purchases, items, search, tipoFilter, solicitanteFilter]);
 
-  const openPurchases = useMemo(
-    () => extraPurchases.filter((p) => !p.delivered_at)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [extraPurchases],
-  );
-  const deliveredPurchases = useMemo(
-    () => extraPurchases.filter((p) => !!p.delivered_at)
-      .sort((a, b) => new Date(b.delivered_at || b.date).getTime() - new Date(a.delivered_at || a.date).getTime()),
-    [extraPurchases],
-  );
+  // Mescla requisições e compras em uma única lista por coluna, ordenada pelo
+  // timestamp mais relevante (mais recente no topo).
+  const merged = useMemo<Record<Bucket, ColumnItem[]>>(() => {
+    const out: Record<Bucket, ColumnItem[]> = { aberto: [], feito: [], concluido: [] };
+    grouped.aberto.forEach((r) =>
+      out.aberto.push({ kind: "response", r, t: new Date(r.submitted_at).getTime() }),
+    );
+    grouped.feito.forEach((r) =>
+      out.feito.push({
+        kind: "response",
+        r,
+        t: r.ordered_at ? new Date(r.ordered_at).getTime() : new Date(r.submitted_at).getTime(),
+      }),
+    );
+    grouped.concluido.forEach((r) =>
+      out.concluido.push({
+        kind: "response",
+        r,
+        t: r.completed_at ? new Date(r.completed_at).getTime() : new Date(r.submitted_at).getTime(),
+      }),
+    );
+    extraPurchases
+      .filter((p) => !p.delivered_at)
+      .forEach((p) => out.feito.push({ kind: "purchase", p, t: new Date(p.date).getTime() }));
+    extraPurchases
+      .filter((p) => !!p.delivered_at)
+      .forEach((p) =>
+        out.concluido.push({ kind: "purchase", p, t: new Date(p.delivered_at || p.date).getTime() }),
+      );
+    out.aberto.sort((a, b) => b.t - a.t);
+    out.feito.sort((a, b) => b.t - a.t);
+    out.concluido.sort((a, b) => b.t - a.t);
+    return out;
+  }, [grouped, extraPurchases]);
 
 
 
