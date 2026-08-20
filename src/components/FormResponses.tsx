@@ -326,20 +326,25 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
     newOrdered: boolean,
     summary?: string,
     purchaseId?: string,
+    opts?: { partial?: boolean; note?: string },
   ) => {
     if (!currentUserId) return;
     setUpdatingId(r.id);
+    const partial = !!opts?.partial;
     const update: Record<string, any> = {
-      ordered: newOrdered,
+      // Pedido incompleto continua pendente, para comprar o restante
+      ordered: newOrdered && !partial,
       ordered_by: newOrdered ? currentUserId : null,
       ordered_at: newOrdered ? new Date().toISOString() : null,
+      order_partial: newOrdered ? partial : false,
+      order_note: newOrdered ? (opts?.note?.trim() || null) : null,
     };
-    if (newOrdered && purchaseId) {
+    if (newOrdered && purchaseId && !partial) {
       update.purchase_id = purchaseId;
     } else if (!newOrdered) {
       update.purchase_id = null;
     }
-    if (newOrdered && summary !== undefined) {
+    if (newOrdered && summary !== undefined && !partial) {
       update.ordered_summary = summary || null;
     } else if (!newOrdered) {
       update.ordered_summary = null;
@@ -357,7 +362,11 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
       });
     } else {
       toast({
-        title: newOrdered ? "Marcado como pedido feito" : "Marcação removida",
+        title: !newOrdered
+          ? "Marcação removida"
+          : partial
+            ? "Pedido parcial registrado"
+            : "Marcado como pedido feito",
       });
     }
   };
