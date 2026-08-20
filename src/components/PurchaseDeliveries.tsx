@@ -129,10 +129,18 @@ export default function PurchaseDeliveries() {
   const confirmMark = async () => {
     if (!target) return;
     setSaving(true);
+    const deliveredAt = new Date(when).toISOString();
     const { error } = await supabase
       .from('purchases')
-      .update({ delivered_at: new Date(when).toISOString(), status: 'delivered' })
+      .update({ delivered_at: deliveredAt, status: 'delivered' })
       .eq('id', target.id);
+    if (!error) {
+      // Sync linked material request so it moves to "Pedidos Entregues"
+      await supabase
+        .from('form_responses')
+        .update({ completed: true, completed_at: deliveredAt, completed_by: currentUserId })
+        .eq('purchase_id', target.id);
+    }
     setSaving(false);
     if (error) {
       toast({ title: 'Erro ao marcar entrega', description: error.message, variant: 'destructive' });
@@ -152,9 +160,14 @@ export default function PurchaseDeliveries() {
       toast({ title: 'Erro ao desfazer', description: error.message, variant: 'destructive' });
       return;
     }
+    await supabase
+      .from('form_responses')
+      .update({ completed: false, completed_at: null, completed_by: null })
+      .eq('purchase_id', p.id);
     toast({ title: 'Entrega desfeita' });
     load();
   };
+
 
   if (isAdmin === null || loading) return <LoadingState variant="page" />;
 
