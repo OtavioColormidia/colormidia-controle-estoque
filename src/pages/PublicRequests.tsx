@@ -140,7 +140,7 @@ export default function PublicRequests() {
     const [{ data, error }, purchasesRes] = await Promise.all([
       supabase
         .from("form_responses")
-        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary")
+        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary, purchase_id")
         .order("submitted_at", { ascending: false })
         .limit(500),
       (supabase as any)
@@ -151,6 +151,24 @@ export default function PublicRequests() {
     ]);
     if (!error && data) setItems(data as FormResponse[]);
     if (!purchasesRes.error && purchasesRes.data) setPurchases(purchasesRes.data as PurchaseCard[]);
+
+    // Fetch delivery/withdrawal dates for purchases linked to form responses
+    const purchaseIds = (data || [])
+      .map((r: any) => r.purchase_id)
+      .filter(Boolean) as string[];
+    if (purchaseIds.length) {
+      const { data: pd } = await supabase
+        .from("purchases")
+        .select("id, delivered_at")
+        .in("id", Array.from(new Set(purchaseIds)));
+      const map: Record<string, string> = {};
+      (pd || []).forEach((p: any) => {
+        if (p.delivered_at) map[p.id] = p.delivered_at;
+      });
+      setDeliveryMap(map);
+    } else {
+      setDeliveryMap({});
+    }
     setLoading(false);
   };
 
