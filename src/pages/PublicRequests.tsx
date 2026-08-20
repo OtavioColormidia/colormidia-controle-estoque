@@ -140,7 +140,7 @@ export default function PublicRequests() {
     const [{ data, error }, purchasesRes] = await Promise.all([
       supabase
         .from("form_responses")
-        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary, purchase_id")
+        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary, purchase_id, order_partial, order_note")
         .order("submitted_at", { ascending: false })
         .limit(500),
       (supabase as any)
