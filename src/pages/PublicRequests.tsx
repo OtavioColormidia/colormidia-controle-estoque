@@ -35,6 +35,10 @@ interface PurchaseCard {
   items_summary: string | null;
 }
 
+type ColumnItem =
+  | { kind: "response"; r: FormResponse; t: number }
+  | { kind: "purchase"; p: PurchaseCard; t: number };
+
 type Bucket = "aberto" | "feito" | "concluido";
 
 const formatDate = (iso: string | null) => {
@@ -281,18 +285,6 @@ export default function PublicRequests() {
       }
       g[b].push(r);
     });
-    // Sort each bucket by its most relevant timestamp (most recent first)
-    g.aberto.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
-    g.feito.sort((a, b) => {
-      const ta = a.ordered_at ? new Date(a.ordered_at).getTime() : new Date(a.submitted_at).getTime();
-      const tb = b.ordered_at ? new Date(b.ordered_at).getTime() : new Date(b.submitted_at).getTime();
-      return tb - ta;
-    });
-    g.concluido.sort((a, b) => {
-      const ta = a.completed_at ? new Date(a.completed_at).getTime() : new Date(a.submitted_at).getTime();
-      const tb = b.completed_at ? new Date(b.completed_at).getTime() : new Date(b.submitted_at).getTime();
-      return tb - ta;
-    });
     return g;
   }, [filtered]);
 
@@ -327,16 +319,40 @@ export default function PublicRequests() {
       });
   }, [purchases, items, search, tipoFilter, solicitanteFilter]);
 
-  const openPurchases = useMemo(
-    () => extraPurchases.filter((p) => !p.delivered_at)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [extraPurchases],
-  );
-  const deliveredPurchases = useMemo(
-    () => extraPurchases.filter((p) => !!p.delivered_at)
-      .sort((a, b) => new Date(b.delivered_at || b.date).getTime() - new Date(a.delivered_at || a.date).getTime()),
-    [extraPurchases],
-  );
+  // Mescla requisições e compras em uma única lista por coluna, ordenada pelo
+  // timestamp mais relevante (mais recente no topo).
+  const merged = useMemo<Record<Bucket, ColumnItem[]>>(() => {
+    const out: Record<Bucket, ColumnItem[]> = { aberto: [], feito: [], concluido: [] };
+    grouped.aberto.forEach((r) =>
+      out.aberto.push({ kind: "response", r, t: new Date(r.submitted_at).getTime() }),
+    );
+    grouped.feito.forEach((r) =>
+      out.feito.push({
+        kind: "response",
+        r,
+        t: r.ordered_at ? new Date(r.ordered_at).getTime() : new Date(r.submitted_at).getTime(),
+      }),
+    );
+    grouped.concluido.forEach((r) =>
+      out.concluido.push({
+        kind: "response",
+        r,
+        t: r.completed_at ? new Date(r.completed_at).getTime() : new Date(r.submitted_at).getTime(),
+      }),
+    );
+    extraPurchases
+      .filter((p) => !p.delivered_at)
+      .forEach((p) => out.feito.push({ kind: "purchase", p, t: new Date(p.date).getTime() }));
+    extraPurchases
+      .filter((p) => !!p.delivered_at)
+      .forEach((p) =>
+        out.concluido.push({ kind: "purchase", p, t: new Date(p.delivered_at || p.date).getTime() }),
+      );
+    out.aberto.sort((a, b) => b.t - a.t);
+    out.feito.sort((a, b) => b.t - a.t);
+    out.concluido.sort((a, b) => b.t - a.t);
+    return out;
+  }, [grouped, extraPurchases]);
 
 
 
@@ -353,7 +369,7 @@ export default function PublicRequests() {
                 Requisições de Materiais
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Acompanhamento em tempo real — Vendedores &amp; Compras
+                Acompanhamento em tempo real — Vendedores & Compras
               </p>
             </div>
           </div>
@@ -415,8 +431,7 @@ export default function PublicRequests() {
             >
               <div ref={innerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
               {columns.map((col) => {
-                const list = grouped[col.id];
-                const extras = col.id === "feito" ? openPurchases : col.id === "concluido" ? deliveredPurchases : [];
+                const colItems = merged[col.id];
                 const Icon = col.icon;
                 return (
                   <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
@@ -431,17 +446,61 @@ export default function PublicRequests() {
                         {col.label}
                       </div>
                       <Badge variant="outline" className={cn("border", col.badge)}>
-                        {list.length + extras.length}
+                        {colItems.length}
                       </Badge>
                     </div>
                     <div className="flex-1 border rounded-b-xl bg-card/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)]">
-                      {list.length === 0 && extras.length === 0 ? (
+                      {colItems.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground py-10">
                           Nenhum pedido nesta categoria.
-
                         </div>
                       ) : (
-                        list.map((r) => {
+                        colItems.map((item) => {
+                          if (item.kind === "purchase") {
+                            const p = item.p;
+                            const lines = (p.items_summary || "")
+                              .split("\n")
+                              .map((l) => {
+                                const m = l.match(/^([\d.,]+)x\s+(.*)$/);
+                                if (!m) return abbreviateProductName(l);
+                                const qty = m[1].replace(/[.,]+$/, "");
+                                return `${qty}x ${abbreviateProductName(m[2])}`;
+                              })
+                              .filter(Boolean)
+                              .join("\n");
+                            return (
+                              <Card key={p.id} className="border-border/60 hover:border-primary/40 transition-colors">
+                                <CardHeader className="p-3 pb-2 space-y-1">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <CardTitle className="text-sm font-semibold truncate">
+                                      {p.creator_name || p.supplier_name || "Compra"}
+                                    </CardTitle>
+                                    <Badge variant="secondary" className="text-[10px]">Compras</Badge>
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    {formatDate(p.date)}
+                                    {p.document_number && (
+                                      <> · <span className="font-medium text-foreground">{p.document_number}</span></>
+                                    )}
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="p-3 pt-0 space-y-2 text-sm">
+                                  {lines && (
+                                    <div className="whitespace-pre-wrap break-words leading-snug">{lines}</div>
+                                  )}
+                                  <div className="text-[11px] text-primary/80">
+                                    Pedido feito em {formatDate(p.date)}
+                                  </div>
+                                  {p.delivered_at && (
+                                    <div className="text-[11px] text-success">
+                                      Entregue em {formatDate(p.delivered_at)}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            );
+                          }
+                          const r = item.r;
                           const rawMaterials = getField(r.data, "materia", "descri", "item");
                           const showSummary = (col.id === "feito" || col.id === "concluido") && !!r.ordered_summary;
                           const materials = showSummary ? (r.ordered_summary as string) : rawMaterials;
@@ -519,55 +578,11 @@ export default function PublicRequests() {
                                     Entregue em {formatDate(r.completed_at)}
                                   </div>
                                 )}
-
                               </CardContent>
                             </Card>
                           );
                         })
                       )}
-                      {extras.map((p) => {
-                        const lines = (p.items_summary || "")
-                          .split("\n")
-                          .map((l) => {
-                            const m = l.match(/^([\d.,]+)x\s+(.*)$/);
-                            if (!m) return abbreviateProductName(l);
-                            const qty = m[1].replace(/[.,]+$/, "");
-                            return `${qty}x ${abbreviateProductName(m[2])}`;
-                          })
-                          .filter(Boolean)
-                          .join("\n");
-                        return (
-                          <Card key={p.id} className="border-border/60 hover:border-primary/40 transition-colors">
-                            <CardHeader className="p-3 pb-2 space-y-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <CardTitle className="text-sm font-semibold truncate">
-                                  {p.creator_name || p.supplier_name || "Compra"}
-                                </CardTitle>
-                                <Badge variant="secondary" className="text-[10px]">Compras</Badge>
-                              </div>
-                              <div className="text-[11px] text-muted-foreground">
-                                {formatDate(p.date)}
-                                {p.document_number && (
-                                  <> · <span className="font-medium text-foreground">{p.document_number}</span></>
-                                )}
-                              </div>
-                            </CardHeader>
-                            <CardContent className="p-3 pt-0 space-y-2 text-sm">
-                              {lines && (
-                                <div className="whitespace-pre-wrap break-words leading-snug">{lines}</div>
-                              )}
-                              <div className="text-[11px] text-primary/80">
-                                Pedido feito em {formatDate(p.date)}
-                              </div>
-                              {p.delivered_at && (
-                                <div className="text-[11px] text-success">
-                                  Entregue em {formatDate(p.delivered_at)}
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
 
                     </div>
                   </section>
