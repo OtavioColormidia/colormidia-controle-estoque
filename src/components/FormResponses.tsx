@@ -840,10 +840,99 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         onCreated={async (info) => {
           if (activeResponse) {
             const summary = summarizePurchaseItems(info?.items ?? []);
-            await markOrdered(activeResponse, true, summary, info?.purchaseId);
+            setPendingOrder({
+              response: activeResponse,
+              summary,
+              purchaseId: info?.purchaseId,
+            });
+            setFinishPartial(false);
+            setFinishNote(activeResponse.order_note ?? "");
+            setFinishOpen(true);
           }
         }}
       />
+
+      <Dialog
+        open={finishOpen}
+        onOpenChange={(open) => {
+          setFinishOpen(open);
+          if (!open) setPendingOrder(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Finalizar pedido</DialogTitle>
+            <DialogDescription>
+              Informe se o pedido atende a toda a requisição e deixe uma observação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <RadioGroup
+              value={finishPartial ? "incompleto" : "completo"}
+              onValueChange={(v) => setFinishPartial(v === "incompleto")}
+              className="gap-2"
+            >
+              <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
+                <RadioGroupItem value="completo" id="pedido-completo" className="mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium">Pedido completo</div>
+                  <div className="text-xs text-muted-foreground">
+                    A requisição sai de Pendentes e vai para Pedidos Realizados.
+                  </div>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
+                <RadioGroupItem value="incompleto" id="pedido-incompleto" className="mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium">Pedido incompleto</div>
+                  <div className="text-xs text-muted-foreground">
+                    A requisição continua em Pendentes com a observação, para comprar o restante.
+                  </div>
+                </div>
+              </label>
+            </RadioGroup>
+            <div className="space-y-1.5">
+              <Label htmlFor="order-note">Observação</Label>
+              <Textarea
+                id="order-note"
+                placeholder="Ex.: adesivo encontrado, tinta restante"
+                value={finishNote}
+                onChange={(e) => setFinishNote(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFinishOpen(false);
+                setPendingOrder(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!pendingOrder) return;
+                await markOrdered(
+                  pendingOrder.response,
+                  true,
+                  pendingOrder.summary,
+                  pendingOrder.purchaseId,
+                  { partial: finishPartial, note: finishNote },
+                );
+                setFinishOpen(false);
+                setPendingOrder(null);
+                setFinishNote("");
+                setFinishPartial(false);
+              }}
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
