@@ -35,6 +35,10 @@ interface PurchaseCard {
   items_summary: string | null;
 }
 
+type ColumnItem =
+  | { kind: "response"; r: FormResponse; t: number }
+  | { kind: "purchase"; p: PurchaseCard; t: number };
+
 type Bucket = "aberto" | "feito" | "concluido";
 
 const formatDate = (iso: string | null) => {
