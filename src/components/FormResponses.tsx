@@ -64,6 +64,8 @@ interface FormResponse {
   ordered_at: string | null;
   completed?: boolean;
   completed_at?: string | null;
+  order_partial?: boolean;
+  order_note?: string | null;
 }
 
 const formatDate = (iso: string) => {
