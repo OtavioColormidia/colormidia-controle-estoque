@@ -470,6 +470,11 @@ export default function PublicRequests() {
                                     Pedido feito em {formatDate(r.ordered_at)}
                                   </div>
                                 )}
+                                {col.id === "feito" && r.purchase_id && deliveryMap[r.purchase_id] && (
+                                  <div className="text-[11px] text-success">
+                                    Entrega/Retirada em {formatDate(deliveryMap[r.purchase_id])}
+                                  </div>
+                                )}
                                 {col.id === "concluido" && r.completed_at && (
                                   <div className="text-[11px] text-success">
                                     Entregue em {formatDate(r.completed_at)}
