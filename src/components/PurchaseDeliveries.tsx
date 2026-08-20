@@ -150,7 +150,6 @@ export default function PurchaseDeliveries() {
       .from('purchases')
       .update({ delivered_at: null, status: 'approved' })
       .eq('id', p.id);
-    if (!error) await syncLinkedRequest(p.id, null);
     if (error) {
       toast({ title: 'Erro ao desfazer', description: error.message, variant: 'destructive' });
       return;
