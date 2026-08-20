@@ -19,6 +19,7 @@ interface FormResponse {
   completed: boolean;
   completed_at: string | null;
   ordered_summary: string | null;
+  purchase_id: string | null;
 }
 
 interface PurchaseCard {
@@ -105,6 +106,7 @@ const columns: {
 export default function PublicRequests() {
   const [items, setItems] = useState<FormResponse[]>([]);
   const [purchases, setPurchases] = useState<PurchaseCard[]>([]);
+  const [deliveryMap, setDeliveryMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState<string>("todos");
@@ -138,7 +140,7 @@ export default function PublicRequests() {
     const [{ data, error }, purchasesRes] = await Promise.all([
       supabase
         .from("form_responses")
-        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary")
+        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary, purchase_id")
         .order("submitted_at", { ascending: false })
         .limit(500),
       (supabase as any)
@@ -149,6 +151,24 @@ export default function PublicRequests() {
     ]);
     if (!error && data) setItems(data as FormResponse[]);
     if (!purchasesRes.error && purchasesRes.data) setPurchases(purchasesRes.data as PurchaseCard[]);
+
+    // Fetch delivery/withdrawal dates for purchases linked to form responses
+    const purchaseIds = (data || [])
+      .map((r: any) => r.purchase_id)
+      .filter(Boolean) as string[];
+    if (purchaseIds.length) {
+      const { data: pd } = await supabase
+        .from("purchases")
+        .select("id, delivered_at")
+        .in("id", Array.from(new Set(purchaseIds)));
+      const map: Record<string, string> = {};
+      (pd || []).forEach((p: any) => {
+        if (p.delivered_at) map[p.id] = p.delivered_at;
+      });
+      setDeliveryMap(map);
+    } else {
+      setDeliveryMap({});
+    }
     setLoading(false);
   };
 
@@ -448,6 +468,11 @@ export default function PublicRequests() {
                                 {col.id === "feito" && r.ordered_at && (
                                   <div className="text-[11px] text-primary/80">
                                     Pedido feito em {formatDate(r.ordered_at)}
+                                  </div>
+                                )}
+                                {col.id === "feito" && r.purchase_id && deliveryMap[r.purchase_id] && (
+                                  <div className="text-[11px] text-success">
+                                    Entrega/Retirada em {formatDate(deliveryMap[r.purchase_id])}
                                   </div>
                                 )}
                                 {col.id === "concluido" && r.completed_at && (
