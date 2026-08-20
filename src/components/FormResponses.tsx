@@ -141,6 +141,14 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [activeResponse, setActiveResponse] = useState<FormResponse | null>(null);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [finishPartial, setFinishPartial] = useState(false);
+  const [finishNote, setFinishNote] = useState("");
+  const [pendingOrder, setPendingOrder] = useState<{
+    response: FormResponse;
+    summary: string;
+    purchaseId?: string;
+  } | null>(null);
 
   const loadResponses = async () => {
     const { data, error } = await supabase
