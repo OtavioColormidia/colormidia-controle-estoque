@@ -145,7 +145,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const loadResponses = async () => {
     const { data, error } = await supabase
       .from("form_responses")
-      .select("id, form_name, submitted_at, data, sheet_row, created_at, ordered, ordered_by, ordered_at, completed, completed_at")
+      .select("id, form_name, submitted_at, data, sheet_row, created_at, ordered, ordered_by, ordered_at, completed, completed_at, order_partial, order_note")
       .order("submitted_at", { ascending: false })
       .limit(200);
 
