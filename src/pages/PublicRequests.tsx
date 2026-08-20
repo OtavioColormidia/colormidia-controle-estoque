@@ -369,7 +369,7 @@ export default function PublicRequests() {
                 Requisições de Materiais
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Acompanhamento em tempo real — Vendedores &amp; Compras
+                Acompanhamento em tempo real — Vendedores & Compras
               </p>
             </div>
           </div>
@@ -431,8 +431,7 @@ export default function PublicRequests() {
             >
               <div ref={innerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-[1024px] lg:min-w-0">
               {columns.map((col) => {
-                const list = grouped[col.id];
-                const extras = col.id === "feito" ? openPurchases : col.id === "concluido" ? deliveredPurchases : [];
+                const colItems = merged[col.id];
                 const Icon = col.icon;
                 return (
                   <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
@@ -447,17 +446,61 @@ export default function PublicRequests() {
                         {col.label}
                       </div>
                       <Badge variant="outline" className={cn("border", col.badge)}>
-                        {list.length + extras.length}
+                        {colItems.length}
                       </Badge>
                     </div>
                     <div className="flex-1 border rounded-b-xl bg-card/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)]">
-                      {list.length === 0 && extras.length === 0 ? (
+                      {colItems.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground py-10">
                           Nenhum pedido nesta categoria.
-
                         </div>
                       ) : (
-                        list.map((r) => {
+                        colItems.map((item) => {
+                          if (item.kind === "purchase") {
+                            const p = item.p;
+                            const lines = (p.items_summary || "")
+                              .split("\n")
+                              .map((l) => {
+                                const m = l.match(/^([\d.,]+)x\s+(.*)$/);
+                                if (!m) return abbreviateProductName(l);
+                                const qty = m[1].replace(/[.,]+$/, "");
+                                return `${qty}x ${abbreviateProductName(m[2])}`;
+                              })
+                              .filter(Boolean)
+                              .join("\n");
+                            return (
+                              <Card key={p.id} className="border-border/60 hover:border-primary/40 transition-colors">
+                                <CardHeader className="p-3 pb-2 space-y-1">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <CardTitle className="text-sm font-semibold truncate">
+                                      {p.creator_name || p.supplier_name || "Compra"}
+                                    </CardTitle>
+                                    <Badge variant="secondary" className="text-[10px]">Compras</Badge>
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    {formatDate(p.date)}
+                                    {p.document_number && (
+                                      <> · <span className="font-medium text-foreground">{p.document_number}</span>
+                                    )}
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="p-3 pt-0 space-y-2 text-sm">
+                                  {lines && (
+                                    <div className="whitespace-pre-wrap break-words leading-snug">{lines}</div>
+                                  )}
+                                  <div className="text-[11px] text-primary/80">
+                                    Pedido feito em {formatDate(p.date)}
+                                  </div>
+                                  {p.delivered_at && (
+                                    <div className="text-[11px] text-success">
+                                      Entregue em {formatDate(p.delivered_at)}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            );
+                          }
+                          const r = item.r;
                           const rawMaterials = getField(r.data, "materia", "descri", "item");
                           const showSummary = (col.id === "feito" || col.id === "concluido") && !!r.ordered_summary;
                           const materials = showSummary ? (r.ordered_summary as string) : rawMaterials;
@@ -535,55 +578,11 @@ export default function PublicRequests() {
                                     Entregue em {formatDate(r.completed_at)}
                                   </div>
                                 )}
-
                               </CardContent>
                             </Card>
                           );
                         })
                       )}
-                      {extras.map((p) => {
-                        const lines = (p.items_summary || "")
-                          .split("\n")
-                          .map((l) => {
-                            const m = l.match(/^([\d.,]+)x\s+(.*)$/);
-                            if (!m) return abbreviateProductName(l);
-                            const qty = m[1].replace(/[.,]+$/, "");
-                            return `${qty}x ${abbreviateProductName(m[2])}`;
-                          })
-                          .filter(Boolean)
-                          .join("\n");
-                        return (
-                          <Card key={p.id} className="border-border/60 hover:border-primary/40 transition-colors">
-                            <CardHeader className="p-3 pb-2 space-y-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <CardTitle className="text-sm font-semibold truncate">
-                                  {p.creator_name || p.supplier_name || "Compra"}
-                                </CardTitle>
-                                <Badge variant="secondary" className="text-[10px]">Compras</Badge>
-                              </div>
-                              <div className="text-[11px] text-muted-foreground">
-                                {formatDate(p.date)}
-                                {p.document_number && (
-                                  <> · <span className="font-medium text-foreground">{p.document_number}</span></>
-                                )}
-                              </div>
-                            </CardHeader>
-                            <CardContent className="p-3 pt-0 space-y-2 text-sm">
-                              {lines && (
-                                <div className="whitespace-pre-wrap break-words leading-snug">{lines}</div>
-                              )}
-                              <div className="text-[11px] text-primary/80">
-                                Pedido feito em {formatDate(p.date)}
-                              </div>
-                              {p.delivered_at && (
-                                <div className="text-[11px] text-success">
-                                  Entregue em {formatDate(p.delivered_at)}
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
 
                     </div>
                   </section>
