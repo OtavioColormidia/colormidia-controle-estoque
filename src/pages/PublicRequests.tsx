@@ -20,6 +20,8 @@ interface FormResponse {
   completed_at: string | null;
   ordered_summary: string | null;
   purchase_id: string | null;
+  order_partial?: boolean;
+  order_note?: string | null;
 }
 
 interface PurchaseCard {
