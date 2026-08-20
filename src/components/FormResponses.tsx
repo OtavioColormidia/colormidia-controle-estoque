@@ -46,6 +46,17 @@ import { Purchase, PurchaseItem, Supplier } from "@/types/inventory";
 import PageHeader from "@/components/shared/PageHeader";
 import { DoubleScroll } from "@/components/shared/DoubleScroll";
 import { summarizePurchaseItems } from "@/lib/abbreviateItems";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormResponsesProps {
   suppliers: Supplier[];
