@@ -480,7 +480,7 @@ export default function PublicRequests() {
                                   <div className="text-[11px] text-muted-foreground">
                                     {formatDate(p.date)}
                                     {p.document_number && (
-                                      <> · <span className="font-medium text-foreground">{p.document_number}</span>
+                                      <> · <span className="font-medium text-foreground">{p.document_number}</span></>
                                     )}
                                   </div>
                                 </CardHeader>
