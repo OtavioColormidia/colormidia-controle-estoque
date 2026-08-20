@@ -279,6 +279,18 @@ export default function PublicRequests() {
       }
       g[b].push(r);
     });
+    // Sort each bucket by its most relevant timestamp (most recent first)
+    g.aberto.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
+    g.feito.sort((a, b) => {
+      const ta = a.ordered_at ? new Date(a.ordered_at).getTime() : new Date(a.submitted_at).getTime();
+      const tb = b.ordered_at ? new Date(b.ordered_at).getTime() : new Date(b.submitted_at).getTime();
+      return tb - ta;
+    });
+    g.concluido.sort((a, b) => {
+      const ta = a.completed_at ? new Date(a.completed_at).getTime() : new Date(a.submitted_at).getTime();
+      const tb = b.completed_at ? new Date(b.completed_at).getTime() : new Date(b.submitted_at).getTime();
+      return tb - ta;
+    });
     return g;
   }, [filtered]);
 
