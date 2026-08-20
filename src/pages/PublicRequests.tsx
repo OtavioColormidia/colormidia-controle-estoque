@@ -487,6 +487,23 @@ export default function PublicRequests() {
                                     <b className="text-foreground">Obs:</b> {obs}
                                   </div>
                                 )}
+                                {col.id === "aberto" && r.order_partial && (
+                                  <div className="text-xs border-t pt-2 space-y-1">
+                                    <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
+                                      Pedido incompleto
+                                    </Badge>
+                                    {r.order_note && (
+                                      <div className="text-muted-foreground whitespace-pre-wrap break-words">
+                                        {r.order_note}
+                                      </div>
+                                    )}
+                                    {r.ordered_at && (
+                                      <div className="text-[11px] text-muted-foreground">
+                                        Pedido parcial em {formatDate(r.ordered_at)}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                                 {col.id === "feito" && r.ordered_at && (
                                   <div className="text-[11px] text-primary/80">
                                     Pedido feito em {formatDate(r.ordered_at)}
