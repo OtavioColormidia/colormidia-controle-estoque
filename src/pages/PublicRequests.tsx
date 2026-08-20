@@ -20,6 +20,8 @@ interface FormResponse {
   completed_at: string | null;
   ordered_summary: string | null;
   purchase_id: string | null;
+  order_partial?: boolean;
+  order_note?: string | null;
 }
 
 interface PurchaseCard {
@@ -140,7 +142,7 @@ export default function PublicRequests() {
     const [{ data, error }, purchasesRes] = await Promise.all([
       supabase
         .from("form_responses")
-        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary, purchase_id")
+        .select("id, form_name, submitted_at, data, created_at, ordered, ordered_at, completed, completed_at, ordered_summary, purchase_id, order_partial, order_note")
         .order("submitted_at", { ascending: false })
         .limit(500),
       (supabase as any)
@@ -483,6 +485,23 @@ export default function PublicRequests() {
                                 {obs && (
                                   <div className="text-xs text-muted-foreground border-t pt-2">
                                     <b className="text-foreground">Obs:</b> {obs}
+                                  </div>
+                                )}
+                                {col.id === "aberto" && r.order_partial && (
+                                  <div className="text-xs border-t pt-2 space-y-1">
+                                    <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
+                                      Pedido incompleto
+                                    </Badge>
+                                    {r.order_note && (
+                                      <div className="text-muted-foreground whitespace-pre-wrap break-words">
+                                        {r.order_note}
+                                      </div>
+                                    )}
+                                    {r.ordered_at && (
+                                      <div className="text-[11px] text-muted-foreground">
+                                        Pedido parcial em {formatDate(r.ordered_at)}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                                 {col.id === "feito" && r.ordered_at && (

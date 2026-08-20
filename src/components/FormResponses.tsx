@@ -46,6 +46,17 @@ import { Purchase, PurchaseItem, Supplier } from "@/types/inventory";
 import PageHeader from "@/components/shared/PageHeader";
 import { DoubleScroll } from "@/components/shared/DoubleScroll";
 import { summarizePurchaseItems } from "@/lib/abbreviateItems";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormResponsesProps {
   suppliers: Supplier[];
@@ -64,6 +75,8 @@ interface FormResponse {
   ordered_at: string | null;
   completed?: boolean;
   completed_at?: string | null;
+  order_partial?: boolean;
+  order_note?: string | null;
 }
 
 const formatDate = (iso: string) => {
@@ -139,11 +152,19 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [activeResponse, setActiveResponse] = useState<FormResponse | null>(null);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [finishPartial, setFinishPartial] = useState(false);
+  const [finishNote, setFinishNote] = useState("");
+  const [pendingOrder, setPendingOrder] = useState<{
+    response: FormResponse;
+    summary: string;
+    purchaseId?: string;
+  } | null>(null);
 
   const loadResponses = async () => {
     const { data, error } = await supabase
       .from("form_responses")
-      .select("id, form_name, submitted_at, data, sheet_row, created_at, ordered, ordered_by, ordered_at, completed, completed_at")
+      .select("id, form_name, submitted_at, data, sheet_row, created_at, ordered, ordered_by, ordered_at, completed, completed_at, order_partial, order_note")
       .order("submitted_at", { ascending: false })
       .limit(200);
 
@@ -316,20 +337,25 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
     newOrdered: boolean,
     summary?: string,
     purchaseId?: string,
+    opts?: { partial?: boolean; note?: string },
   ) => {
     if (!currentUserId) return;
     setUpdatingId(r.id);
+    const partial = !!opts?.partial;
     const update: Record<string, any> = {
-      ordered: newOrdered,
+      // Pedido incompleto continua pendente, para comprar o restante
+      ordered: newOrdered && !partial,
       ordered_by: newOrdered ? currentUserId : null,
       ordered_at: newOrdered ? new Date().toISOString() : null,
+      order_partial: newOrdered ? partial : false,
+      order_note: newOrdered ? (opts?.note?.trim() || null) : null,
     };
-    if (newOrdered && purchaseId) {
+    if (newOrdered && purchaseId && !partial) {
       update.purchase_id = purchaseId;
     } else if (!newOrdered) {
       update.purchase_id = null;
     }
-    if (newOrdered && summary !== undefined) {
+    if (newOrdered && summary !== undefined && !partial) {
       update.ordered_summary = summary || null;
     } else if (!newOrdered) {
       update.ordered_summary = null;
@@ -347,7 +373,11 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
       });
     } else {
       toast({
-        title: newOrdered ? "Marcado como pedido feito" : "Marcação removida",
+        title: !newOrdered
+          ? "Marcação removida"
+          : partial
+            ? "Pedido parcial registrado"
+            : "Marcado como pedido feito",
       });
     }
   };
@@ -490,20 +520,35 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
       );
     }
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-8 gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
-        onClick={() => handleOpenOrderDialog(r)}
-        disabled={updatingId === r.id}
-      >
-        {updatingId === r.id ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <CheckCircle2 className="h-3.5 w-3.5" />
+      <div className="flex flex-col gap-1.5">
+        {r.order_partial && (
+          <>
+            <Badge variant="outline" className="w-fit gap-1 border-warning/50 text-warning">
+              <CheckCircle2 className="h-3 w-3" />
+              Pedido incompleto
+            </Badge>
+            {r.order_note && (
+              <span className="text-xs text-muted-foreground max-w-[220px] whitespace-pre-wrap break-words">
+                {r.order_note}
+              </span>
+            )}
+          </>
         )}
-        Marcar pedido feito
-      </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success w-fit"
+          onClick={() => handleOpenOrderDialog(r)}
+          disabled={updatingId === r.id}
+        >
+          {updatingId === r.id ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <CheckCircle2 className="h-3.5 w-3.5" />
+          )}
+          {r.order_partial ? "Pedir restante" : "Marcar pedido feito"}
+        </Button>
+      </div>
     );
   };
 
@@ -806,10 +851,99 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         onCreated={async (info) => {
           if (activeResponse) {
             const summary = summarizePurchaseItems(info?.items ?? []);
-            await markOrdered(activeResponse, true, summary, info?.purchaseId);
+            setPendingOrder({
+              response: activeResponse,
+              summary,
+              purchaseId: info?.purchaseId,
+            });
+            setFinishPartial(false);
+            setFinishNote(activeResponse.order_note ?? "");
+            setFinishOpen(true);
           }
         }}
       />
+
+      <Dialog
+        open={finishOpen}
+        onOpenChange={(open) => {
+          setFinishOpen(open);
+          if (!open) setPendingOrder(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Finalizar pedido</DialogTitle>
+            <DialogDescription>
+              Informe se o pedido atende a toda a requisição e deixe uma observação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <RadioGroup
+              value={finishPartial ? "incompleto" : "completo"}
+              onValueChange={(v) => setFinishPartial(v === "incompleto")}
+              className="gap-2"
+            >
+              <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
+                <RadioGroupItem value="completo" id="pedido-completo" className="mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium">Pedido completo</div>
+                  <div className="text-xs text-muted-foreground">
+                    A requisição sai de Pendentes e vai para Pedidos Realizados.
+                  </div>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
+                <RadioGroupItem value="incompleto" id="pedido-incompleto" className="mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium">Pedido incompleto</div>
+                  <div className="text-xs text-muted-foreground">
+                    A requisição continua em Pendentes com a observação, para comprar o restante.
+                  </div>
+                </div>
+              </label>
+            </RadioGroup>
+            <div className="space-y-1.5">
+              <Label htmlFor="order-note">Observação</Label>
+              <Textarea
+                id="order-note"
+                placeholder="Ex.: adesivo encontrado, tinta restante"
+                value={finishNote}
+                onChange={(e) => setFinishNote(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFinishOpen(false);
+                setPendingOrder(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!pendingOrder) return;
+                await markOrdered(
+                  pendingOrder.response,
+                  true,
+                  pendingOrder.summary,
+                  pendingOrder.purchaseId,
+                  { partial: finishPartial, note: finishNote },
+                );
+                setFinishOpen(false);
+                setPendingOrder(null);
+                setFinishNote("");
+                setFinishPartial(false);
+              }}
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
