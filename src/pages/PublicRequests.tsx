@@ -325,8 +325,16 @@ export default function PublicRequests() {
       });
   }, [purchases, items, search, tipoFilter, solicitanteFilter]);
 
-  const openPurchases = useMemo(() => extraPurchases.filter((p) => !p.delivered_at), [extraPurchases]);
-  const deliveredPurchases = useMemo(() => extraPurchases.filter((p) => !!p.delivered_at), [extraPurchases]);
+  const openPurchases = useMemo(
+    () => extraPurchases.filter((p) => !p.delivered_at)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [extraPurchases],
+  );
+  const deliveredPurchases = useMemo(
+    () => extraPurchases.filter((p) => !!p.delivered_at)
+      .sort((a, b) => new Date(b.delivered_at || b.date).getTime() - new Date(a.delivered_at || a.date).getTime()),
+    [extraPurchases],
+  );
 
 
 
