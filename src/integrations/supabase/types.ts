@@ -265,6 +265,8 @@ export type Database = {
           data: Json
           form_name: string
           id: string
+          order_note: string | null
+          order_partial: boolean
           ordered: boolean
           ordered_at: string | null
           ordered_by: string | null
@@ -281,6 +283,8 @@ export type Database = {
           data?: Json
           form_name: string
           id?: string
+          order_note?: string | null
+          order_partial?: boolean
           ordered?: boolean
           ordered_at?: string | null
           ordered_by?: string | null
@@ -297,6 +301,8 @@ export type Database = {
           data?: Json
           form_name?: string
           id?: string
+          order_note?: string | null
+          order_partial?: boolean
           ordered?: boolean
           ordered_at?: string | null
           ordered_by?: string | null
