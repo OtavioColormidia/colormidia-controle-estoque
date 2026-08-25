@@ -278,7 +278,10 @@ export default function PublicRequests() {
     const g: Record<Bucket, FormResponse[]> = { aberto: [], feito: [], concluido: [] };
     const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
     filtered.forEach((r) => {
-      const b = bucketOf(r);
+      // A entrega/retirada confirmada na compra vinculada também conclui a requisição.
+      const b: Bucket = r.completed || (r.purchase_id && deliveryMap[r.purchase_id])
+        ? "concluido"
+        : bucketOf(r);
       if (b === "feito") {
         const ref = r.ordered_at ? new Date(r.ordered_at).getTime() : new Date(r.submitted_at).getTime();
         if (ref < fiveDaysAgo) return;
@@ -286,7 +289,7 @@ export default function PublicRequests() {
       g[b].push(r);
     });
     return g;
-  }, [filtered]);
+  }, [filtered, deliveryMap]);
 
   // Compras lançadas direto na aba Compras (manual ou via NF) que não vieram de uma requisição
   const extraPurchases = useMemo(() => {
@@ -337,7 +340,11 @@ export default function PublicRequests() {
       out.concluido.push({
         kind: "response",
         r,
-        t: r.completed_at ? new Date(r.completed_at).getTime() : new Date(r.submitted_at).getTime(),
+        t: r.completed_at
+          ? new Date(r.completed_at).getTime()
+          : r.purchase_id && deliveryMap[r.purchase_id]
+            ? new Date(deliveryMap[r.purchase_id]).getTime()
+            : new Date(r.submitted_at).getTime(),
       }),
     );
     extraPurchases
@@ -352,7 +359,7 @@ export default function PublicRequests() {
     out.feito.sort((a, b) => b.t - a.t);
     out.concluido.sort((a, b) => b.t - a.t);
     return out;
-  }, [grouped, extraPurchases]);
+  }, [grouped, extraPurchases, deliveryMap]);
 
 
 
@@ -568,14 +575,9 @@ export default function PublicRequests() {
                                     Pedido feito em {formatDate(r.ordered_at)}
                                   </div>
                                 )}
-                                {col.id === "feito" && r.purchase_id && deliveryMap[r.purchase_id] && (
+                                {col.id === "concluido" && (r.completed_at || (r.purchase_id && deliveryMap[r.purchase_id])) && (
                                   <div className="text-[11px] text-success">
-                                    Entrega/Retirada em {formatDate(deliveryMap[r.purchase_id])}
-                                  </div>
-                                )}
-                                {col.id === "concluido" && r.completed_at && (
-                                  <div className="text-[11px] text-success">
-                                    Entregue em {formatDate(r.completed_at)}
+                                    Entregue/Retirado em {formatDate(r.completed_at || deliveryMap[r.purchase_id])}
                                   </div>
                                 )}
                               </CardContent>
