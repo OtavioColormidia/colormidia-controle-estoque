@@ -575,9 +575,9 @@ export default function PublicRequests() {
                                     Pedido feito em {formatDate(r.ordered_at)}
                                   </div>
                                 )}
-                                {col.id === "concluido" && (r.completed_at || (r.purchase_id && deliveryMap[r.purchase_id])) && (
+                                {col.id === "concluido" && (r.completed_at || deliveryMap[r.purchase_id ?? ""]) && (
                                   <div className="text-[11px] text-success">
-                                    Entregue/Retirado em {formatDate(r.completed_at || deliveryMap[r.purchase_id])}
+                                    Entregue/Retirado em {formatDate(r.completed_at || deliveryMap[r.purchase_id ?? ""])}
                                   </div>
                                 )}
                               </CardContent>
