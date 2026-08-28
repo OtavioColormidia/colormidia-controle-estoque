@@ -504,6 +504,17 @@ export default function PublicRequests() {
                                   <div className="text-[11px] text-primary/80">
                                     Pedido feito em {formatDate(p.date)}
                                   </div>
+                                  {!p.delivered_at && p.expected_delivery_date && (
+                                    <div className="text-[11px] text-warning">
+                                      Entrega/Retirada prevista em{" "}
+                                      {new Date(p.expected_delivery_date).toLocaleDateString("pt-BR", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                        timeZone: "UTC",
+                                      })}
+                                    </div>
+                                  )}
                                   {p.delivered_at && (
                                     <div className="text-[11px] text-success">
                                       Entregue em {formatDate(p.delivered_at)}
