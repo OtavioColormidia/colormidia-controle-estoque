@@ -153,7 +153,7 @@ export default function PublicRequests() {
         .limit(500),
       (supabase as any)
         .from("public_recent_purchases")
-        .select("id, date, created_at, delivered_at, supplier_name, creator_name, document_number, items_summary")
+        .select("id, date, created_at, delivered_at, expected_delivery_date, supplier_name, creator_name, document_number, items_summary")
         .order("date", { ascending: false })
         .limit(200),
     ]);
