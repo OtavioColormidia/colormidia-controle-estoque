@@ -29,6 +29,7 @@ interface PurchaseCard {
   date: string;
   created_at: string;
   delivered_at: string | null;
+  expected_delivery_date?: string | null;
   supplier_name: string | null;
   creator_name: string | null;
   document_number: string | null;
