@@ -29,6 +29,7 @@ interface PurchaseCard {
   date: string;
   created_at: string;
   delivered_at: string | null;
+  expected_delivery_date?: string | null;
   supplier_name: string | null;
   creator_name: string | null;
   document_number: string | null;
@@ -152,7 +153,7 @@ export default function PublicRequests() {
         .limit(500),
       (supabase as any)
         .from("public_recent_purchases")
-        .select("id, date, created_at, delivered_at, supplier_name, creator_name, document_number, items_summary")
+        .select("id, date, created_at, delivered_at, expected_delivery_date, supplier_name, creator_name, document_number, items_summary")
         .order("date", { ascending: false })
         .limit(200),
     ]);
@@ -503,6 +504,17 @@ export default function PublicRequests() {
                                   <div className="text-[11px] text-primary/80">
                                     Pedido feito em {formatDate(p.date)}
                                   </div>
+                                  {!p.delivered_at && p.expected_delivery_date && (
+                                    <div className="text-[11px] text-warning">
+                                      Entrega/Retirada prevista em{" "}
+                                      {new Date(p.expected_delivery_date).toLocaleDateString("pt-BR", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                        timeZone: "UTC",
+                                      })}
+                                    </div>
+                                  )}
                                   {p.delivered_at && (
                                     <div className="text-[11px] text-success">
                                       Entregue em {formatDate(p.delivered_at)}

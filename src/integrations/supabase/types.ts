@@ -1060,6 +1060,7 @@ export type Database = {
           date: string | null
           delivered_at: string | null
           document_number: string | null
+          expected_delivery_date: string | null
           id: string | null
           items_summary: string | null
           supplier_name: string | null
