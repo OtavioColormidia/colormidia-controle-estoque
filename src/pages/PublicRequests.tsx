@@ -113,6 +113,7 @@ export default function PublicRequests() {
   const [items, setItems] = useState<FormResponse[]>([]);
   const [purchases, setPurchases] = useState<PurchaseCard[]>([]);
   const [deliveryMap, setDeliveryMap] = useState<Record<string, string>>({});
+  const [expectedMap, setExpectedMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState<string>("todos");
@@ -165,15 +166,19 @@ export default function PublicRequests() {
     if (purchaseIds.length) {
       const { data: pd } = await supabase
         .from("purchases")
-        .select("id, delivered_at")
+        .select("id, delivered_at, expected_delivery_date")
         .in("id", Array.from(new Set(purchaseIds)));
       const map: Record<string, string> = {};
+      const exp: Record<string, string> = {};
       (pd || []).forEach((p: any) => {
         if (p.delivered_at) map[p.id] = p.delivered_at;
+        if (p.expected_delivery_date) exp[p.id] = p.expected_delivery_date;
       });
       setDeliveryMap(map);
+      setExpectedMap(exp);
     } else {
       setDeliveryMap({});
+      setExpectedMap({});
     }
     setLoading(false);
   };
@@ -573,6 +578,17 @@ export default function PublicRequests() {
                                 {col.id === "feito" && r.ordered_at && (
                                   <div className="text-[11px] text-primary/80">
                                     Pedido feito em {formatDate(r.ordered_at)}
+                                  </div>
+                                )}
+                                {col.id === "feito" && expectedMap[r.purchase_id ?? ""] && (
+                                  <div className="text-[11px] text-warning">
+                                    Entrega/Retirada prevista em{" "}
+                                    {new Date(expectedMap[r.purchase_id ?? ""]).toLocaleDateString("pt-BR", {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                      timeZone: "UTC",
+                                    })}
                                   </div>
                                 )}
                                 {col.id === "concluido" && (r.completed_at || deliveryMap[r.purchase_id ?? ""]) && (
