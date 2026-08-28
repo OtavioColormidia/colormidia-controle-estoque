@@ -580,6 +580,17 @@ export default function PublicRequests() {
                                     Pedido feito em {formatDate(r.ordered_at)}
                                   </div>
                                 )}
+                                {col.id === "feito" && expectedMap[r.purchase_id ?? ""] && (
+                                  <div className="text-[11px] text-warning">
+                                    Entrega/Retirada prevista em{" "}
+                                    {new Date(expectedMap[r.purchase_id ?? ""]).toLocaleDateString("pt-BR", {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                      timeZone: "UTC",
+                                    })}
+                                  </div>
+                                )}
                                 {col.id === "concluido" && (r.completed_at || deliveryMap[r.purchase_id ?? ""]) && (
                                   <div className="text-[11px] text-success">
                                     Entregue/Retirado em {formatDate(r.completed_at || deliveryMap[r.purchase_id ?? ""])}
