@@ -166,15 +166,19 @@ export default function PublicRequests() {
     if (purchaseIds.length) {
       const { data: pd } = await supabase
         .from("purchases")
-        .select("id, delivered_at")
+        .select("id, delivered_at, expected_delivery_date")
         .in("id", Array.from(new Set(purchaseIds)));
       const map: Record<string, string> = {};
+      const exp: Record<string, string> = {};
       (pd || []).forEach((p: any) => {
         if (p.delivered_at) map[p.id] = p.delivered_at;
+        if (p.expected_delivery_date) exp[p.id] = p.expected_delivery_date;
       });
       setDeliveryMap(map);
+      setExpectedMap(exp);
     } else {
       setDeliveryMap({});
+      setExpectedMap({});
     }
     setLoading(false);
   };
