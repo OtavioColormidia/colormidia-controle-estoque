@@ -325,13 +325,18 @@ export default function PublicRequests() {
         return (p.creator_name || "").trim().toLowerCase() === solicitanteFilter.toLowerCase();
       })
       .filter((p) => {
+        const osQ = osFilter.trim().toLowerCase();
+        if (!osQ) return true;
+        return (p.document_number || "").toLowerCase().includes(osQ);
+      })
+      .filter((p) => {
         if (!q) return true;
         return [p.creator_name, p.supplier_name, p.document_number, p.items_summary]
           .join(" ")
           .toLowerCase()
           .includes(q);
       });
-  }, [purchases, items, search, tipoFilter, solicitanteFilter]);
+  }, [purchases, items, search, tipoFilter, solicitanteFilter, osFilter]);
 
   // Mescla requisições e compras em uma única lista por coluna, ordenada pelo
   // timestamp mais relevante (mais recente no topo).
