@@ -1080,15 +1080,15 @@ export default function Purchases({
         </Card>
 
         <Card className="p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 space-y-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <FileText className="h-5 w-5" />
               Pedidos Cadastrados
             </h3>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Filter className="hidden sm:block h-4 w-4 shrink-0 text-muted-foreground" />
               <Select value={filterSupplierId} onValueChange={setFilterSupplierId}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:flex-1 sm:min-w-[180px]">
                   <SelectValue placeholder="Filtrar por fornecedor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1106,16 +1106,17 @@ export default function Purchases({
                 placeholder="Filtrar por produto..."
                 value={filterProductName}
                 onChange={(e) => setFilterProductName(e.target.value)}
-                className="w-[200px]"
+                className="w-full sm:flex-1 sm:min-w-[160px]"
               />
               <Input
                 placeholder="Filtrar por OS..."
                 value={filterOs}
                 onChange={(e) => setFilterOs(e.target.value)}
-                className="w-[160px]"
+                className="w-full sm:w-[140px]"
               />
             </div>
           </div>
+
           <ScrollArea className="h-[600px] w-full">
             <Table className="min-w-[1400px]">
               <TableHeader>
