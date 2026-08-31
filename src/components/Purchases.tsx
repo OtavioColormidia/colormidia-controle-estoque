@@ -88,6 +88,7 @@ export default function Purchases({
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState("");
   const [filterProductName, setFilterProductName] = useState("");
+  const [filterOs, setFilterOs] = useState("");
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
