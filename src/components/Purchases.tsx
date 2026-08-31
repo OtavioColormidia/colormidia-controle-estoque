@@ -1139,7 +1139,7 @@ export default function Purchases({
                 {filteredPurchases.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
-                      {filterSupplierId === "all" && !filterProductName.trim()
+                      {filterSupplierId === "all" && !filterProductName.trim() && !filterOs.trim()
                         ? "Nenhum pedido cadastrado"
                         : "Nenhum pedido encontrado com os filtros aplicados"}
                     </TableCell>
