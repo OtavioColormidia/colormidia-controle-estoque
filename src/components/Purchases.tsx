@@ -88,6 +88,7 @@ export default function Purchases({
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState("");
   const [filterProductName, setFilterProductName] = useState("");
+  const [filterOs, setFilterOs] = useState("");
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [purchaseAttachments, setPurchaseAttachments] = useState<Record<string, string[]>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -535,8 +536,12 @@ export default function Purchases({
       const search = filterProductName.toLowerCase();
       filtered = filtered.filter((p) => p.items.some((item) => item.productName.toLowerCase().includes(search)));
     }
+    if (filterOs.trim()) {
+      const os = filterOs.toLowerCase();
+      filtered = filtered.filter((p) => (p.documentNumber || "").toLowerCase().includes(os));
+    }
     return filtered;
-  }, [purchases, filterSupplierId, filterProductName]);
+  }, [purchases, filterSupplierId, filterProductName, filterOs]);
 
   return (
     <div className="space-y-6">
@@ -1103,6 +1108,12 @@ export default function Purchases({
                 onChange={(e) => setFilterProductName(e.target.value)}
                 className="w-[200px]"
               />
+              <Input
+                placeholder="Filtrar por OS..."
+                value={filterOs}
+                onChange={(e) => setFilterOs(e.target.value)}
+                className="w-[160px]"
+              />
             </div>
           </div>
           <ScrollArea className="h-[600px] w-full">
@@ -1128,7 +1139,7 @@ export default function Purchases({
                 {filteredPurchases.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
-                      {filterSupplierId === "all" && !filterProductName.trim()
+                      {filterSupplierId === "all" && !filterProductName.trim() && !filterOs.trim()
                         ? "Nenhum pedido cadastrado"
                         : "Nenhum pedido encontrado com os filtros aplicados"}
                     </TableCell>

@@ -119,6 +119,7 @@ export default function PublicRequests() {
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState<string>("todos");
   const [solicitanteFilter, setSolicitanteFilter] = useState<string>("todos");
+  const [osFilter, setOsFilter] = useState("");
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -264,6 +265,7 @@ export default function PublicRequests() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const osQ = osFilter.trim().toLowerCase();
     return items.filter((r) => {
       if (tipoFilter !== "todos") {
         if (tipoFilter === "Compras") return false;
@@ -273,11 +275,15 @@ export default function PublicRequests() {
         const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
         if (n.toLowerCase() !== solicitanteFilter.toLowerCase()) return false;
       }
+      if (osQ) {
+        const os = getField(r.data, "o.s", "ordem").toLowerCase();
+        if (!os.includes(osQ)) return false;
+      }
       if (!q) return true;
       const hay = [r.form_name, JSON.stringify(r.data ?? {})].join(" ").toLowerCase();
       return hay.includes(q);
     });
-  }, [items, search, tipoFilter, solicitanteFilter]);
+  }, [items, search, tipoFilter, solicitanteFilter, osFilter]);
 
 
   const grouped = useMemo(() => {
@@ -320,13 +326,18 @@ export default function PublicRequests() {
         return (p.creator_name || "").trim().toLowerCase() === solicitanteFilter.toLowerCase();
       })
       .filter((p) => {
+        const osQ = osFilter.trim().toLowerCase();
+        if (!osQ) return true;
+        return (p.document_number || "").toLowerCase().includes(osQ);
+      })
+      .filter((p) => {
         if (!q) return true;
         return [p.creator_name, p.supplier_name, p.document_number, p.items_summary]
           .join(" ")
           .toLowerCase()
           .includes(q);
       });
-  }, [purchases, items, search, tipoFilter, solicitanteFilter]);
+  }, [purchases, items, search, tipoFilter, solicitanteFilter, osFilter]);
 
   // Mescla requisições e compras em uma única lista por coluna, ordenada pelo
   // timestamp mais relevante (mais recente no topo).
@@ -396,6 +407,12 @@ export default function PublicRequests() {
                 className="pl-9"
               />
             </div>
+            <Input
+              value={osFilter}
+              onChange={(e) => setOsFilter(e.target.value)}
+              placeholder="Filtrar por O.S."
+              className="w-full sm:w-40"
+            />
             <Select value={tipoFilter} onValueChange={setTipoFilter}>
               <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder="Tipo" />
