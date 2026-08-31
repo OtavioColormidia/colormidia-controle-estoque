@@ -1108,6 +1108,12 @@ export default function Purchases({
                 onChange={(e) => setFilterProductName(e.target.value)}
                 className="w-[200px]"
               />
+              <Input
+                placeholder="Filtrar por OS..."
+                value={filterOs}
+                onChange={(e) => setFilterOs(e.target.value)}
+                className="w-[160px]"
+              />
             </div>
           </div>
           <ScrollArea className="h-[600px] w-full">
