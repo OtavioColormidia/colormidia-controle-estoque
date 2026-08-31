@@ -407,6 +407,12 @@ export default function PublicRequests() {
                 className="pl-9"
               />
             </div>
+            <Input
+              value={osFilter}
+              onChange={(e) => setOsFilter(e.target.value)}
+              placeholder="Filtrar por O.S."
+              className="w-full sm:w-40"
+            />
             <Select value={tipoFilter} onValueChange={setTipoFilter}>
               <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder="Tipo" />
