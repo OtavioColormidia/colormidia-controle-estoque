@@ -119,6 +119,7 @@ export default function PublicRequests() {
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState<string>("todos");
   const [solicitanteFilter, setSolicitanteFilter] = useState<string>("todos");
+  const [osFilter, setOsFilter] = useState("");
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
