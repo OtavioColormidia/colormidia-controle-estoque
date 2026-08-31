@@ -264,6 +264,7 @@ export default function PublicRequests() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const osQ = osFilter.trim().toLowerCase();
     return items.filter((r) => {
       if (tipoFilter !== "todos") {
         if (tipoFilter === "Compras") return false;
@@ -273,11 +274,15 @@ export default function PublicRequests() {
         const n = getField(r.data, "solicit", "vendedor", "responsavel", "requisitante").trim();
         if (n.toLowerCase() !== solicitanteFilter.toLowerCase()) return false;
       }
+      if (osQ) {
+        const os = getField(r.data, "o.s", "ordem").toLowerCase();
+        if (!os.includes(osQ)) return false;
+      }
       if (!q) return true;
       const hay = [r.form_name, JSON.stringify(r.data ?? {})].join(" ").toLowerCase();
       return hay.includes(q);
     });
-  }, [items, search, tipoFilter, solicitanteFilter]);
+  }, [items, search, tipoFilter, solicitanteFilter, osFilter]);
 
 
   const grouped = useMemo(() => {
