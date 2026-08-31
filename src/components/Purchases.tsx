@@ -536,8 +536,12 @@ export default function Purchases({
       const search = filterProductName.toLowerCase();
       filtered = filtered.filter((p) => p.items.some((item) => item.productName.toLowerCase().includes(search)));
     }
+    if (filterOs.trim()) {
+      const os = filterOs.toLowerCase();
+      filtered = filtered.filter((p) => (p.documentNumber || "").toLowerCase().includes(os));
+    }
     return filtered;
-  }, [purchases, filterSupplierId, filterProductName]);
+  }, [purchases, filterSupplierId, filterProductName, filterOs]);
 
   return (
     <div className="space-y-6">
