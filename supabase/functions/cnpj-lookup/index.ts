@@ -45,30 +45,50 @@ serve(async (req) => {
       )
     }
 
-    const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
-
-    if (response.ok) {
-      const data = await response.json()
-      return new Response(
-        JSON.stringify({
-          razao_social: data.razao_social,
-          nome_fantasia: data.nome_fantasia,
-          email: data.email,
-          telefone: data.ddd_telefone_1 ? `${data.ddd_telefone_1}` : '',
-          logradouro: data.logradouro,
-          numero: data.numero,
-          municipio: data.municipio,
-          uf: data.uf,
-          cep: data.cep,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    const json = (d: unknown, status = 200) => new Response(JSON.stringify(d), {
+      status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+    const get = async (url: string) => {
+      try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(8000) })
+        return r.ok ? await r.json() : null
+      } catch { return null }
     }
 
-    return new Response(
-      JSON.stringify({ error: 'CNPJ não encontrado' }),
-      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    // 1) BrasilAPI
+    const b = await get(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
+    if (b?.razao_social) {
+      return json({
+        razao_social: b.razao_social, nome_fantasia: b.nome_fantasia, email: b.email,
+        telefone: b.ddd_telefone_1 ? `${b.ddd_telefone_1}` : '',
+        logradouro: b.logradouro, numero: b.numero, municipio: b.municipio, uf: b.uf, cep: b.cep,
+      })
+    }
+
+    // 2) CNPJá (open)
+    const c = await get(`https://open.cnpja.com/office/${digits}`)
+    if (c?.company?.name) {
+      const p = c.phones?.[0]
+      return json({
+        razao_social: c.company.name, nome_fantasia: c.alias ?? '', email: c.emails?.[0]?.address ?? '',
+        telefone: p ? `${p.area}${p.number}` : '',
+        logradouro: c.address?.street ?? '', numero: c.address?.number ?? '',
+        municipio: c.address?.city ?? '', uf: c.address?.state ?? '', cep: c.address?.zip ?? '',
+      })
+    }
+
+    // 3) ReceitaWS
+    const r = await get(`https://receitaws.com.br/v1/cnpj/${digits}`)
+    if (r?.nome && r.status !== 'ERROR') {
+      return json({
+        razao_social: r.nome, nome_fantasia: r.fantasia, email: r.email,
+        telefone: (r.telefone ?? '').replace(/\D/g, '').slice(0, 11),
+        logradouro: r.logradouro, numero: r.numero, municipio: r.municipio, uf: r.uf,
+        cep: (r.cep ?? '').replace(/\D/g, ''),
+      })
+    }
+
+    return json({ error: 'CNPJ não encontrado' }, 404)
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
