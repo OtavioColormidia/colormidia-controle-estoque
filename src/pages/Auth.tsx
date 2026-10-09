@@ -123,38 +123,27 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-login p-4 relative overflow-hidden">
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-primary/30 rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-3xl animate-float-slower" />
-        <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-primary/15 rounded-full blur-3xl animate-float-medium" />
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 auth-grid opacity-60" />
-        {/* Vignette */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/40" />
-      </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       <div className="relative z-10 w-full max-w-md animate-fade-in">
         {/* Logo and branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card shadow-2xl mb-4 overflow-hidden animate-logo-glow ring-1 ring-primary/30">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-lg bg-card shadow-md mb-4 overflow-hidden border border-border">
             <img 
               src={logoColorMedia} 
               alt="ColorMídia" 
               className="w-full h-full object-cover"
             />
           </div>
-          <h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-primary-foreground via-primary-foreground/90 to-secondary bg-clip-text text-transparent animate-gradient-x">
+          <h1 className="text-3xl font-semibold mb-2 text-foreground">
             ColorMídia
           </h1>
-          <p className="text-primary-foreground/70 text-sm tracking-wide">
+          <p className="text-muted-foreground text-sm tracking-wide">
             Sistema de Controle de Estoque
           </p>
         </div>
 
         {/* Login Card */}
-        <Card className="glass shadow-2xl border-0 backdrop-blur-xl">
+        <Card className="bg-card shadow-lg border-border">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-xl font-semibold text-center">
               Bem-vindo de volta
@@ -218,14 +207,15 @@ export default function Auth() {
                     />
                   </div>
                   <div className="flex justify-end -mt-1">
-                    <button
+                    <Button
                       type="button"
                       onClick={handleForgotPassword}
                       disabled={loading}
-                      className="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
+                      variant="link"
+                       className="h-auto p-0 text-xs text-muted-foreground hover:text-primary"
                     >
                       Esqueci minha senha
-                    </button>
+                    </Button>
                   </div>
 
                   {error && (
@@ -236,7 +226,7 @@ export default function Auth() {
                   )}
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-95 transition-all shadow-lg hover:shadow-glow font-medium animate-shine" 
+                    className="w-full h-11 font-medium" 
                     disabled={loading}
                   >
                     {loading ? (
@@ -311,7 +301,7 @@ export default function Auth() {
                   )}
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-95 transition-all shadow-lg hover:shadow-glow font-medium animate-shine" 
+                    className="w-full h-11 font-medium" 
                     disabled={loading}
                   >
                     {loading ? (
@@ -336,7 +326,7 @@ export default function Auth() {
         </Card>
 
         {/* Footer text */}
-        <p className="text-center text-primary-foreground/50 text-xs mt-6">
+        <p className="text-center text-muted-foreground text-xs mt-6">
           © {new Date().getFullYear()} ColorMídia. Todos os direitos reservados.
         </p>
       </div>

@@ -25,17 +25,17 @@ export default function PageHeader({
   iconAccent = 'primary',
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border/60 animate-fade-in">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border animate-fade-in">
       <div className="flex items-start gap-4 min-w-0">
-        <div className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${accentStyles[iconAccent]}`}>
-          <Icon className="h-6 w-6" />
+        <div className={`h-11 w-11 rounded-lg border border-current/10 flex items-center justify-center flex-shrink-0 ${accentStyles[iconAccent]}`}>
+          <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight truncate">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground break-words">
             {title}
           </h1>
           {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{description}</p>
           )}
         </div>
       </div>

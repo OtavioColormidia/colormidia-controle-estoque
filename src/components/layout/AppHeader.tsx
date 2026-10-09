@@ -89,7 +89,7 @@ export function AppHeader() {
   const currentLabel = segments.length ? routeLabels[segments[segments.length - 1]] ?? '' : 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur-lg px-4 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-card/90 backdrop-blur-md px-4 lg:px-6">
       <SidebarTrigger />
       <Separator orientation="vertical" className="h-5" />
       <Breadcrumb className="hidden sm:flex">
@@ -120,7 +120,7 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-9 px-2 gap-2" aria-label="Menu do usuário">
               <Avatar className="h-7 w-7">
-                <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-[10px] font-semibold">
+                <AvatarFallback className="bg-gradient-secondary text-brand-foreground text-[10px] font-semibold">
                   {getInitials(displayName)}
                 </AvatarFallback>
               </Avatar>

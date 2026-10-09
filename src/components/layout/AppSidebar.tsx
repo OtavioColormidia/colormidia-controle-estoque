@@ -31,6 +31,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +54,7 @@ interface NavSection {
   items: NavItem[];
 }
 
-const sidebarIconClass = 'bg-white/10 text-sidebar-foreground/80 group-hover:bg-white/18 group-hover:text-sidebar-foreground';
+const sidebarIconClass = 'text-sidebar-foreground/65 group-hover:text-sidebar-foreground';
 
 const sections: NavSection[] = [
   {
@@ -299,20 +300,18 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0">
       {/* Sidebar with gradient background + decorative orbs */}
       <div className="absolute inset-0 sidebar-gradient pointer-events-none" />
-      <div className="sidebar-orb h-40 w-40 -top-10 -left-10 bg-white/5" />
-      <div className="sidebar-orb h-48 w-48 bottom-20 -right-16 bg-white/5" />
 
       <SidebarHeader className="relative border-b border-sidebar-border/50 backdrop-blur-sm">
         <div className="flex items-center gap-3 px-2 py-2">
-          <div className="sidebar-logo-ring h-10 w-10 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
-            <img src={logoColorMedia} alt="ColorMídia" className="h-full w-full object-cover rounded-[10px]" />
+          <div className="h-10 w-10 rounded-lg overflow-hidden flex-shrink-0 border border-sidebar-border">
+            <img src={logoColorMedia} alt="ColorMídia" className="h-full w-full object-cover rounded-lg" />
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-bold text-sidebar-foreground truncate tracking-tight">
+              <h1 className="text-base font-semibold text-sidebar-foreground truncate">
                 Color<span className="text-sidebar-foreground/90">Mídia</span>
               </h1>
-              <p className="text-[10px] text-sidebar-foreground/50 truncate uppercase tracking-wider">Controle de Estoque</p>
+              <p className="text-[10px] text-sidebar-foreground/50 truncate uppercase tracking-wider">Estoque / Compras</p>
             </div>
           )}
         </div>
@@ -362,15 +361,11 @@ export function AppSidebar() {
                       <GripVertical className="h-3.5 w-3.5" />
                     </span>
                     <CollapsibleTrigger asChild>
-                      <button
+                      <Button
                         type="button"
-                        className="flex-1 flex items-center justify-between rounded-md px-2 py-1 text-left hover:bg-sidebar-accent/40 transition-colors"
+                        className="h-8 flex-1 flex items-center justify-between rounded-md px-2 py-1 text-left text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors"
                       >
                         <SidebarGroupLabel className="sidebar-label-fancy px-0 cursor-pointer">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full shadow-[0_0_8px_currentColor]"
-                            style={{ backgroundColor: section.accent, color: section.accent }}
-                          />
                           {section.label}
                           {!isOpen && hasActive && (
                             <span className="ml-1 h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
@@ -382,7 +377,7 @@ export function AppSidebar() {
                             !isOpen && '-rotate-90'
                           )}
                         />
-                      </button>
+                      </Button>
                     </CollapsibleTrigger>
                   </div>
                 )}
@@ -447,9 +442,9 @@ export function AppSidebar() {
                               isActive={active}
                               tooltip={item.title}
                               className={cn(
-                                'group nav-hover-sweep relative h-10 rounded-lg transition-all duration-300 flex-1',
-                                'hover:bg-sidebar-accent/60 hover:translate-x-0.5',
-                                active && 'bg-sidebar-accent/80 shadow-md font-medium'
+                                'group relative h-10 rounded-lg transition-colors duration-150 flex-1',
+                                'hover:bg-sidebar-accent/60',
+                                active && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
                               )}
                             >
                               <NavLink to={item.url} className="relative flex items-center gap-3">
@@ -458,7 +453,7 @@ export function AppSidebar() {
                                   className={cn(
                                     'flex h-7 w-7 items-center justify-center rounded-md transition-all duration-300 flex-shrink-0',
                                     item.iconClass,
-                                    active && 'scale-110 shadow-sm'
+                                    active && 'text-sidebar-primary'
                                   )}
                                 >
                                   <Icon className="h-4 w-4" />
