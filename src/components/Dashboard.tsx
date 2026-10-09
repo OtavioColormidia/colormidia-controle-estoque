@@ -20,6 +20,7 @@ import { Product, StockMovement, Purchase, Supplier, UserRole } from "@/types/in
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import PageHeader from "@/components/shared/PageHeader";
 import ZoomableImage from "@/components/shared/ZoomableImage";
 
 interface DashboardProps {
@@ -31,16 +32,16 @@ interface DashboardProps {
 }
 
 const quickAccessCards = [
-  { id: "inventory", label: "Controle de Estoque", description: "Estoque atual e alertas", icon: Package, gradient: "from-cyan-500 to-teal-500", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
-  { id: "truss-control", label: "Controle de Treliça", description: "Gerenciar treliças", icon: Package, gradient: "from-blue-500 to-indigo-500", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
-  { id: "entries", label: "Entrada de Material", description: "Registrar entradas", icon: PackagePlus, gradient: "from-emerald-500 to-green-500", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
-  { id: "exits", label: "Saída de Material", description: "Registrar saídas", icon: PackageMinus, gradient: "from-orange-500 to-amber-500", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
-  { id: "purchases", label: "Compras", description: "Pedidos e anexos", icon: ShoppingCart, gradient: "from-purple-500 to-violet-500", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
-  { id: "form-responses", label: "Requisição de Materiais", description: "Pedidos recebidos via formulário", icon: FileText, gradient: "from-fuchsia-500 to-pink-500", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
-  { id: "products", label: "Cadastro de Produtos", description: "Gerenciar produtos", icon: ClipboardList, gradient: "from-pink-500 to-rose-500", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
-  { id: "suppliers", label: "Cadastro de Fornecedores", description: "Gerenciar fornecedores", icon: Users, gradient: "from-sky-500 to-blue-500", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
-  { id: "supplier-materials", label: "Fornecedores / Material", description: "Materiais por fornecedor", icon: Package, gradient: "from-teal-500 to-cyan-500", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
-  { id: "users", label: "Usuários", description: "Gestão de acessos", icon: UserCog, gradient: "from-slate-500 to-gray-600", allowedRoles: ["admin"] as UserRole[] },
+  { id: "inventory", label: "Controle de Estoque", description: "Estoque atual e alertas", icon: Package, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
+  { id: "truss-control", label: "Controle de Treliça", description: "Gerenciar treliças", icon: Package, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
+  { id: "entries", label: "Entrada de Material", description: "Registrar entradas", icon: PackagePlus, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
+  { id: "exits", label: "Saída de Material", description: "Registrar saídas", icon: PackageMinus, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
+  { id: "purchases", label: "Compras", description: "Pedidos e anexos", icon: ShoppingCart, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
+  { id: "form-responses", label: "Requisição de Materiais", description: "Pedidos recebidos via formulário", icon: FileText, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
+  { id: "products", label: "Cadastro de Produtos", description: "Gerenciar produtos", icon: ClipboardList, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "almoxarife"] as UserRole[] },
+  { id: "suppliers", label: "Cadastro de Fornecedores", description: "Gerenciar fornecedores", icon: Users, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
+  { id: "supplier-materials", label: "Fornecedores / Material", description: "Materiais por fornecedor", icon: Package, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin", "compras", "almoxarife"] as UserRole[] },
+  { id: "users", label: "Usuários", description: "Gestão de acessos", icon: UserCog, gradient: "bg-primary/10 text-primary", allowedRoles: ["admin"] as UserRole[] },
 ];
 
 interface RecentActivity {
@@ -146,10 +147,7 @@ export default function Dashboard({ products, movements, purchases, suppliers = 
   return (
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="animate-fade-in">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Atalhos Rápidos</h2>
-        <p className="text-muted-foreground mt-1">Acesse rapidamente as áreas do sistema</p>
-      </div>
+      <PageHeader icon={BarChart3} title="Visão geral" description="Estoque, compras e movimentações" />
 
       {/* Quick Access Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
@@ -158,19 +156,19 @@ export default function Dashboard({ products, movements, purchases, suppliers = 
           return (
             <div
               key={card.id}
-              className={`relative rounded-xl sm:rounded-2xl bg-gradient-to-br ${card.gradient} p-4 sm:p-6 text-white cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group min-h-[120px] sm:min-h-[160px] flex flex-col justify-between`}
+              className={`relative rounded-lg border border-border bg-card p-4 sm:p-5 text-foreground transition-colors group min-h-[140px] sm:min-h-[170px] flex flex-col justify-between hover:border-primary/40`}
               onClick={() => onTabChange(card.id)}
             >
               <div>
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 sm:mb-4">
-                  <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2 sm:mb-4">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-sm sm:text-xl font-bold leading-tight">{card.label}</h3>
-                <p className="text-xs sm:text-sm text-white/80 mt-0.5 sm:mt-1 hidden sm:block">{card.description}</p>
+                <h3 className="text-sm sm:text-base font-semibold leading-tight">{card.label}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">{card.description}</p>
               </div>
               <Button
                 variant="secondary"
-                className="mt-2 sm:mt-4 w-full bg-black/25 hover:bg-black/40 text-white border-0 font-semibold text-xs sm:text-sm h-8 sm:h-9"
+                className="mt-3 w-full justify-between text-primary text-xs sm:text-sm h-8 sm:h-9"
                 onClick={(e) => { e.stopPropagation(); onTabChange(card.id); }}
               >
                 Acessar
@@ -222,7 +220,7 @@ export default function Dashboard({ products, movements, purchases, suppliers = 
                       <div className="flex flex-wrap gap-1 mt-2">
                         {attachments.map((fileName) => (
                           <Button key={fileName} variant="ghost" size="sm" className="h-7 px-2 text-primary hover:text-primary/80 text-xs" title={fileName}
-                            onClick={() => handlePreviewAttachment(activity.purchaseId!, fileName)}>
+                            onClick={() => { if (activity.purchaseId) handlePreviewAttachment(activity.purchaseId, fileName); }}>
                             <Paperclip className="h-3.5 w-3.5 mr-1" />
                             <span className="max-w-[100px] truncate">{fileName}</span>
                           </Button>

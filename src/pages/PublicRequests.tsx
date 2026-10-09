@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ClipboardList, Search, Loader2, Inbox, PackageCheck, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logoColorMedia from '@/assets/logo-colormedia.jpg';
 import { abbreviateProductName } from "@/lib/abbreviateItems";
 
 interface FormResponse {
@@ -91,21 +92,21 @@ const columns: {
     id: "aberto",
     label: "Pedidos Pendentes",
     icon: Inbox,
-    accent: "from-warning/20 to-warning/5 border-warning/40",
+    accent: "border-warning/50 text-warning",
     badge: "bg-warning/15 text-warning border-warning/30",
   },
   {
     id: "feito",
     label: "Pedidos Realizados",
     icon: PackageCheck,
-    accent: "from-primary/20 to-primary/5 border-primary/40",
+    accent: "border-primary/50 text-primary",
     badge: "bg-primary/15 text-primary border-primary/30",
   },
   {
     id: "concluido",
     label: "Pedidos Entregues",
     icon: CheckCircle2,
-    accent: "from-success/20 to-success/5 border-success/40",
+    accent: "border-success/50 text-success",
     badge: "bg-success/15 text-success border-success/30",
   },
 ];
@@ -381,24 +382,22 @@ export default function PublicRequests() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
-      <header className="border-b border-border/60 bg-card/60 backdrop-blur-md sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border/60 bg-card/95 backdrop-blur-md sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-col gap-5">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <ClipboardList className="h-6 w-6" />
-            </div>
+            <img src={logoColorMedia} alt="ColorMídia" className="h-11 w-11 rounded-lg object-cover border border-border" />
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Requisições de Materiais
+              <h1 className="text-xl sm:text-2xl font-semibold">
+                ColorMídia · Pedidos
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Acompanhamento em tempo real — Vendedores & Compras
+                Requisições de Materiais · Vendedores & Compras
               </p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={search}
@@ -411,10 +410,10 @@ export default function PublicRequests() {
               value={osFilter}
               onChange={(e) => setOsFilter(e.target.value)}
               placeholder="Filtrar por O.S."
-              className="w-full sm:w-40"
+              className="w-full"
             />
             <Select value={tipoFilter} onValueChange={setTipoFilter}>
-              <SelectTrigger className="w-full sm:w-44">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
@@ -425,7 +424,7 @@ export default function PublicRequests() {
               </SelectContent>
             </Select>
             <Select value={solicitanteFilter} onValueChange={setSolicitanteFilter}>
-              <SelectTrigger className="w-full sm:w-48">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Solicitante" />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50 max-h-72">
@@ -450,7 +449,7 @@ export default function PublicRequests() {
             <div
               ref={topScrollRef}
               onScroll={syncFromTop}
-              className="overflow-x-auto sticky top-[76px] z-[5] bg-background/80 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 mb-2"
+              className="overflow-x-auto sticky top-[170px] z-[5] bg-background/80 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 mb-2"
             >
               <div style={{ width: innerWidth || 1024, height: 1 }} />
             </div>
@@ -467,11 +466,11 @@ export default function PublicRequests() {
                   <section key={col.id} className="flex flex-col min-h-[400px] min-w-0">
                     <div
                       className={cn(
-                        "rounded-t-xl border border-b-0 px-4 py-3 flex items-center justify-between bg-gradient-to-br",
+                        "border-b-2 px-1 py-3 flex items-center justify-between",
                         col.accent,
                       )}
                     >
-                      <div className="flex items-center gap-2 font-semibold uppercase tracking-wide text-sm">
+                      <div className="flex items-center gap-2 font-semibold text-sm">
                         <Icon className="h-4 w-4" />
                         {col.label}
                       </div>
@@ -479,7 +478,7 @@ export default function PublicRequests() {
                         {colItems.length}
                       </Badge>
                     </div>
-                    <div className="flex-1 border rounded-b-xl bg-card/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)]">
+                    <div className="flex-1 pt-4 space-y-3 overflow-y-auto max-h-[calc(100vh-260px)]">
                       {colItems.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground py-10">
                           Nenhum pedido nesta categoria.
@@ -500,7 +499,7 @@ export default function PublicRequests() {
                               .join("\n");
                             return (
                               <Card key={p.id} className="border-border/60 hover:border-primary/40 transition-colors">
-                                <CardHeader className="p-3 pb-2 space-y-1">
+                                <CardHeader className="p-4 pb-2 space-y-1.5">
                                   <div className="flex items-center justify-between gap-2">
                                     <CardTitle className="text-sm font-semibold truncate">
                                       {p.creator_name || p.supplier_name || "Compra"}
@@ -514,9 +513,9 @@ export default function PublicRequests() {
                                     )}
                                   </div>
                                 </CardHeader>
-                                <CardContent className="p-3 pt-0 space-y-2 text-sm">
+                                <CardContent className="p-4 pt-0 space-y-2.5 text-sm">
                                   {lines && (
-                                    <div className="whitespace-pre-wrap break-words leading-snug">{lines}</div>
+                                    <div className="whitespace-pre-wrap break-words leading-relaxed">{lines}</div>
                                   )}
                                   <div className="text-[11px] text-primary/80">
                                     Pedido feito em {formatDate(p.date)}
@@ -556,7 +555,7 @@ export default function PublicRequests() {
                               key={r.id}
                               className="border-border/60 hover:border-primary/40 transition-colors"
                             >
-                              <CardHeader className="p-3 pb-2 space-y-1">
+                              <CardHeader className="p-4 pb-2 space-y-1.5">
                                 <div className="flex items-center justify-between gap-2">
                                   <CardTitle className="text-sm font-semibold truncate">
                                     {solicitante || "Sem solicitante"}
@@ -572,9 +571,9 @@ export default function PublicRequests() {
                                   {os && <> · O.S. <span className="font-medium text-foreground">{os}</span></>}
                                 </div>
                               </CardHeader>
-                              <CardContent className="p-3 pt-0 space-y-2 text-sm">
+                              <CardContent className="p-4 pt-0 space-y-2.5 text-sm">
                                 {materials && (
-                                  <div className="whitespace-pre-wrap break-words leading-snug">
+                                  <div className="whitespace-pre-wrap break-words leading-relaxed">
                                     {materials}
                                   </div>
                                 )}

@@ -69,7 +69,7 @@ export default function AppLayout() {
           <AppSidebar />
           <SidebarInset className="flex flex-col min-w-0">
             <AppHeader />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-background">
               <Outlet />
             </main>
           </SidebarInset>
