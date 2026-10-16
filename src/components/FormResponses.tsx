@@ -151,6 +151,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
   const [profilesById, setProfilesById] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [stockReminderOpen, setStockReminderOpen] = useState(false);
   const [activeResponse, setActiveResponse] = useState<FormResponse | null>(null);
   const [finishOpen, setFinishOpen] = useState(false);
   const [finishPartial, setFinishPartial] = useState(false);
@@ -453,7 +454,7 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
 
   const handleOpenOrderDialog = (r: FormResponse) => {
     setActiveResponse(r);
-    setOrderDialogOpen(true);
+    setStockReminderOpen(true);
   };
 
   const renderStatusCell = (r: FormResponse) => {
