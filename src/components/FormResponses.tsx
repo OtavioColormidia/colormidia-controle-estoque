@@ -838,6 +838,27 @@ export default function FormResponses({ suppliers, onAddPurchase }: FormResponse
         </CardContent>
       </Card>
 
+      <AlertDialog open={stockReminderOpen} onOpenChange={setStockReminderOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Já conferiu o estoque?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Antes de fazer o pedido, verifique se esses materiais já não estão disponíveis no estoque, para evitar compras desnecessárias.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vou conferir</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setStockReminderOpen(false);
+                setOrderDialogOpen(true);
+              }}
+            >
+              Já conferi, continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <PurchaseOrderDialog
         open={orderDialogOpen}
         onOpenChange={(open) => {
