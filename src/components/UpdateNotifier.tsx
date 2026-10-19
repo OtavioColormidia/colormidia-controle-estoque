@@ -12,12 +12,11 @@ async function fetchVersion(): Promise<string | null> {
     });
     if (!res.ok) return null;
     const text = await res.text();
-    // Vite injects hashed asset filenames into index.html; hash the whole file.
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      hash = (hash * 31 + text.charCodeAt(i)) | 0;
-    }
-    return String(hash);
+    // Only compare Vite's hashed bundle filenames; the host injects dynamic
+    // content (nonces, tracking) into index.html that changes on every request.
+    const assets = text.match(/\/assets\/[^"'\s>]+\.(?:js|css)/g);
+    if (!assets || assets.length === 0) return null;
+    return Array.from(new Set(assets)).sort().join("|");
   } catch {
     return null;
   }
