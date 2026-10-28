@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { prepareNfFile } from "@/lib/prepareNfFile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,9 +155,9 @@ export default function PurchaseOrderDialog({
     if (!file) return;
     setNfProcessing(true);
     try {
-      const base64 = await fileToBase64(file);
+      const { base64, mimeType } = await prepareNfFile(file);
       const { data, error } = await supabase.functions.invoke("parse-nf-invoice", {
-        body: { fileBase64: base64, mimeType: file.type || "application/octet-stream" },
+        body: { fileBase64: base64, mimeType },
       });
       if (error) throw new Error(error.message || "Falha ao processar NF");
       const nf: any = data || {};

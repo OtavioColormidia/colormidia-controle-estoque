@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { prepareNfFile } from "@/lib/prepareNfFile";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -115,9 +116,9 @@ export default function Purchases({
   const handleNfFile = async (file: File) => {
     setNfProcessing(true);
     try {
-      const base64 = await fileToBase64(file);
+      const { base64, mimeType } = await prepareNfFile(file);
       const { data, error } = await supabase.functions.invoke("parse-nf-invoice", {
-        body: { fileBase64: base64, mimeType: file.type || "image/jpeg" },
+        body: { fileBase64: base64, mimeType },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
